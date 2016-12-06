@@ -314,6 +314,7 @@ function init() {
 		e.preventDefault();
 		if(!stop_name_autocomplete.value) return;
 		stop_id = stop_name_autocomplete.value;
+		window.location.hash = '#!' + stop_id;
 		loadTimes(stop_id, true);
 	});
 	
@@ -324,6 +325,11 @@ function init() {
 	alert_close.addEventListener('click', function(e) {
 		alert.style.display = 'none';
 	});
+	
+	if(window.location.hash.match(/^#![0-9]+$/)) {
+		stop_id = parseInt(window.location.hash.slice(2));
+		loadTimes(stop_id);
+	}
 }
 
 init();
