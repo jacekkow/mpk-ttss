@@ -30,13 +30,14 @@ var alert = document.getElementById('alert');
 var alert_text = document.getElementById('alert-text');
 var alert_close = document.getElementById('alert-close');
 
+var parseStatusBoarding = '>>>';
 function parseStatus(status) {
 	switch(status.status) {
 		case 'STOPPING':
-			return '<<<';
+			return parseStatusBoarding;
 		case 'PREDICTED':
 			if(status.actualRelativeTime <= 0)
-				return '<<<';
+				return parseStatusBoarding;
 			if(status.actualRelativeTime >= 60)
 				return Math.floor(status.actualRelativeTime / 60) + ' min';
 			return status.actualRelativeTime + ' s';
@@ -173,7 +174,7 @@ function loadTimes(stopId = null, clearRoute = false) {
 			var delay = parseDelay(data.actual[i]);
 			addCellWithText(tr, delay);
 			
-			if(status == '<<<') tr.className = 'success';
+			if(status == parseStatusBoarding) tr.className = 'success';
 			else if(parseInt(delay) > 9) tr.className = 'danger';
 			else if(parseInt(delay) > 3) tr.className = 'warning';
 			times_table.appendChild(tr);
