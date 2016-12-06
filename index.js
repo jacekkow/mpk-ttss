@@ -88,11 +88,11 @@ function addElementWithText(parent, element, text) {
 }
 
 function addCellWithText(parent, text) {
-	addElementWithText(parent, 'td', text);
+	return addElementWithText(parent, 'td', text);
 }
 
 function addParaWithText(parent, text) {
-	addElementWithText(parent, 'p', text);
+	return addElementWithText(parent, 'p', text);
 }
 
 function setText(element, text) {
