@@ -170,13 +170,19 @@ function loadTimes(stopId = null, clearRoute = false) {
 			addCellWithText(tr, data.actual[i].patternText);
 			addCellWithText(tr, data.actual[i].direction);
 			var status = parseStatus(data.actual[i]);
-			addCellWithText(tr, status);
+			var status_cell = addCellWithText(tr, status);
 			var delay = parseDelay(data.actual[i]);
-			addCellWithText(tr, delay);
+			var delay_cell = addCellWithText(tr, delay);
 			
-			if(status == parseStatusBoarding) tr.className = 'success';
-			else if(parseInt(delay) > 9) tr.className = 'danger';
-			else if(parseInt(delay) > 3) tr.className = 'warning';
+			if(status == parseStatusBoarding) {
+				tr.className = 'success';
+				status_cell.className = 'status-boarding';
+			} else if(parseInt(delay) > 9) {
+				tr.className = 'danger';
+				delay_cell.className = 'status-delayed';
+			} else if(parseInt(delay) > 3) {
+				tr.className = 'warning';
+			}
 			times_table.appendChild(tr);
 		}
 		
