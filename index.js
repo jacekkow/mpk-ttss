@@ -264,6 +264,12 @@ function startTimer(date) {
 	}, interval);
 }
 
+var decodeEntitiesTextArea = document.createElement('textarea');
+function decodeEntities(text) {
+	decodeEntitiesTextArea.innerHTML = text;
+	return decodeEntitiesTextArea.value;
+}
+
 function init() {
 	if(!window.jQuery) {
 		fail('Required JavaScript jQuery library failed to load. You may try refreshing the page.');
@@ -287,7 +293,7 @@ function init() {
 			for(var i = 1, il = data.length; i < il; i++) {
 				var opt = document.createElement('option');
 				opt.value = data[i].id;
-				opt.appendChild(document.createTextNode(data[i].name));
+				setText(opt, decodeEntities(data[i].name));
 				stop_name_autocomplete.appendChild(opt);
 			}
 			
