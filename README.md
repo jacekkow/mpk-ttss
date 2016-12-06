@@ -1,7 +1,7 @@
 # TTSS KRK
 
-This is a rewrite of www.ttss.krakow.pl website presenting
-predicted tram arrival times in Krakow.
+This is a rewrite of http://www.ttss.krakow.pl/ website
+presenting predicted tram arrival times in Krakow.
 
 Check https://mpk.jacekk.net/ for a live version.
 
