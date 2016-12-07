@@ -34,7 +34,10 @@
 			.bg-active {
 				background-color: #eee;
 			}
-			.label.bg-success, .label.bg-warning, .label.bg-danger, .label.bg-active {
+			.bg-default {
+				border: 1px solid #eee;
+			}
+			.label.bg-success, .label.bg-warning, .label.bg-danger, .label.bg-active, .label.bg-default {
 				color: black;
 				font-weight: normal;
 				font-size: inherit;
@@ -126,10 +129,11 @@
 					
 					<p class="small">
 						Legend:
-						<span class="label bg-success">At stop</span>
-						<span class="label bg-warning">Slightly delayed</span>
-						<span class="label bg-danger">Heavily delayed</span>
 						<span class="label bg-active">Departed</span>
+						<span class="label bg-success">At stop</span>
+						<span class="label bg-default">En route</span>
+						<span class="label bg-warning">Delayed 4′+</span>
+						<span class="label bg-danger">Delayed 10′+</span>
 					</p>
 					
 					<p class="small">Relative times (eg. 3 min) are real-time arrivals based on tram location data. Absolute times (eg. 8:01) are scheduled departures, shown when the tram cannot be located. "?" means unknown delay.</p>
