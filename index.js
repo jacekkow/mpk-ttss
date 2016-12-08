@@ -123,6 +123,10 @@ function fail_ajax(data) {
 	}
 }
 
+function fail_hide() {
+	alert.style.display = 'none';
+}
+
 function loadTimes(stopId = null, clearRoute = false) {
 	if(!stopId) stopId = stop_id;
 	if(!stopId) return;
@@ -231,6 +235,7 @@ function loadTimes(stopId = null, clearRoute = false) {
 		}
 		
 		startTimer(new Date());
+		fail_hide();
 		
 		times_timer = setTimeout(function(){ loadTimes(); }, ttss_refresh);
 	}).fail(fail_ajax);
