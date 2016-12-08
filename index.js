@@ -101,7 +101,6 @@ function setText(element, text) {
 }
 
 function fail(message, more) {
-	if(refresh_timer) clearInterval(refresh_timer);
 	if(times_timer) clearTimeout(times_timer);
 	
 	setText(alert_text, message);
