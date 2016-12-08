@@ -30,6 +30,8 @@ var alert = document.getElementById('alert');
 var alert_text = document.getElementById('alert-text');
 var alert_close = document.getElementById('alert-close');
 
+var progress = document.getElementById('progress');
+
 var parseStatusBoarding = '>>>';
 function parseStatus(status) {
 	switch(status.status) {
@@ -127,6 +129,14 @@ function fail_hide() {
 	alert.style.display = 'none';
 }
 
+function loading_start() {
+	progress.style.display = 'block';
+}
+
+function loading_end() {
+	progress.style.display = 'none';
+}
+
 function loadTimes(stopId = null, clearRoute = false) {
 	if(!stopId) stopId = stop_id;
 	if(!stopId) return;
@@ -136,6 +146,7 @@ function loadTimes(stopId = null, clearRoute = false) {
 	
 	refresh_button.removeAttribute('disabled');
 	
+	loading_start();
 	times_xhr = $.get(
 		ttss_base + '/passageInfo/stopPassages/stop' 
 			+ '?stop=' + encodeURIComponent(stopId)
@@ -238,7 +249,7 @@ function loadTimes(stopId = null, clearRoute = false) {
 		fail_hide();
 		
 		times_timer = setTimeout(function(){ loadTimes(); }, ttss_refresh);
-	}).fail(fail_ajax);
+	}).fail(fail_ajax).always(loading_end);
 }
 
 function declinate(num, singular, plural) {
