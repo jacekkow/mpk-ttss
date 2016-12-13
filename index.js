@@ -30,7 +30,7 @@ var alert = document.getElementById('alert');
 var alert_text = document.getElementById('alert-text');
 var alert_close = document.getElementById('alert-close');
 
-var progress = document.getElementById('progress');
+var nav = document.getElementsByTagName('nav')[0];
 
 var parseStatusBoarding = '>>>';
 function parseStatus(status) {
@@ -130,11 +130,11 @@ function fail_hide() {
 }
 
 function loading_start() {
-	progress.style.display = 'block';
+	nav.className += ' loading';
 }
 
 function loading_end() {
-	progress.style.display = 'none';
+	nav.className = nav.className.replace(' loading', '');
 }
 
 function loadTimes(stopId = null, clearRoute = false) {
