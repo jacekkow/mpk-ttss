@@ -1,0 +1,35 @@
+tr.active {
+	color: gray;
+}
+.form-round-left {
+	border-top-left-radius: 4px !important;
+	border-bottom-left-radius: 4px !important;
+	border-right: 0;
+}
+.navbar-text {
+	margin-right: 15px;
+	margin-left: 15px;
+}
+.input-group-btn:first-child {
+	width: 50%;
+}
+@keyframes blink {
+	50% { color: transparent; }
+}
+.status-boarding {
+	animation: blink 1s linear infinite;
+}
+.status-delayed {
+	font-weight: bold;
+}
+.bg-active {
+	background-color: #eee;
+}
+.bg-default {
+	border: 1px solid #eee;
+}
+.label.bg-success, .label.bg-warning, .label.bg-danger, .label.bg-active, .label.bg-default {
+	color: black;
+	font-weight: normal;
+	font-size: inherit;
+}
