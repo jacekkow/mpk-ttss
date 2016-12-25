@@ -34,6 +34,12 @@ tr.active {
 	font-size: inherit;
 }
 
+.vehicleInfo {
+	float: right;
+	margin: -5px 0;
+	font-size: 21px;
+}
+
 nav.loading {
 	background-image: -webkit-linear-gradient(45deg,rgba(0,0,0,.1) 25%,transparent 25%,transparent 50%,rgba(0,0,0,.1) 50%,rgba(0,0,0,.1) 75%,transparent 75%,transparent);
 	background-image: -o-linear-gradient(45deg,rgba(0,0,0,.1) 25%,transparent 25%,transparent 50%,rgba(0,0,0,.1) 50%,rgba(0,0,0,.1) 75%,transparent 75%,transparent);
