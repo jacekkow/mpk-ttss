@@ -141,11 +141,15 @@ function parseVehicle(vehicleId) {
 		} else if (id <= 626) {
 			type = 'NGT6 (2)';
 		}
-	} else if (801 <= id && id <= 824) {
+	} else if(801 <= id && id <= 824) {
 		prefix = 'RY';
 		type = 'NGT8';
 		low = 2;
-	} else if (901 <= id && id <= 936) {
+	} else if(id == 899) {
+		prefix = 'RY';
+		type = '126N';
+		low = 2;
+	} else if(901 <= id && id <= 936) {
 		prefix = 'RG';
 		type = '2014N';
 		low = 2;
