@@ -428,6 +428,7 @@ function init() {
 		).done(function(data) {
 			deleteChildren(stop_name_autocomplete);
 			for(var i = 1, il = data.length; i < il; i++) {
+				if(data[i].id > 6000) continue;
 				var opt = document.createElement('option');
 				opt.value = data[i].id;
 				setText(opt, decodeEntities(data[i].name));
