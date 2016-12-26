@@ -419,7 +419,7 @@ function init() {
 	
 	$.ajaxSetup({
 		dataType: 'json',
-		timeout: 3000,
+		timeout: 10000,
 	});
 	
 	stop_name.addEventListener('input', function(e) {
