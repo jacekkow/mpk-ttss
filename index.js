@@ -160,7 +160,7 @@ function parseVehicle(vehicleId) {
 	} else if(id === 999) {
 		prefix = 'HX';
 		type = '405N-Kr';
-		low = 2;
+		low = 1;
 	} else {
 		console.log('Unknown vehicle, vehicleId=' + vehicleId + ', id=' + id);
 		return;
