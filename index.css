@@ -39,6 +39,9 @@ tr.active {
 	margin: -5px 0;
 	font-size: 21px;
 }
+.bigger {
+	font-size: 21px;
+}
 
 nav.loading {
 	background-image: -webkit-linear-gradient(45deg,rgba(0,0,0,.1) 25%,transparent 25%,transparent 50%,rgba(0,0,0,.1) 50%,rgba(0,0,0,.1) 75%,transparent 75%,transparent);
