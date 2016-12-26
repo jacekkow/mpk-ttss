@@ -183,7 +183,7 @@ function displayVehicle(vehicleInfo) {
 	span.className = 'vehicleInfo';
 	span.title = vehicleInfo.num + ' ' + vehicleInfo.type;
 	if(vehicleInfo.low == 0) {
-		setText(span, '\u25CB');
+		setText(span, '\u2010\u00A0');
 		span.title += ' (high floor)';
 	} else if(vehicleInfo.low == 1) {
 		setText(span, '*\u267F');
