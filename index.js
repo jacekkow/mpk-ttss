@@ -2,6 +2,9 @@
 var ttss_base = '/proxy.php';
 var ttss_refresh = 20000; // 20 seconds
 
+var page_title_pattern = 'TTSS Krak\u00F3w - $ - Real-time tram departures';
+var page_title = document.getElementsByTagName('title')[0];
+
 var stop_id;
 var stop_name = document.getElementById('stop-name');
 var stop_name_form = stop_name.form;
@@ -270,6 +273,7 @@ function loadTimes(stopId = null, clearRoute = false) {
 			+ '&mode=departure'
 	).done(function(data) {
 		setText(times_stop_name, data.stopName);
+		setText(page_title, page_title_pattern.replace('$', data.stopName));
 		deleteChildren(times_alerts);
 		deleteChildren(times_table);
 		deleteChildren(times_lines);
