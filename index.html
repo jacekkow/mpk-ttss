@@ -12,8 +12,16 @@
 		<nav class="navbar navbar-default">
 			<div class="container-fluid">
 				<div class="navbar-header">
-					<a class="navbar-brand" href="#">TTSS Kraków</a>
+					<a class="navbar-brand" style="display:inline-block" href="#" data-translate="page_name">TTSS Kraków</a>
 				</div>
+				
+				<form class="navbar-form navbar-left">
+					<select class="form-control" id="lang-select">
+						<option value="en">EN</option>
+						<option value="pl">PL</option>
+					</select>
+				</form>
+				
 				<form class="navbar-form navbar-left">
 					<div class="input-group">
 						<span class="input-group-btn">
@@ -22,20 +30,20 @@
 						<select class="form-control" id="stop-name-autocomplete">
 						</select>
 						<span class="input-group-btn">
-							<button type="submit" class="btn btn-default">Go</button>
+							<button type="submit" class="btn btn-default" data-translate="go_button">Go</button>
 						</span>
 					</div>
 				</form>
 				
-				<button type="button" class="btn btn-default navbar-btn pull-right" id="refresh" disabled="disabled">&#x27f3; Refresh</button>
-				
+				<button type="button" class="btn btn-default navbar-btn pull-right" id="refresh" disabled="disabled" data-translate="refresh_button">&#x27f3; Refresh</button>
 				<p class="navbar-text pull-right" id="refresh-text">Initializing...</p>
 			</div>
 		</nav>
+		
 		<div class="container-fluid">
 			<div id="alert" class="alert alert-danger alert-dismissible" style="display:none">
 				<a href="#" class="close" id="alert-close" aria-label="close">&times;</a>
-				<strong>Error occured!</strong> <span id="alert-text"></span>
+				<strong data-translate="error_title">Error occured!</strong> <span id="alert-text"></span>
 			</div>
 			
 			<div class="row">
@@ -47,10 +55,10 @@
 					<table class="table table-striped table-condensed">
 						<thead>
 							<tr>
-								<th>Line</th>
-								<th>Direction</th>
-								<th>Time</th>
-								<th>Delay</th>
+								<th data-translate="header_line">Line</th>
+								<th data-translate="header_direction">Direction</th>
+								<th data-translate="header_time">Time</th>
+								<th data-translate="header_delay">Delay</th>
 							</tr>
 						</thead>
 						<tbody id="times-table">
@@ -58,18 +66,17 @@
 					</table>
 				</div>
 				<div class="col-md-6">
-					<h3>Lines</h3>
+					<h3 data-translate="header_lines">Lines</h3>
 					
 					<table class="table table-condensed">
 						<thead>
 							<tr>
-								<th>Line</th>
-								<th>Route</th>
-								<th>Carrier</th>
+								<th data-translate="header_line">Line</th>
+								<th data-translate="header_route">Route</th>
+								<th data-translate="header_carrier">Carrier</th>
 							</tr>
 						</thead>
 						<tbody id="times-lines">
-							
 						</tbody>
 					</table>
 					
@@ -89,25 +96,29 @@
 					-->
 					
 					<p class="small">
-						Legend:
-						<span class="label bg-active">Departed</span>
-						<span class="label bg-success">At stop</span>
-						<span class="label bg-default">En route</span>
-						<span class="label bg-warning">Delayed 4′+</span>
-						<span class="label bg-danger">Delayed 10′+</span>
+						<span data-translate="help_legend">Legend:</span>
+						<span class="label bg-active" data-translate="status_departed">Departed</span>
+						<span class="label bg-success" data-translate="status_stopped">At stop</span>
+						<span class="label bg-default" data-translate="status_default">En route</span>
+						<span class="label bg-warning" data-translate="status_delayed_4">Delayed 4′+</span>
+						<span class="label bg-danger" data-translate="status_delayed_10">Delayed 10′+</span>
 					</p>
 					
 					<p class="small">
-						<span class="bigger" title="Bombardier NGT6, Bombardier NGT8, PESA 2014N Krakowiak, Newag Nevelo 126N">&#x267F;</span> - low-floor tram. <span class="bigger" title="Düwag/Man/MPK N8C-NF, Düwag/MPK GT8C, Bombardier-Rotax/MPK EU8N, Protram 405N-Kr">*&#x267F;</span> - partially low-floor tram. <span class="bigger" title="other tram types">&#x2010;</span> - high-floor tram. Hover the icon for more details.
+						<span class="bigger" title="Bombardier NGT6, Bombardier NGT8, PESA 2014N Krakowiak, Newag Nevelo 126N" data-translate="low_floor_sign">&#x267F;</span> - <span data-translate="low_floor_description">low-floor tram</span>.
+						<span class="bigger" title="Düwag/Man/MPK N8C-NF, Düwag/MPK GT8C, Bombardier-Rotax/MPK EU8N, Protram 405N-Kr" data-translate="partially_low_floor_sign">*&#x267F;</span> - <span data-translate="partially_low_floor_description">partially low-floor tram</span>.
+						<span class="bigger" title="other tram types" data-translate="high_floor_sign">&#x2010;</span> - <span data-translate="high_floor_description">high-floor tram</span>.
+						<span data-translate="help_hover_for_more">Hover the icon for more details.</span>
 					</p>
 					
-					<p class="small">Relative times (eg. 3 min) are real-time arrivals based on tram location data. Absolute times (eg. 8:01) are scheduled departures, shown when the tram cannot be located. "?" means unknown delay.</p>
+					<p class="small" data-translate="help_text">Relative times (eg. 3 min) are real-time arrivals based on tram location data. Absolute times (eg. 8:01) are scheduled departures, shown when the tram cannot be located. "?" means unknown delay.</p>
 					
-					<p class="small">&copy; 2016 Jacek Kowalski - <a href="https://github.com/jacekkow/mpk-ttss">Source</a> - <a href="https://raw.githubusercontent.com/jacekkow/mpk-ttss/master/LICENSE">License</a></p>
+					<p class="small">&copy; 2016 Jacek Kowalski - <a href="https://github.com/jacekkow/mpk-ttss" data-translate="help_source">Source</a> - <a href="https://raw.githubusercontent.com/jacekkow/mpk-ttss/master/LICENSE" data-translate="help_license">License</a></p>
 				</div>
 			</div>
 		</div>
 		<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha384-3ceskX3iaEnIogmQchP8opvBy3Mi7Ce34nWjpBIwVTHfGYWQS9jwHDVRnpKKHJg7"  crossorigin="anonymous"></script>
+		<script tyle="text/javascript" src="lang_en.js" id="lang_script"></script>
 		<script type="text/javascript" src="index.js"></script>
 	</body>
 </html>

@@ -2,10 +2,12 @@
 var ttss_base = '/proxy.php';
 var ttss_refresh = 20000; // 20 seconds
 
-var page_title_pattern = 'TTSS Krak\u00F3w - $ - Real-time tram departures';
 var page_title = document.getElementsByTagName('title')[0];
 
-var stop_id;
+var language = 'en';
+var lang_select = document.getElementById('lang-select');
+
+var stop_id = '';
 var stop_name = document.getElementById('stop-name');
 var stop_name_form = stop_name.form;
 var stop_name_autocomplete = document.getElementById('stop-name-autocomplete');
@@ -35,19 +37,18 @@ var alert_close = document.getElementById('alert-close');
 
 var nav = document.getElementsByTagName('nav')[0];
 
-var parseStatusBoarding = '>>>';
 function parseStatus(status) {
 	switch(status.status) {
 		case 'STOPPING':
-			return parseStatusBoarding;
+			return lang.boarding_sign;
 		case 'PREDICTED':
 			if(status.actualRelativeTime <= 0)
-				return parseStatusBoarding;
+				return lang.boarding_sign;
 			if(status.actualRelativeTime >= 60)
-				return Math.floor(status.actualRelativeTime / 60) + ' min';
-			return status.actualRelativeTime + ' s';
+				return lang.time_minutes_prefix + Math.floor(status.actualRelativeTime / 60) + lang.time_minutes_suffix;
+			return lang.time_seconds_prefix + status.actualRelativeTime + lang.time_seconds_suffix;
 		case 'DEPARTED':
-			return Math.floor(-status.actualRelativeTime / 60) + ' min ago';
+			return lang.time_minutes_ago_prefix + Math.floor(-status.actualRelativeTime / 60) + lang.time_minutes_ago_suffix;
 		default:
 			return status.mixedTime;
 	}
@@ -71,14 +72,14 @@ function parseTime(date, time) {
 }
 
 function parseDelay(status) {
-	if(!status.actualTime) return '?';
-	if(!status.plannedTime) return '?';
+	if(!status.actualTime) return lang.unknown_sign;
+	if(!status.plannedTime) return lang.unknown_sign;
 	
 	var now = new Date();
 	var actual = parseTime(now, status.actualTime);
 	var planned = parseTime(now, status.plannedTime);
 	
-	return ((actual.getTime() - planned.getTime()) / 1000 / 60) + ' min';
+	return lang.time_minutes_prefix + ((actual.getTime() - planned.getTime()) / 1000 / 60) + lang.time_minutes_suffix;
 }
 
 function parseVehicle(vehicleId) {
@@ -184,17 +185,24 @@ function displayVehicle(vehicleInfo) {
 	
 	var span = document.createElement('span');
 	span.className = 'vehicleInfo';
-	span.title = vehicleInfo.num + ' ' + vehicleInfo.type;
+	
+	var floor_type = '';
 	if(vehicleInfo.low == 0) {
-		setText(span, '\u2010\u00A0');
-		span.title += ' (high floor)';
+		setText(span, lang.high_floor_sign);
+		floor_type = lang.high_floor;
 	} else if(vehicleInfo.low == 1) {
-		setText(span, '*\u267F');
-		span.title += ' (partially low floor)';
+		setText(span, lang.partially_low_floor_sign);
+		floor_type = lang.partially_low_floor;
 	} else if(vehicleInfo.low == 2) {
-		setText(span, '\u267F');
-		span.title += ' (low floor)';
+		setText(span, lang.low_floor_sign);
+		floor_type = lang.low_floor;
 	}
+	
+	span.title = lang.tram_type_pattern
+		.replace('$num', vehicleInfo.num)
+		.replace('$type', vehicleInfo.type)
+		.replace('$floor', floor_type);
+	
 	return span;
 }
 
@@ -237,11 +245,11 @@ function fail_ajax(data) {
 	if(data.readyState == 0 && data.statusText == 'abort') return;
 	
 	if(data.status == 0) {
-		fail('Request failed - please check your network connectivity.', data);
+		fail(lang.error_request_failed_connectivity, data);
 	} else if (data.statusText) {
-		fail('Internet request failed with error: ' + data.statusText + '.', data);
+		fail(lang.error_request_failed_status.replace('$status', data.statusText), data);
 	} else {
-		fail('Internet request failed.', data);
+		fail(lang.error_request_failed, data);
 	}
 }
 
@@ -264,6 +272,9 @@ function loadTimes(stopId = null, clearRoute = false) {
 	if(times_timer) clearTimeout(times_timer);
 	if(times_xhr) times_xhr.abort();
 	
+	console.log('loadTimes(' + stopId + ', ' + clearRoute + ')');
+	
+	window.location.hash = '#!' + language + stop_id;
 	refresh_button.removeAttribute('disabled');
 	
 	loading_start();
@@ -273,7 +284,7 @@ function loadTimes(stopId = null, clearRoute = false) {
 			+ '&mode=departure'
 	).done(function(data) {
 		setText(times_stop_name, data.stopName);
-		setText(page_title, page_title_pattern.replace('$', data.stopName));
+		setText(page_title, lang.page_title_stop_name.replace('$stop', data.stopName));
 		deleteChildren(times_alerts);
 		deleteChildren(times_table);
 		deleteChildren(times_lines);
@@ -311,7 +322,7 @@ function loadTimes(stopId = null, clearRoute = false) {
 			var delay = parseDelay(data.actual[i]);
 			var delay_cell = addCellWithText(tr, delay);
 			
-			if(status == parseStatusBoarding) {
+			if(status == lang.boarding_sign) {
 				tr.className = 'success';
 				status_cell.className = 'status-boarding';
 			} else if(parseInt(delay) > 9) {
@@ -362,8 +373,9 @@ function loadTimes(stopId = null, clearRoute = false) {
 			for(var j = 0, jl = data.routes[i].alerts.length; j < jl; j++) {
 				addParaWithText(
 					times_alerts,
-					'Line ' +  data.routes[i].name + ': '
-						+ data.routes[i].alerts[j]
+					lang.line_alert_pattern
+						.replace('$line', data.routes[i].name)
+						.replace('$alert', data.routes[i].alerts[j])
 				);
 			}
 		}
@@ -382,7 +394,7 @@ function declinate(num, singular, plural) {
 
 function startTimer(date) {
 	if(date) {
-		setText(refresh_text, 'Last refreshed: just now')
+		setText(refresh_text, lang.last_refreshed.replace('$time', lang.time_now));
 		refresh_time = date;
 	}
 	if(!refresh_time) return;
@@ -399,12 +411,18 @@ function startTimer(date) {
 		var ms = now.getTime() - refresh_time.getTime();
 		
 		if(ms >= 120000) {
-			setText(refresh_text, 'Last refreshed: '
-				+ declinate(Math.floor(ms / 60000), 'minute ago', 'minutes ago'));
+			setText(refresh_text, lang.last_refreshed.replace(
+				'$time',
+				lang.time_minutes_ago_prefix + Math.floor(ms / 60000)
+					+ lang.time_minutes_ago_suffix
+			));
 			startTimer();
 		} else {
-			setText(refresh_text, 'Last refreshed: '
-				+ declinate(Math.floor(ms / 1000), 'second ago', 'seconds ago'));
+			setText(refresh_text, lang.last_refreshed.replace(
+				'$time',
+				lang.time_seconds_ago_prefix + Math.floor(ms / 1000)
+					+ lang.time_seconds_ago_suffix
+			));
 		}
 	}, interval);
 }
@@ -415,15 +433,76 @@ function decodeEntities(text) {
 	return decodeEntitiesTextArea.value;
 }
 
+function translate() {
+	var elements = document.querySelectorAll('*[data-translate]');
+	
+	var text_name;
+	for(var i = 0; i < elements.length; i++) {
+		text_name = elements[i].dataset.translate;
+		if(lang[text_name] == undefined) {
+			console.log('Missing translation: ' + text_name);
+			continue;
+		}
+		setText(elements[i], lang[text_name]);
+	}
+	
+	stop_name.setAttribute('placeholder', lang.stop_name_placeholder);
+	
+	if(stop_id) return;
+	
+	if(stop_name_autocomplete.value) {
+		setText(refresh_text, lang.select_stop_click_go);
+	} else {
+		setText(refresh_text, lang.enter_stop_name_to_begin);
+	}
+}
+
+function change_language(lang) {
+	if(!lang || lang.length != 2) return;
+	if(lang == language) return;
+	lang_select.value = lang;
+	if(!lang_select.value) {
+		lang_select.value = language;
+		return;
+	}
+	language = lang;
+	
+	var script = document.createElement('script');
+	script.type = 'text/javascript';
+	script.src = 'lang_' + lang + '.js';
+	script.id = 'lang_script';
+	script.onload = translate;
+	
+	document.body.removeChild(document.getElementById('lang_script'));
+	document.body.appendChild(script);
+	
+	window.location.hash = '#!' + language + stop_id;
+}
+
+function hash() {
+	if(window.location.hash.match(/^#![0-9]+$/)) {
+		loadTimes(parseInt(window.location.hash.substr(2)));
+	} else if(window.location.hash.match(/^#![a-z]{2}[0-9]*$/)) {
+		var stop = parseInt(window.location.hash.substr(4));
+		if(stop) stop_id = stop;
+		change_language(window.location.hash.substr(2, 2));
+		loadTimes(stop_id);
+	}
+}
+
 function init() {
 	if(!window.jQuery) {
-		fail('Required JavaScript jQuery library failed to load. You may try refreshing the page.');
+		fail(lang.jquery_not_loaded);
 		return;
 	}
 	
 	$.ajaxSetup({
 		dataType: 'json',
 		timeout: 10000,
+	});
+	
+	lang_select.addEventListener('input', function(e) {
+		change_language(lang_select.value);
 	});
 	
 	stop_name.addEventListener('input', function(e) {
@@ -443,17 +522,16 @@ function init() {
 				stop_name_autocomplete.appendChild(opt);
 			}
 			
-			if(!stop_id) setText(refresh_text, 'Select the stop and click "Go"');
+			if(!stop_id) setText(refresh_text, lang.select_stop_click_go);
 		}).fail(fail_ajax);
 	});
 	
-	setText(refresh_text, 'Enter the stop name to begin');
+	setText(refresh_text, lang.enter_stop_name_to_begin);
 	
 	stop_name_form.addEventListener('submit', function(e) {
 		e.preventDefault();
 		if(!stop_name_autocomplete.value) return;
 		stop_id = stop_name_autocomplete.value;
-		window.location.hash = '#!' + stop_id;
 		loadTimes(stop_id, true);
 	});
 	
@@ -465,10 +543,9 @@ function init() {
 		alert.style.display = 'none';
 	});
 	
-	if(window.location.hash.match(/^#![0-9]+$/)) {
-		stop_id = parseInt(window.location.hash.slice(2));
-		loadTimes(stop_id);
-	}
+	hash();
+	
+	window.addEventListener('hashchange', hash);
 }
 
 init();
