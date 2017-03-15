@@ -296,7 +296,7 @@ function loadTimes(stopId = null, clearRoute = false) {
 		*/
 		
 		for(var i = 0, il = data.generalAlerts.length; i < il; i++) {
-			addParaWithText(times_alerts, data.generalAlerts[i]);
+			addParaWithText(times_alerts, data.generalAlerts[i].title);
 		}
 		
 		for(var i = 0, il = data.old.length; i < il; i++) {
@@ -375,7 +375,7 @@ function loadTimes(stopId = null, clearRoute = false) {
 					times_alerts,
 					lang.line_alert_pattern
 						.replace('$line', data.routes[i].name)
-						.replace('$alert', data.routes[i].alerts[j])
+						.replace('$alert', data.routes[i].alerts[j].title)
 				);
 			}
 		}
