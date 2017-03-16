@@ -94,6 +94,11 @@ function parseVehicle(vehicleId) {
 	var type;
 	var low; // low floor: 0 = no, 1 - semi, 2 - full
 	
+	// Single exception - old id used in one case
+	if(id == 831) {
+		id = 216;
+	}
+	
 	if(101 <= id && id <= 173) {
 		prefix = 'HW';
 		type = 'E1';
