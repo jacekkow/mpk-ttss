@@ -12,6 +12,7 @@ var stop_name = document.getElementById('stop-name');
 var stop_name_form = stop_name.form;
 var stop_name_autocomplete = document.getElementById('stop-name-autocomplete');
 var stop_name_autocomplete_xhr;
+var stop_name_autocomplete_timer;
 
 var times_xhr;
 var times_timer;
@@ -495,6 +496,26 @@ function hash() {
 	}
 }
 
+function stop_autocomplete() {
+	if(stop_name_autocomplete_xhr) stop_name_autocomplete_xhr.abort();
+	
+	stop_name_autocomplete_xhr = $.get(
+		ttss_base + '/lookup/autocomplete/json'
+			+ '?query=' + encodeURIComponent(stop_name.value)
+	).done(function(data) {
+		deleteChildren(stop_name_autocomplete);
+		for(var i = 1, il = data.length; i < il; i++) {
+			if(data[i].id > 6000) continue;
+			var opt = document.createElement('option');
+			opt.value = data[i].id;
+			setText(opt, decodeEntities(data[i].name));
+			stop_name_autocomplete.appendChild(opt);
+		}
+		
+		if(!stop_id) setText(refresh_text, lang.select_stop_click_go);
+	}).fail(fail_ajax);
+}
+
 function init() {
 	if(!window.jQuery) {
 		fail(lang.jquery_not_loaded);
@@ -512,23 +533,9 @@ function init() {
 	
 	stop_name.addEventListener('input', function(e) {
 		if(!stop_name.value) return;
-		if(stop_name_autocomplete_xhr) stop_name_autocomplete_xhr.abort();
+		if(stop_name_autocomplete_timer) clearTimeout(stop_name_autocomplete_timer);
 		
-		stop_name_autocomplete_xhr = $.get(
-			ttss_base + '/lookup/autocomplete/json'
-				+ '?query=' + encodeURIComponent(stop_name.value)
-		).done(function(data) {
-			deleteChildren(stop_name_autocomplete);
-			for(var i = 1, il = data.length; i < il; i++) {
-				if(data[i].id > 6000) continue;
-				var opt = document.createElement('option');
-				opt.value = data[i].id;
-				setText(opt, decodeEntities(data[i].name));
-				stop_name_autocomplete.appendChild(opt);
-			}
-			
-			if(!stop_id) setText(refresh_text, lang.select_stop_click_go);
-		}).fail(fail_ajax);
+		stop_name_autocomplete_timer = setTimeout(stop_autocomplete, 100);
 	});
 	
 	setText(refresh_text, lang.enter_stop_name_to_begin);
