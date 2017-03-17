@@ -189,6 +189,7 @@ $stops = array (
   718  => 'Witosa',
 # 7362 => 'Witosa', # duplikat # 718  => 'Witosa',
   634  => 'Wlotowa',
+  442  => 'Wzgórza Krzesławickie',
   1154 => 'Zabłocie',
   465  => 'Zajezdnia Nowa Huta',
   679  => 'Ćwiklińskiej',
