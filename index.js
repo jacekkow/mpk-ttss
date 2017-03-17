@@ -500,11 +500,11 @@ function stop_autocomplete() {
 	if(stop_name_autocomplete_xhr) stop_name_autocomplete_xhr.abort();
 	
 	stop_name_autocomplete_xhr = $.get(
-		ttss_base + '/lookup/autocomplete/json'
-			+ '?query=' + encodeURIComponent(stop_name.value)
+		'stops.php?query=' + encodeURIComponent(stop_name.value)
 	).done(function(data) {
 		deleteChildren(stop_name_autocomplete);
-		for(var i = 1, il = data.length; i < il; i++) {
+		for(var i = 0, il = data.length; i < il; i++) {
+			if(data[i].type != 'stop') continue;
 			if(data[i].id > 6000) continue;
 			var opt = document.createElement('option');
 			opt.value = data[i].id;
