@@ -46,18 +46,24 @@ try {
 	
 	// Build structure for UI
 	$stop_list = [];
+	$query_lower = mb_strtolower($_GET['query'], 'UTF-8');
 	foreach($ids as $id) {
 		$stop_list[] = [
 			'id' => $id,
 			'name' => $stops[$id],
 			'type' => 'stop',
-			'relevance' => similar_text($_GET['query'], $stops[$id])
+			'relevance' => similar_text(
+				$query_lower,
+				mb_strtolower($stops[$id], 'UTF-8')
+			)
 		];
 	}
 	
 	// Sort stops by relevence
 	usort($stop_list, function($a, $b) {
-		return $b['relevance'] - $a['relevance'];
+		$rel = $b['relevance'] - $a['relevance'];
+		if($rel == 0) return strcasecmp($a['name'], $b['name']);
+		return $rel;
 	});
 	
 	// Return JSON
