@@ -2,7 +2,7 @@
 if(php_sapi_name() !== 'cli') die();
 
 $chars = 'aąbcćdeęfghijklłmnńoóprsśtuvwxyzżź0123456789';
-$len = mb_strlen($chars);
+$len = mb_strlen($chars, 'UTF-8');
 
 $replacements = [
 	'&Oacute;' => 'Ó',
@@ -14,7 +14,7 @@ $replacements = [
 $stops = [];
 for($i = 0; $i < $len; $i++) {
 	for($j = 0; $j < $len; $j++) {
-		$char = mb_substr($chars, $i, 1).mb_substr($chars, $j, 1);
+		$char = mb_substr($chars, $i, 1, 'UTF-8').mb_substr($chars, $j, 1, 'UTF-8');
 		$json = file_get_contents('http://www.ttss.krakow.pl/internetservice/services/lookup/autocomplete/json?query='.urlencode($char));
 		$elements = json_decode($json, 1);
 		foreach($elements as $element) {
