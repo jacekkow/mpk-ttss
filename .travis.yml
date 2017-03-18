@@ -6,8 +6,6 @@ php:
   - 7.0
   - nightly
 
-sudo: required
-
 before_script:
   - 'php -S 127.0.0.1:8080 &'
   - 'nvm install stable'
