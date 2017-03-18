@@ -7,6 +7,8 @@ Check https://mpk.jacekk.net/ for a live version.
 
 Contact and suggestions: mpk_AT_jacekk.info
 
+[![Build Status](https://travis-ci.org/jacekkow/mpk-ttss.svg?branch=master)](https://travis-ci.org/jacekkow/mpk-ttss)
+
 ## Differences
 
 * Presents tram delays.
