@@ -8,7 +8,7 @@ try {
 	if(empty($_GET['query'])) throw new UnexpectedValueException();
 	if(strlen($_GET['query']) > 50) throw new UnexpectedValueException();
 	
-	// Initialize DB connection an query
+	// Initialize a DB connection an a query
 	$pdo = new PDO('sqlite:stops/stops.db', NULL, NULL, array(
 		PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
 	));
@@ -17,7 +17,7 @@ try {
 	// Split stop name into words
 	$words = split_stop_name($_GET['query']);
 	
-	// Find relevant stop IDs
+	// Find matching stops (their IDs)
 	$ids = NULL;
 	foreach($words as $word) {
 		if(empty($word)) continue;
@@ -27,10 +27,11 @@ try {
 		$results = $st->fetchAll(PDO::FETCH_COLUMN);
 		$st->closeCursor();
 		
-		// Merge results with previous searches
 		if(is_array($ids)) {
+			// Merge results with list for previous words
 			$ids = array_intersect($ids, $results);
 		} else {
+			// First search - initialize results list
 			$ids = $results;
 		}
 		
@@ -38,13 +39,13 @@ try {
 		if(count($ids) == 0) break;
 	}
 	
-	// Close DB connection
+	// Close a DB connection
 	unset($st, $pdo);
 	
-	// No query was executed
+	// No query was executed - return empty list
 	if(!is_array($ids)) throw new UnexpectedValueException();
 	
-	// Build structure for UI
+	// Build a structure for the UI
 	$stop_list = [];
 	$query_lower = mb_strtolower($_GET['query'], 'UTF-8');
 	foreach($ids as $id) {
@@ -59,7 +60,7 @@ try {
 		];
 	}
 	
-	// Sort stops by relevence
+	// Sort stops by relevance
 	usort($stop_list, function($a, $b) {
 		$rel = $b['relevance'] - $a['relevance'];
 		if($rel == 0) return strcasecmp($a['name'], $b['name']);
