@@ -271,7 +271,7 @@ function loading_end() {
 	nav.className = nav.className.replace(' loading', '');
 }
 
-function loadTimes(stopId = null, clearRoute = false) {
+function loadTimes(stopId, clearRoute) {
 	if(!stopId) stopId = stop_id;
 	if(!stopId) return;
 	
