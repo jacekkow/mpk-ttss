@@ -393,11 +393,6 @@ function loadTimes(stopId, clearRoute) {
 	}).fail(fail_ajax).always(loading_end);
 }
 
-function declinate(num, singular, plural) {
-	if(num == 1) return num + ' ' + singular;
-	return num + ' ' + plural;
-}
-
 function startTimer(date) {
 	if(date) {
 		setText(refresh_text, lang.last_refreshed.replace('$time', lang.time_now));
