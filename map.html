@@ -1,0 +1,171 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>OpenLayers Demo</title>
+<style type="text/css">
+html, body, #map {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+}
+</style>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha384-3ceskX3iaEnIogmQchP8opvBy3Mi7Ce34nWjpBIwVTHfGYWQS9jwHDVRnpKKHJg7"  crossorigin="anonymous"></script>
+<script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList"></script>
+<script src="https://openlayers.org/en/v4.0.1/build/ol.js" type="text/javascript"></script>
+<script tyle="text/javascript" src="lang_en.js" id="lang_script"></script>
+</head>
+<body>
+<div id="map"><div id="popup"></div></div>
+
+<script tyle="text/javascript">
+//var ttss_base = 'http://www.ttss.krakow.pl/internetservice';
+var ttss_base = '/proxy.php';
+var ttss_refresh = 5000; // 5 seconds
+
+var vehicles_source = null;
+var vehicles_xhr = null;
+var vehicles_timer = null;
+
+var map = null;
+var popup_element = document.getElementById('popup');
+var popup = null;
+
+function fail(msg) {
+	console.log(msg);
+	alert(msg);
+}
+
+function fail_ajax(data) {
+	// abort() is not a failure
+	if(data.readyState == 0 && data.statusText == 'abort') return;
+	
+	if(data.status == 0) {
+		fail(lang.error_request_failed_connectivity, data);
+	} else if (data.statusText) {
+		fail(lang.error_request_failed_status.replace('$status', data.statusText), data);
+	} else {
+		fail(lang.error_request_failed, data);
+	}
+}
+
+function init() {
+	if(!window.jQuery) {
+		fail(lang.jquery_not_loaded);
+		return;
+	}
+	
+	$.ajaxSetup({
+		dataType: 'json',
+		timeout: 10000,
+	});
+	
+	
+	vehicles_source = new ol.source.Vector({
+		features: []
+	});
+	
+	popup = new ol.Overlay({
+		element: popup_element,
+		positioning: 'bottom-center',
+		stopEvent: false,
+		offset: [0, -50]
+	});
+	
+	map = new ol.Map({
+		target: 'map',
+		layers: [
+			new ol.layer.Tile({
+				source: new ol.source.OSM()
+			}),
+			new ol.layer.Vector({
+				source: vehicles_source,
+			}),
+		],
+		overlays: [popup],
+		view: new ol.View({
+			center: ol.proj.fromLonLat([19.94, 50.06]),
+			zoom: 13
+		})
+	});
+	
+	// display popup on click
+	map.on('singleclick', function(evt) {
+		var feature = map.forEachFeatureAtPixel(evt.pixel, function(feature) { return feature; });
+		if (feature) {
+			var coordinates = feature.getGeometry().getCoordinates();
+			popup_element.innerHtml = feature.name;
+			popup.setPosition(coordinates);
+		} else {
+			popup.setPosition(undefined);
+		}
+	});
+
+	// change mouse cursor when over marker
+	map.on('pointermove', function(e) {
+		var pixel = map.getEventPixel(e.originalEvent);
+		var hit = map.hasFeatureAtPixel(pixel);
+		var target = map.getTarget();
+		if(target.style)
+			target.style.cursor = hit ? 'pointer' : '';
+	});
+}
+
+function updateVehicles() {
+	if(vehicles_timer)clearTimeout(vehicles_timer);
+	if(vehicles_xhr) vehicles_xhr.abort();
+	
+	vehicles_xhr = $.get(
+		ttss_base + '/geoserviceDispatcher/services/vehicleinfo/vehicles' 
+			+ '?positionType=CORRECTED'
+			+ '&colorType=ROUTE_BASED'
+	).done(function(data) {
+		for(var i = 0; i < data.vehicles.length; i++) {
+			var vehicle = data.vehicles[i];
+			
+			var vehicle_feature = vehicles_source.getFeatureById(vehicle.id);
+			if(vehicle.isDeleted) {
+				if(vehicle_feature) {
+					vehicles_source.removeFeature(vehicle_feature);
+				}
+				continue;
+			}
+			
+			var vehicle_name_space = vehicle.name.indexOf(' ');
+			vehicle.line = vehicle.name.substr(0, vehicle_name_space);
+			vehicle.direction = vehicle.name.substr(vehicle_name_space+1);
+			vehicle.geometry = new ol.geom.Point(ol.proj.fromLonLat([vehicle.longitude / 3600000.0, vehicle.latitude / 3600000.0]));
+			
+			if(!vehicle_feature) {
+				vehicle_feature = new ol.Feature(vehicle);
+				vehicle_feature.setId(vehicle.id);
+				vehicle_feature.setStyle(new ol.style.Style({
+					image: new ol.style.RegularShape({
+						fill: new ol.style.Fill({color: '#3399ff'}),
+						stroke: new ol.style.Stroke({color: 'black', width: 1}),
+						points: 3,
+						radius: 12,
+						rotation: Math.PI * 2.0 * vehicle.heading / 360.0,
+						angle: 0
+					}),
+					text: new ol.style.Text({
+						text: vehicle.line,
+						fill: new ol.style.Fill({color: 'white'}),
+					}),
+				}));
+				vehicles_source.addFeature(vehicle_feature);
+			} else {
+				vehicle_feature.setProperties(vehicle);
+			}
+		}
+		
+		vehicles_timer = setTimeout(function(){ 
+			updateVehicles();
+		}, ttss_refresh);
+	}).fail(fail_ajax);
+}
+
+init();
+updateVehicles();
+</script>
+</body>
+</html>

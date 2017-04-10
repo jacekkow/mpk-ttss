@@ -4,8 +4,11 @@ $method = [
 	'/services/lookup/autocomplete/json' => [
 		'query' => function() { return TRUE; },
 	],
+	'/services/lookup/stopsByCharacter' => [
+		'character' => 'ctype_alnum',
+	],
 	'/services/passageInfo/stopPassages/stop' => [
-		'stop' => 'ctype_alnum',
+		'stop' => 'ctype_digit',
 		'mode' => function($mode) { return in_array($mode, ['arrival', 'departure']); },
 	],
 	'/services/tripInfo/tripPassages' => [
@@ -13,9 +16,41 @@ $method = [
 		'mode' => function($mode) { return in_array($mode, ['arrival', 'departure']); },
 		#'vehicleId' => 'ctype_digit',
 	],
-	'/services/routeInfo/routeStops' => [
-		'routeId' => 'ctype_alnum'
+	'/geoserviceDispatcher/services/stopinfo/stopPoints' => [
+		'left' => 'ctype_digit',
+		'bottom' => 'ctype_digit',
+		'right' => 'ctype_digit',
+		'top' => 'ctype_digit',
 	],
+	'/geoserviceDispatcher/services/pathinfo/route' => [
+		'id' => 'ctype_digit',
+		'direction' => 'ctype_digit',
+	],
+	'/geoserviceDispatcher/services/pathinfo/vehicle' => [
+		'id' => 'ctype_digit',
+	],
+	'/geoserviceDispatcher/services/vehicleinfo/vehicles' => [
+		// 'lastUpdate' => 'ctype_digit',
+		'positionType' => function($type) { return in_array($type, ['CORRECTED']); },
+		'colorType' => function($type) { return in_array($type, ['ROUTE_BASED']); },
+	],
+	'/services/routeInfo/routeStops' => [
+		'routeId' => 'ctype_digit',
+	],
+	'/services/stopInfo/stopPoint' => [
+		'stopPoint' => 'ctype_digit',
+	],
+	'/services/passageInfo/stopPassages/stopPoint' => [
+		'stopPoint' => 'ctype_digit',
+		'mode' => function($mode) { return in_array($mode, ['arrival', 'departure']); },
+		'startTime' => 'ctype_digit',
+		'timeFrame' => 'ctype_digit',
+	],
+];
+$rewrite = [
+	'/lookup/autocomplete/json' => '/services/lookup/autocomplete/json',
+	'/passageInfo/stopPassages/stop' => '/services/passageInfo/stopPassages/stop',
+	'/routeInfo/routeStops' => '/services/routeInfo/routeStops',
 ];
 $rewrite = [
 	'/lookup/autocomplete/json' => '/services/lookup/autocomplete/json',
