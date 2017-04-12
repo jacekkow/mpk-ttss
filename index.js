@@ -151,8 +151,9 @@ function loadTimes(stopId) {
 	if(times_xhr) times_xhr.abort();
 	
 	console.log('loadTimes(' + stopId + ')');
+	stop_id = stopId;
 	
-	window.location.hash = '#!' + language + stop_id;
+	window.location.hash = '#!' + language + stopId;
 	refresh_button.removeAttribute('disabled');
 	
 	loading_start();
@@ -410,8 +411,7 @@ function init() {
 	stop_name_form.addEventListener('submit', function(e) {
 		e.preventDefault();
 		if(!stop_name_autocomplete.value) return;
-		stop_id = stop_name_autocomplete.value;
-		loadTimes(stop_id);
+		loadTimes(stop_name_autocomplete.value);
 	});
 	
 	refresh_button.addEventListener('click', function(e) {
