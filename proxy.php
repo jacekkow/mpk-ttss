@@ -1,19 +1,33 @@
 <?php
-$base_proxy = 'http://www.ttss.krakow.pl/internetservice/services';
+$base_proxy = 'http://www.ttss.krakow.pl/internetservice';
 $method = [
-	'/lookup/autocomplete/json' => [
+	'/services/lookup/autocomplete/json' => [
 		'query' => function() { return TRUE; },
 	],
-	'/passageInfo/stopPassages/stop' => [
+	'/services/passageInfo/stopPassages/stop' => [
 		'stop' => 'ctype_alnum',
 		'mode' => function($mode) { return in_array($mode, ['arrival', 'departure']); },
 	],
-	'/routeInfo/routeStops' => [
+	'/services/tripInfo/tripPassages' => [
+		'tripId' => 'ctype_digit',
+		'mode' => function($mode) { return in_array($mode, ['arrival', 'departure']); },
+		#'vehicleId' => 'ctype_digit',
+	],
+	'/services/routeInfo/routeStops' => [
 		'routeId' => 'ctype_alnum'
 	],
 ];
+$rewrite = [
+	'/lookup/autocomplete/json' => '/services/lookup/autocomplete/json',
+	'/passageInfo/stopPassages/stop' => '/services/passageInfo/stopPassages/stop',
+	'/routeInfo/routeStops' => '/services/routeInfo/routeStops',
+];
 
 $path = $_SERVER['PATH_INFO'];
+
+if(isset($rewrite[$path])) {
+	$path = $rewrite[$path];
+}
 
 if(!isset($method[$path])) {
 	header('HTTP/1.1 403 Forbidden');

@@ -61,6 +61,9 @@ Rows have different background depending on the tram status:
 - yellow - delayed 4 or more minutes,
 - red - delayed 10 or more minutes.
 
+Clicking on the table row loads the schedule for the selected tram
+- listing next stops and predicted departure times for each one.
+
 ### Auto-refresh
 
 The list is automatically updated every 20 seconds. It is possible to manually

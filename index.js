@@ -1,4 +1,4 @@
-//var ttss_base = 'http://www.ttss.krakow.pl/internetservice/services';
+//var ttss_base = 'http://www.ttss.krakow.pl/internetservice';
 var ttss_base = '/proxy.php';
 var ttss_refresh = 20000; // 20 seconds
 
@@ -7,7 +7,7 @@ var page_title = document.getElementsByTagName('title')[0];
 var language = 'en';
 var lang_select = document.getElementById('lang-select');
 
-var stop_id = '';
+var stop_id;
 var stop_name = document.getElementById('stop-name');
 var stop_name_form = stop_name.form;
 var stop_name_autocomplete = document.getElementById('stop-name-autocomplete');
@@ -19,13 +19,12 @@ var times_timer;
 var times_stop_name = document.getElementById('times-stop-name');
 var times_alerts = document.getElementById('times-alerts');
 var times_table = document.getElementById('times-table');
-var times_lines = document.getElementById('times-lines');
+//var times_lines = document.getElementById('times-lines');
 
-/*
+var route_id;
 var route_xhr;
 var route_line = document.getElementById('route-line');
 var route_table = document.getElementById('route-table');
-*/
 
 var refresh_button = document.getElementById('refresh');
 var refresh_text = document.getElementById('refresh-text');
@@ -83,109 +82,6 @@ function parseDelay(status) {
 	return lang.time_minutes_prefix + ((actual.getTime() - planned.getTime()) / 1000 / 60) + lang.time_minutes_suffix;
 }
 
-function parseVehicle(vehicleId) {
-	if(!vehicleId) return;
-	if(vehicleId.substr(0, 15) != '635218529567218') {
-		console.log('Unknown vehicle, vehicleId=' + vehicleId);
-		return;
-	}
-	
-	var id = parseInt(vehicleId.substr(15)) - 736;
-	var prefix;
-	var type;
-	var low; // low floor: 0 = no, 1 - semi, 2 - full
-	
-	// Single exception - old id used in one case
-	if(id == 831) {
-		id = 216;
-	}
-	
-	if(101 <= id && id <= 173) {
-		prefix = 'HW';
-		type = 'E1';
-		low = 0;
-		
-		if((108 <= id && id <= 113) || id == 127 || id == 131 || id == 132 || id == 134 || (137 <= id && id <= 139) || (148 <= id && id <= 150) || (153 <= id && id <= 166) || id == 161) {
-			prefix = 'RW';
-		}
-	} else if(201 <= id && id <= 293) {
-		prefix = 'RZ';
-		type = '105Na';
-		low = 0;
-		
-		if(246 <= id) {
-			prefix = 'HZ';
-		}
-		if(id == 290) {
-			type = '105Nb';
-		}
-	} else if(301 <= id && id <= 328) {
-		prefix = 'RF';
-		type = 'GT8S';
-		low = 0;
-		
-		if(id == 313) {
-			type = 'GT8C'
-			low = 1;
-		}
-	} else if(401 <= id && id <= 440) {
-		prefix = 'HL';
-		type = 'EU8N';
-		low = 1;
-	} else if(451 <= id && id <= 462) {
-		prefix = 'HK';
-		type = 'N8S-NF';
-		low = 0;
-		
-		if((451 <= id && id <= 453) || id == 462) {
-			type = 'N8C-NF';
-			low = 1;
-		}
-	} else if(601 <= id && id <= 650) {
-		prefix = 'RP';
-		type = 'NGT6 (3)';
-		low = 2;
-		
-		if(id <= 613) {
-			type = 'NGT6 (1)';
-		} else if (id <= 626) {
-			type = 'NGT6 (2)';
-		}
-	} else if(801 <= id && id <= 824) {
-		prefix = 'RY';
-		type = 'NGT8';
-		low = 2;
-	} else if(id == 899) {
-		prefix = 'RY';
-		type = '126N';
-		low = 2;
-	} else if(901 <= id && id <= 936) {
-		prefix = 'RG';
-		type = '2014N';
-		low = 2;
-		
-		if(915 <= id) {
-			prefix = 'HG';
-		}
-	} else if(id === 999) {
-		prefix = 'HX';
-		type = '405N-Kr';
-		low = 1;
-	} else {
-		console.log('Unknown vehicle, vehicleId=' + vehicleId + ', id=' + id);
-		return;
-	}
-	
-	return {
-		vehicleId: vehicleId,
-		prefix: prefix,
-		id: id,
-		num: prefix + id,
-		type: type,
-		low: low
-	};
-}
-
 function displayVehicle(vehicleInfo) {
 	if(!vehicleInfo) return document.createTextNode('');
 	
@@ -210,30 +106,6 @@ function displayVehicle(vehicleInfo) {
 		.replace('$floor', floor_type);
 	
 	return span;
-}
-
-function deleteChildren(element) {
-	while(element.lastChild) element.removeChild(element.lastChild);
-}
-
-function addElementWithText(parent, element, text) {
-	var elem = document.createElement(element);
-	elem.appendChild(document.createTextNode(text));
-	parent.appendChild(elem);
-	return elem;
-}
-
-function addCellWithText(parent, text) {
-	return addElementWithText(parent, 'td', text);
-}
-
-function addParaWithText(parent, text) {
-	return addElementWithText(parent, 'p', text);
-}
-
-function setText(element, text) {
-	deleteChildren(element);
-	element.appendChild(document.createTextNode(text));
 }
 
 function fail(message, more) {
@@ -271,21 +143,21 @@ function loading_end() {
 	nav.className = nav.className.replace(' loading', '');
 }
 
-function loadTimes(stopId, clearRoute) {
+function loadTimes(stopId) {
 	if(!stopId) stopId = stop_id;
 	if(!stopId) return;
 	
 	if(times_timer) clearTimeout(times_timer);
 	if(times_xhr) times_xhr.abort();
 	
-	console.log('loadTimes(' + stopId + ', ' + clearRoute + ')');
+	console.log('loadTimes(' + stopId + ')');
 	
 	window.location.hash = '#!' + language + stop_id;
 	refresh_button.removeAttribute('disabled');
 	
 	loading_start();
 	times_xhr = $.get(
-		ttss_base + '/passageInfo/stopPassages/stop' 
+		ttss_base + '/services/passageInfo/stopPassages/stop'
 			+ '?stop=' + encodeURIComponent(stopId)
 			+ '&mode=departure'
 	).done(function(data) {
@@ -293,13 +165,7 @@ function loadTimes(stopId, clearRoute) {
 		setText(page_title, lang.page_title_stop_name.replace('$stop', data.stopName));
 		deleteChildren(times_alerts);
 		deleteChildren(times_table);
-		deleteChildren(times_lines);
-		/*
-		if(clearRoute) {
-			deleteChildren(route_line);
-			deleteChildren(route_table);
-		}
-		*/
+		//deleteChildren(times_lines);
 		
 		for(var i = 0, il = data.generalAlerts.length; i < il; i++) {
 			addParaWithText(times_alerts, data.generalAlerts[i].title);
@@ -315,6 +181,7 @@ function loadTimes(stopId, clearRoute) {
 			addCellWithText(tr, '');
 			
 			tr.className = 'active';
+			tr.addEventListener('click', function(tripId){ return function(){ loadRoute(tripId); } }(data.old[i].tripId) );
 			times_table.appendChild(tr);
 		}
 		
@@ -337,60 +204,69 @@ function loadTimes(stopId, clearRoute) {
 			} else if(parseInt(delay) > 3) {
 				tr.className = 'warning';
 			}
+			
+			tr.addEventListener('click', function(tripId){ return function(){ loadRoute(tripId); } }(data.actual[i].tripId) );
 			times_table.appendChild(tr);
 		}
 		
+		/*
 		for(var i = 0, il = data.routes.length; i < il; i++) {
 			var tr = document.createElement('tr');
 			addCellWithText(tr, data.routes[i].name);
 			addCellWithText(tr, data.routes[i].directions.join(' - '));
 			addCellWithText(tr, data.routes[i].authority);
-			
-			/*
-			tr.addEventListener('click', function(routeId, routeTr){ return function(e) {
-				var trs = tr.parentNode;
-				for(var i = 0; i < trs.childNodes.length; i++) {
-					trs.childNodes[i].removeAttribute('class');
-				}
-				routeTr.className = 'warning';
-				
-				if(route_xhr) route_xhr.abort();
-				route_xhr = $.get(
-					ttss_base + '/routeInfo/routeStops'
-						+ '?routeId=' + encodeURIComponent(routeId)
-				).done(function(data) {
-					setText(route_line, data.route.name + ': '
-						+ data.route.directions.join(' - '));
-					deleteChildren(route_table);
-					
-					routeTr.className = 'success';
-					
-					for(var i = 0, il = data.stops.length; i < il; i++) {
-						var tr = document.createElement('tr');
-						addCellWithText(tr, data.stops[i].name);
-						route_table.appendChild(tr);
-					}
-				}).fail(fail_ajax);
-			}}(data.routes[i].id, tr));
-			*/
-			
 			times_lines.appendChild(tr);
-			
-			for(var j = 0, jl = data.routes[i].alerts.length; j < jl; j++) {
-				addParaWithText(
-					times_alerts,
-					lang.line_alert_pattern
-						.replace('$line', data.routes[i].name)
-						.replace('$alert', data.routes[i].alerts[j].title)
-				);
-			}
 		}
+		*/
 		
 		startTimer(new Date());
 		fail_hide();
 		
-		times_timer = setTimeout(function(){ loadTimes(); }, ttss_refresh);
+		times_timer = setTimeout(function(){ loadTimes(); loadRoute(); }, ttss_refresh);
 	}).fail(fail_ajax).always(loading_end);
+}
+
+function loadRoute(tripId) {
+	if(!tripId) tripId = route_id;
+	if(!tripId) return;
+	
+	console.log('loadRoute(' + tripId + ')');
+	route_id = tripId;
+	
+	if(route_xhr) route_xhr.abort();
+	route_xhr = $.get(
+		ttss_base + '/services/tripInfo/tripPassages'
+			+ '?tripId=' + encodeURIComponent(tripId)
+			+ '&mode=departure'
+	).done(function(data) {
+		if(!data.routeName || !data.directionText || data.old.length + data.actual.length == 0) {
+			route_id = null;
+			return;
+		}
+		
+		setText(route_line, data.routeName + ' ' + data.directionText);
+		deleteChildren(route_table);
+		
+		for(var i = 0, il = data.old.length; i < il; i++) {
+			var tr = document.createElement('tr');
+			addCellWithText(tr, data.old[i].actualTime || data.old[i].plannedTime);
+			addCellWithText(tr, data.old[i].stop_seq_num + '. ' + data.old[i].stop.name);
+			
+			tr.className = 'active';
+			route_table.appendChild(tr);
+		}
+		
+		for(var i = 0, il = data.actual.length; i < il; i++) {
+			var tr = document.createElement('tr');
+			addCellWithText(tr, data.actual[i].actualTime || data.actual[i].plannedTime);
+			addCellWithText(tr, data.actual[i].stop_seq_num + '. ' + data.actual[i].stop.name);
+			
+			if(data.actual[i].status == 'STOPPING') {
+				tr.className = 'success';
+			}
+			route_table.appendChild(tr);
+		}
+	}).fail(fail_ajax);
 }
 
 function startTimer(date) {
@@ -426,12 +302,6 @@ function startTimer(date) {
 			));
 		}
 	}, interval);
-}
-
-var decodeEntitiesTextArea = document.createElement('textarea');
-function decodeEntities(text) {
-	decodeEntitiesTextArea.innerHTML = text;
-	return decodeEntitiesTextArea.value;
 }
 
 function translate() {
@@ -541,11 +411,12 @@ function init() {
 		e.preventDefault();
 		if(!stop_name_autocomplete.value) return;
 		stop_id = stop_name_autocomplete.value;
-		loadTimes(stop_id, true);
+		loadTimes(stop_id);
 	});
 	
 	refresh_button.addEventListener('click', function(e) {
-		loadTimes(stop_id);
+		loadTimes();
+		loadRoute();
 	});
 	
 	alert_close.addEventListener('click', function(e) {

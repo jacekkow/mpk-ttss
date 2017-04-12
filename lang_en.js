@@ -51,6 +51,7 @@ var lang = {
 	status_delayed_4: 'Delayed 4′+',
 	status_delayed_10: 'Delayed 10′+',
 	
+	help_click_for_schedule: 'Click on an entry in the departures timetable to see the tram\'s schedule.',
 	help_legend: 'Legend:',
 	help_text: 'Relative times (eg. 3 min) are real-time arrivals based on tram location data. Absolute times (eg. 8:01) are scheduled departures, shown when the tram cannot be located. "?" means unknown delay.',
 	help_hover_for_more: 'Hover the icon for more details.',

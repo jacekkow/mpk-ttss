@@ -51,6 +51,7 @@ var lang = {
 	status_delayed_4: 'Opóźniony 4′+',
 	status_delayed_10: 'Opóźniony 10′+',
 	
+	help_click_for_schedule: 'Kliknij na wpis w tabeli odjazdów by zobaczyć rozkład jazdy danego tramwaju.',
 	help_legend: 'Legenda:',
 	help_text: 'Względne czasy (np. 3 min) są podawane na podstawie faktycznej lokalizacji tramwajów. Czasy bezwzględne (np. 8:01) to odjazdy rozkładowe, pokazywane gdy tramwaj nie może być zlokalizowany. "?" oznacza nieznane opóźnienie.',
 	help_hover_for_more: 'Najedź na ikonę, by uzyskać więcej informacji.',
