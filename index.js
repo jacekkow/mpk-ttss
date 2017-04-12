@@ -3,6 +3,7 @@ var ttss_base = '/proxy.php';
 var ttss_refresh = 20000; // 20 seconds
 
 var page_title = document.getElementsByTagName('title')[0];
+var ignore_hashchange = false;
 
 var language = 'en';
 var lang_select = document.getElementById('lang-select');
@@ -153,7 +154,9 @@ function loadTimes(stopId) {
 	console.log('loadTimes(' + stopId + ')');
 	stop_id = stopId;
 	
+	ignore_hashchange = true;
 	window.location.hash = '#!' + language + stopId;
+	ignore_hashchange = false;
 	refresh_button.removeAttribute('disabled');
 	
 	loading_start();
@@ -329,6 +332,9 @@ function translate() {
 	} else {
 		setText(refresh_text, lang.enter_stop_name_to_begin);
 	}
+	
+	loadTimes();
+	loadRoute();
 }
 
 function change_language(lang) {
@@ -350,17 +356,20 @@ function change_language(lang) {
 	document.body.removeChild(document.getElementById('lang_script'));
 	document.body.appendChild(script);
 	
+	ignore_hashchange = true;
 	window.location.hash = '#!' + language + stop_id;
+	ignore_hashchange = false;
 }
 
 function hash() {
+	if(ignore_hashchange) return;
+	
 	if(window.location.hash.match(/^#![0-9]+$/)) {
 		loadTimes(parseInt(window.location.hash.substr(2)));
 	} else if(window.location.hash.match(/^#![a-z]{2}[0-9]*$/)) {
 		var stop = parseInt(window.location.hash.substr(4));
 		if(stop) stop_id = stop;
 		change_language(window.location.hash.substr(2, 2));
-		loadTimes(stop_id);
 	}
 }
 
