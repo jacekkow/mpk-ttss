@@ -257,6 +257,7 @@ function loadRoute(tripId) {
 			addCellWithText(tr, data.old[i].stop_seq_num + '. ' + data.old[i].stop.name);
 			
 			tr.className = 'active';
+			tr.addEventListener('click', function(stopId){ return function(){ loadTimes(stopId); } }(data.old[i].stop.shortName) );
 			route_table.appendChild(tr);
 		}
 		
@@ -268,6 +269,7 @@ function loadRoute(tripId) {
 			if(data.actual[i].status == 'STOPPING') {
 				tr.className = 'success';
 			}
+			tr.addEventListener('click', function(stopId){ return function(){ loadTimes(stopId); } }(data.actual[i].stop.shortName) );
 			route_table.appendChild(tr);
 		}
 	}).fail(fail_ajax);
