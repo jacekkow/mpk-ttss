@@ -20,6 +20,7 @@ var lang = {
 	header_lines: 'Lines',
 	header_route: 'Route',
 	header_carrier: 'Carrier',
+	header_stop: 'Stop',
 	
 	boarding_sign: '>>>',
 	unknown_sign: '?',
