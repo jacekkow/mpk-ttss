@@ -33,9 +33,9 @@ casper.test.begin('Translation engine', 2, function(test) {
 	
 	casper.wait(200, function() {
 		test.assertSelectorHasText(
-			'[data-translate=header_lines]',
-			'Linie',
-			'Translation: Lines -> Linie'
+			'[data-translate=header_line]',
+			'Linia',
+			'Translation: Line -> Linia'
 		);
 	});
 	
