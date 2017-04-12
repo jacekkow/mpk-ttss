@@ -30,8 +30,8 @@ $method = [
 		'id' => 'ctype_digit',
 	],
 	'/geoserviceDispatcher/services/vehicleinfo/vehicles' => [
-		// 'lastUpdate' => 'ctype_digit',
-		'positionType' => function($type) { return in_array($type, ['CORRECTED']); },
+		'lastUpdate' => 'ctype_digit',
+		'positionType' => function($type) { return in_array($type, ['CORRECTED', 'NORMAL']); },
 		'colorType' => function($type) { return in_array($type, ['ROUTE_BASED']); },
 	],
 	'/services/routeInfo/routeStops' => [

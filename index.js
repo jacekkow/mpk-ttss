@@ -8,7 +8,7 @@ var ignore_hashchange = false;
 var language = 'en';
 var lang_select = document.getElementById('lang-select');
 
-var stop_id = '';
+var stop_id;
 var stop_name = document.getElementById('stop-name');
 var stop_name_form = stop_name.form;
 var stop_name_autocomplete = document.getElementById('stop-name-autocomplete');
