@@ -37,6 +37,9 @@ $method = [
 	'/services/routeInfo/routeStops' => [
 		'routeId' => 'ctype_digit',
 	],
+	'/services/stopInfo/stop' => [
+		'stop' => 'ctype_digit',
+	],
 	'/services/stopInfo/stopPoint' => [
 		'stopPoint' => 'ctype_digit',
 	],
