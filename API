@@ -1,0 +1,323 @@
+### SEARCH ###
+'/services/lookup/autocomplete/json' => [
+	'query' => function() { return TRUE; },
+],
+[
+  {
+    "count":2,
+    "name":"Przystanki",
+    "type":"divider"
+  },
+  {
+    "id":"959",
+    "name":"Krak&oacute;w Plaza",
+    "type":"stop"
+  },
+  {
+    "id":"3033",
+    "name":"Plaza",
+    "type":"stop"
+  }
+]
+'/services/lookup/autocomplete/nearStops/json' => [
+lat: position.coords.latitude,
+lon: position.coords.longitude
+],
+'/services/lookup/stopsByCharacter' => [
+	'character' => 'ctype_alnum', # eg. a
+],
+{
+"stops": [
+  {
+    "id": "6350927454370005192", # stop_full_id
+    "name": "AWF", # stop_name
+    "number": "113" # stop_id
+  },
+  {
+    "id": "6350927454370005262", # stop_full_id
+    "name": "Agencja Kraków Wschód", # stop_name
+    "number": "462" # stop_id
+  }
+]}
+'/services/lookup/fulltext' => [
+	'search' => function() { return TRUE; }, # eg. Plaza
+],
+{
+  "results":[
+    {
+      "stop":"959", # stop_id
+      "stopPassengerName":"Kraków Plaza" # stop_name
+    },
+    {
+      "stop":"3033", # stop_id
+      "stopPassengerName":"Plaza" # stop_name
+    }
+  ]
+}
+
+### STOP INFOS ###
+'/services/stopInfo/stop' => [
+	'stop' => 'ctype_digit', # stop_id (eg. 2741)
+],
+{
+  "id": "6350927454370005343", # stop_full_id
+  "passengerName": "Św.Gertrudy" # stop_name
+}
+
+'/services/stopInfo/stopPoint' => [
+	'stopPoint' => 'ctype_digit', # stoppoint_id (eg. 274119)
+],
+{
+  "id": "6350786716881923783", # stoppoint_full_id
+  "passengerName": "Św.Gertrudy (274119)", # stoppoint_name
+  "stopPointCode": "274119" # stoppoint_id
+}
+
+### DEPARTURES ###
+	'/services/passageInfo/stopPassages/stop' => [
+		'stop' => 'ctype_digit',
+		'mode' => function($mode) { return in_array($mode, ['arrival', 'departure']); }, # (optional)
+		'startTime' => 'ctype_digit', # timestamp start time (eg. 1492035600000) (optional)
+		'timeFrame' => 'ctype_digit', # time period (eg. 30) (optional)
+	],
+	'/services/passageInfo/stopPassages/stopPoint' => [
+		'stopPoint' => 'ctype_digit', # stoppoint_id (eg. 274119)
+		'mode' => function($mode) { return in_array($mode, ['arrival', 'departure']); }, # (optional)
+		'startTime' => 'ctype_digit', # timestamp start time (eg. 1492035600000) (optional)
+		'timeFrame' => 'ctype_digit', # time period (eg. 30) (optional)
+	],
+	'/services/tripInfo/tripPassages' => [
+		'tripId' => 'ctype_digit',
+		'mode' => function($mode) { return in_array($mode, ['arrival', 'departure']); },
+		#'vehicleId' => 'ctype_digit',
+	],
+
+### GEO INFORMATIONS ###
+'/geoserviceDispatcher/services/stopinfo/stops' => [
+	'left' => 'ctype_digit', (eg. 72248395)
+	'bottom' => 'ctype_digit', (eg. 180282704)
+	'right' => 'ctype_digit', (eg. 72324457)
+	'top' => 'ctype_digit', (eg. 180349192)
+], # ALL: ?left=-648000000&bottom=-324000000&right=648000000&top=324000000
+{"stops": [
+  {
+    "category": "tram", # stop_type
+    "id": "6350927454370005262", # stop_full_id
+    "latitude": 180315951, # stop_lat
+    "longitude": 72286426, # stop_lon
+    "name": "Agencja Kraków Wschód", # stop_name
+    "shortName": "462" # stop_id
+  },
+  {
+    "category": "tram", # stop_type
+    "id": "6350927454370005263", # stop_full_id
+    "latitude": 180322790, # stop_lat
+    "longitude": 72300966, # stop_lon
+    "name": "Walcownia", # stop_name
+    "shortName": "463" # stop_id
+  },
+  {
+    "category": "tram", # stop_type
+    "id": "6350927454370005260", # stop_full_id
+    "latitude": 180302996, # stop_lat
+    "longitude": 72258514, # stop_lon
+    "name": "Mrozowa", # stop_name
+    "shortName": "460" # stop_id
+  },
+  {
+    "category": "tram", # stop_type
+    "id": "6350927454370005261", # stop_full_id
+    "latitude": 180307241, # stop_lat
+    "longitude": 72267887, # stop_lon
+    "name": "Blokowa", # stop_name
+    "shortName": "461" # stop_id
+  }
+]}
+
+'/geoserviceDispatcher/services/stopinfo/stopPoints' => [
+	'left' => 'ctype_digit', (eg. 72248395)
+	'bottom' => 'ctype_digit', (eg. 180282704)
+	'right' => 'ctype_digit', (eg. 72324457)
+	'top' => 'ctype_digit', (eg. 180349192)
+], # ALL: ?left=-648000000&bottom=-324000000&right=648000000&top=324000000
+{"stopPoints": [
+  {
+    "category": "tram", # stoppoint_type
+    "id": "6350786716881695693", # stoppoint_full_id
+    "label": "",
+    "latitude": 180302630, # stoppoint_lat
+    "longitude": 72257903, # stoppoint_lon
+    "name": "Mrozowa (46029)", # stoppoint_name
+    "shortName": "460", # stop_id
+    "stopPoint": "46029" # stoppoint_id
+  },
+  {
+    "category": "tram", # stoppoint_type
+    "id": "6350786716881695683", # stoppoint_full_id
+    "label": "",
+    "latitude": 180303131, # stoppoint_lat
+    "longitude": 72259200, # stoppoint_lon
+    "name": "Mrozowa (46019)", # stoppoint_name
+    "shortName": "460", # stop_id
+    "stopPoint": "46019" # stoppoint_id
+  },
+  # ...
+]}
+
+'/geoserviceDispatcher/services/pathinfo/route' => [
+	'id' => 'ctype_digit', # route_full_id (eg. 6350571212602605600)
+	'direction' => 'ctype_digit', # usually empty
+],
+{"paths": [
+  {
+    "color": "#f89f05",
+    "wayPoints": [
+      {
+        "lat": 180189900,
+        "lon": 71689338,
+        "seq": "1"
+      },
+      {
+        "lat": 180189774,
+        "lon": 71689432,
+        "seq": "2"
+      },
+      # ...
+    ]
+  },
+  {
+    "color": "#f89f05",
+    "wayPoints": [
+      {
+        "lat": 180267296,
+        "lon": 71846885,
+        "seq": "1"
+      },
+      {
+        "lat": 180267358,
+        "lon": 71846773,
+        "seq": "2"
+      },
+      # ...
+    ]
+  }
+]}
+'/geoserviceDispatcher/services/pathinfo/vehicle' => [
+	'id' => 'ctype_digit', # vehicle_id
+],
+{"paths": [{
+  "color": "#f89f05",
+  "wayPoints": [
+    {
+      "lat": 180273283,
+      "lon": 71785307,
+      "seq": "1"
+    },
+    {
+      "lat": 180254905,
+      "lon": 71802223,
+      "seq": "2"
+    },
+    # ...
+  ]
+}]}
+'/geoserviceDispatcher/services/vehicleinfo/vehicles' => [
+	'lastUpdate' => 'ctype_digit', # timestamp changes since (optional)
+	'positionType' => function($type) { return in_array($type, ['CORRECTED', 'NORMAL']); },
+	'colorType' => function($type) { return in_array($type, ['ROUTE_BASED']); },
+],
+{
+  "lastUpdate":1492038023040, # timestamp last changed
+  "vehicles": [
+    {
+      "id":"6352185295672181174", # vehicle_id
+      "isDeleted":true
+    },
+    {
+      "id":"6352185295672180864", # vehicle_id
+      "category":"tram",
+      "color":"0xf89f05",
+      "tripId":"6351558574046733842", # trip_id
+      "name":"10 Zajezdnia Nowa Huta", # route_id + ' ' + route_direction
+      "path":[
+        {
+          "length":1.991105220739696E-4,
+          "y1":180243882,
+          "y2":180243806,
+          "x2":72231876,
+          "angle":260,
+          "x1":72232589
+        },
+        {
+          "length":1.0915844844071638E-4,
+          "y1":180243806,
+          "y2":180243766,
+          "x2":72231485,
+          "angle":260,
+          "x1":72231876
+        }
+      ],
+      "longitude":72229100,
+      "latitude":180308704,
+      "heading":0
+    }
+  ]
+}
+
+### ROUTES ###
+'/services/routeInfo/route' => [],
+{"routes": [
+  {
+    "alerts": [],
+    "authority": "MPK", # route_authority
+    "directions": [
+      "Salwator", # route_direction
+      "Wzgórza Krzesławickie" # route_direction
+    ],
+    "id": "6350571212602605599", # route_full_id
+    "name": "1", # route_id
+    "shortName": "1" # route_id
+  },
+  {
+    "alerts": [],
+    "authority": "MPK", # route_authority
+    "directions": [
+      "Cmentarz Rakowicki", # route_direction
+      "Salwator" # route_direction
+    ],
+    "id": "6350571212602605600", # route_full_id
+    "name": "2", # route_id
+    "shortName": "2" # route_id
+  },
+  # ...
+]}
+
+'/services/routeInfo/routeStops' => [
+	'routeId' => 'ctype_digit',
+],
+{
+  "route": {
+    "alerts": [],
+    "authority": "MPK", # route_authority
+    "directions": [
+      "Salwator", # route_direction
+      "Wzgórza Krzesławickie" # route_direction
+    ],
+    "id": "6350571212602605599", # route_full_id
+    "name": "1", # route_id
+    "shortName": "1" # route_id
+  },
+  "stops": [
+    {
+      "id": "6350927454370005262", # stop_full_id
+      "name": "Agencja Kraków Wschód", # stop_name
+      "number": "462" # stop_id
+    },
+    {
+      "id": "6350927454370005261", # stop_full_id
+      "name": "Blokowa", # stop_name
+      "number": "461" # stop_id
+    },
+    # ...
+  ]
+}
