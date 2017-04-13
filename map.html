@@ -196,7 +196,8 @@ function updateVehicles() {
 						stroke: new ol.style.Stroke({color: color_type, width: 2}),
 						points: 3,
 						radius: 12,
-						rotation: Math.PI * 2.0 * vehicle.heading / 360.0,
+						rotation: Math.PI * parseFloat(vehicle.heading) / 180.0,
+						rotateWithView: true,
 						angle: 0
 					}),
 					text: new ol.style.Text({
@@ -208,6 +209,7 @@ function updateVehicles() {
 				vehicles_source.addFeature(vehicle_feature);
 			} else {
 				vehicle_feature.setProperties(vehicle);
+				vehicle_feature.getStyle().getImage().setRotation(Math.PI * parseFloat(vehicle.heading) / 180.0);
 				if(popup_feature_id == vehicle.id) {
 					popup.setPosition(vehicle_feature.getGeometry().getCoordinates());
 				}
