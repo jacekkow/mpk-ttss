@@ -165,6 +165,9 @@ function updateVehicles() {
 			if(vehicle.isDeleted) {
 				if(vehicle_feature) {
 					vehicles_source.removeFeature(vehicle_feature);
+					if(popup_feature_id == vehicle.id) {
+						popupHide();
+					}
 				}
 				continue;
 			}
