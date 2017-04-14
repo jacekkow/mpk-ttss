@@ -66,6 +66,18 @@ function fail_ajax(data) {
 	}
 }
 
+function popupHide() {
+	popup.setPosition(undefined);
+	popup_feature_id = null;
+}
+
+function popupShow(coordinates, id) {
+	popup.setPosition(coordinates);
+	if(id) {
+		popup_feature_id = id;
+	}
+}
+
 function init() {
 	if(!window.jQuery) {
 		fail(lang.jquery_not_loaded);
@@ -107,8 +119,8 @@ function init() {
 	});
 	
 	// display popup on click
-	map.on('singleclick', function(evt) {
-		var feature = map.forEachFeatureAtPixel(evt.pixel, function(feature) { return feature; });
+	map.on('singleclick', function(e) {
+		var feature = map.forEachFeatureAtPixel(e.pixel, function(feature) { return feature; });
 		if(feature) {
 			var coordinates = feature.getGeometry().getCoordinates();
 			
@@ -120,11 +132,9 @@ function init() {
 				addParaWithText(popup_element, vehicle_type.num + ' ' + vehicle_type.type);
 			}
 			
-			popup.setPosition(coordinates);
-			popup_feature_id = feature.getId();
+			popupShow(coordinates, feature.getId());
 		} else {
-			popup.setPosition(undefined);
-			popup_feature_id = null;
+			popupHide();
 		}
 	});
 
@@ -210,8 +220,9 @@ function updateVehicles() {
 			} else {
 				vehicle_feature.setProperties(vehicle);
 				vehicle_feature.getStyle().getImage().setRotation(Math.PI * parseFloat(vehicle.heading) / 180.0);
-				if(popup_feature_id == vehicle.id) {
-					popup.setPosition(vehicle_feature.getGeometry().getCoordinates());
+				
+				if(popup_feature_id == vehicle_feature.getId()) {
+					popupShow(vehicle_feature.getGeometry().getCoordinates());
 				}
 			}
 		}
