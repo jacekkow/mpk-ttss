@@ -140,11 +140,9 @@ function init() {
 
 	// change mouse cursor when over marker
 	map.on('pointermove', function(e) {
-		var pixel = map.getEventPixel(e.originalEvent);
-		var hit = map.hasFeatureAtPixel(pixel);
-		var target = map.getTarget();
-		if(target.style)
-			target.style.cursor = hit ? 'pointer' : '';
+		var hit = map.hasFeatureAtPixel(e.pixel);
+		var target = map.getTargetElement();
+		target.style.cursor = hit ? 'pointer' : '';
 	});
 }
 
