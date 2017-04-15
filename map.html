@@ -38,10 +38,17 @@ html, body, #map {
 var ttss_base = '/proxy.php';
 var ttss_refresh = 5000; // 5 seconds
 
-var vehicles_source = null;
 var vehicles_xhr = null;
 var vehicles_timer = null;
 var vehicles_last_update = 0;
+var vehicles_source = null;
+var vehicles_layer = null;
+
+var stops_xhr = null;
+var stops_source = null;
+var stops_layer = null;
+var stop_points_source = null;
+var stop_points_layer = null;
 
 var map = null;
 var popup_feature_id = null;
@@ -78,6 +85,10 @@ function popupShow(coordinates, id) {
 	}
 }
 
+function getGeometry(object) {
+	return new ol.geom.Point(ol.proj.fromLonLat([object.longitude / 3600000.0, object.latitude / 3600000.0]))
+}
+
 function init() {
 	if(!window.jQuery) {
 		fail(lang.jquery_not_loaded);
@@ -90,8 +101,27 @@ function init() {
 	});
 	
 	
+	
+	stops_source = new ol.source.Vector({
+		features: [],
+	});
+	stops_layer = new ol.layer.Vector({
+		source: stops_source,
+	});
+	
+	stop_points_source = new ol.source.Vector({
+		features: [],
+	});
+	stop_points_layer = new ol.layer.Vector({
+		source: stop_points_source,
+		visible: false,
+	});
+	
 	vehicles_source = new ol.source.Vector({
-		features: []
+		features: [],
+	});
+	vehicles_layer = new ol.layer.Vector({
+		source: vehicles_source,
 	});
 	
 	popup = new ol.Overlay({
@@ -107,9 +137,9 @@ function init() {
 			new ol.layer.Tile({
 				source: new ol.source.OSM()
 			}),
-			new ol.layer.Vector({
-				source: vehicles_source,
-			}),
+			stops_layer,
+			stop_points_layer,
+			vehicles_layer,
 		],
 		overlays: [popup],
 		view: new ol.View({
@@ -118,18 +148,27 @@ function init() {
 		})
 	});
 	
-	// display popup on click
+	// Display popup on click
 	map.on('singleclick', function(e) {
 		var feature = map.forEachFeatureAtPixel(e.pixel, function(feature) { return feature; });
 		if(feature) {
 			var coordinates = feature.getGeometry().getCoordinates();
 			
 			deleteChildren(popup_element);
-			addParaWithText(popup_element, feature.get('name')).className = 'line-direction';
-			
-			var vehicle_type = parseVehicle(feature.get('id'));
-			if(vehicle_type) {
-				addParaWithText(popup_element, vehicle_type.num + ' ' + vehicle_type.type);
+			switch(feature.getId().substr(0, 1)) {
+				case 'v':
+					addParaWithText(popup_element, feature.get('name')).className = 'line-direction';
+					
+					var vehicle_type = parseVehicle(feature.get('id'));
+					if(vehicle_type) {
+						addParaWithText(popup_element, vehicle_type.num + ' ' + vehicle_type.type);
+					}
+					break;
+				case 's':
+				case 'p':
+					addParaWithText(popup_element, feature.get('name')).className = 'line-direction';
+					break;
+				
 			}
 			
 			popupShow(coordinates, feature.getId());
@@ -138,11 +177,22 @@ function init() {
 		}
 	});
 
-	// change mouse cursor when over marker
+	// Change mouse cursor when over marker
 	map.on('pointermove', function(e) {
 		var hit = map.hasFeatureAtPixel(e.pixel);
 		var target = map.getTargetElement();
 		target.style.cursor = hit ? 'pointer' : '';
+	});
+	
+	// Change layer visibility on zoom
+	map.getView().on('change:resolution', function(e) {
+		if(map.getView().getZoom() >= 16) {
+			stops_layer.setVisible(false);
+			stop_points_layer.setVisible(true);
+		} else {
+			stops_layer.setVisible(true);
+			stop_points_layer.setVisible(false);
+		}
 	});
 }
 
@@ -161,11 +211,11 @@ function updateVehicles() {
 		for(var i = 0; i < data.vehicles.length; i++) {
 			var vehicle = data.vehicles[i];
 			
-			var vehicle_feature = vehicles_source.getFeatureById(vehicle.id);
+			var vehicle_feature = vehicles_source.getFeatureById('v' + vehicle.id);
 			if(vehicle.isDeleted) {
 				if(vehicle_feature) {
 					vehicles_source.removeFeature(vehicle_feature);
-					if(popup_feature_id == vehicle.id) {
+					if(popup_feature_id == vehicle_feature.getId()) {
 						popupHide();
 					}
 				}
@@ -179,12 +229,12 @@ function updateVehicles() {
 				vehicle.line = special_directions[vehicle.direction];
 			}
 			
-			vehicle.geometry = new ol.geom.Point(ol.proj.fromLonLat([vehicle.longitude / 3600000.0, vehicle.latitude / 3600000.0]));
+			vehicle.geometry = getGeometry(vehicle);
 			vehicle.vehicle_type = parseVehicle(vehicle.id);
 			
 			if(!vehicle_feature) {
 				vehicle_feature = new ol.Feature(vehicle);
-				vehicle_feature.setId(vehicle.id);
+				vehicle_feature.setId('v' + vehicle.id);
 				
 				var color_type = 'black';
 				if(vehicle.vehicle_type) {
@@ -234,8 +284,54 @@ function updateVehicles() {
 	}).fail(fail_ajax);
 }
 
+function updateStopSource(stops, prefix, source) {
+	source.clear();
+	
+	for(var i = 0; i < stops.length; i++) {
+		var stop = stops[i];
+		stop.geometry = getGeometry(stop);
+		var stop_feature = new ol.Feature(stop);
+		
+		stop_feature.setId(prefix + stop.id);
+		stop_feature.setStyle(new ol.style.Style({
+			image: new ol.style.Circle({
+				fill: new ol.style.Fill({color: 'orange'}),
+				stroke: new ol.style.Stroke({color: 'red', width: 1}),
+				radius: 3,
+			}),
+		}));
+		
+		source.addFeature(stop_feature);
+	}
+}
+
+function updateStops() {
+	$.get(
+		ttss_base + '/geoserviceDispatcher/services/stopinfo/stops'
+			+ '?left=-648000000'
+			+ '&bottom=-324000000'
+			+ '&right=648000000'
+			+ '&top=324000000'
+	).done(function(data) {
+		updateStopSource(data.stops, 's', stops_source);
+	}).fail(fail_ajax);
+}
+function updateStopPoints() {
+	$.get(
+		ttss_base + '/geoserviceDispatcher/services/stopinfo/stopPoints'
+			+ '?left=-648000000'
+			+ '&bottom=-324000000'
+			+ '&right=648000000'
+			+ '&top=324000000'
+	).done(function(data) {
+		updateStopSource(data.stopPoints, 'p', stop_points_source);
+	}).fail(fail_ajax);
+}
+
 init();
 updateVehicles();
+updateStops();
+updateStopPoints();
 </script>
 </body>
 </html>

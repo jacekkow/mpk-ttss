@@ -75,7 +75,7 @@ lon: position.coords.longitude
 
 ### DEPARTURES ###
 	'/services/passageInfo/stopPassages/stop' => [
-		'stop' => 'ctype_digit',
+		'stop' => 'ctype_digit', # stop_id
 		'mode' => function($mode) { return in_array($mode, ['arrival', 'departure']); }, # (optional)
 		'startTime' => 'ctype_digit', # timestamp start time (eg. 1492035600000) (optional)
 		'timeFrame' => 'ctype_digit', # time period (eg. 30) (optional)

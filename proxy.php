@@ -1,4 +1,17 @@
 <?php
+function is_number($str) {
+	$str = (string)$str;
+	
+	return
+		ctype_digit($str)
+		OR
+		(
+			substr($str, 0, 1) == '-'
+			AND
+			ctype_digit(substr($str, 1))
+		);
+}
+
 $base_proxy = 'http://www.ttss.krakow.pl/internetservice';
 $method = [
 	'/services/lookup/autocomplete/json' => [
@@ -8,26 +21,32 @@ $method = [
 		'character' => 'ctype_alnum',
 	],
 	'/services/passageInfo/stopPassages/stop' => [
-		'stop' => 'ctype_digit',
+		'stop' => 'is_number',
 		'mode' => function($mode) { return in_array($mode, ['arrival', 'departure']); },
 	],
 	'/services/tripInfo/tripPassages' => [
-		'tripId' => 'ctype_digit',
+		'tripId' => 'is_number',
 		'mode' => function($mode) { return in_array($mode, ['arrival', 'departure']); },
-		#'vehicleId' => 'ctype_digit',
+		#'vehicleId' => 'is_number',
+	],
+	'/geoserviceDispatcher/services/stopinfo/stops' => [
+		'left' => 'is_number',
+		'bottom' => 'is_number',
+		'right' => 'is_number',
+		'top' => 'is_number',
 	],
 	'/geoserviceDispatcher/services/stopinfo/stopPoints' => [
-		'left' => 'ctype_digit',
-		'bottom' => 'ctype_digit',
-		'right' => 'ctype_digit',
-		'top' => 'ctype_digit',
+		'left' => 'is_number',
+		'bottom' => 'is_number',
+		'right' => 'is_number',
+		'top' => 'is_number',
 	],
 	'/geoserviceDispatcher/services/pathinfo/route' => [
-		'id' => 'ctype_digit',
-		'direction' => 'ctype_digit',
+		'id' => 'is_number',
+		'direction' => 'is_number',
 	],
 	'/geoserviceDispatcher/services/pathinfo/vehicle' => [
-		'id' => 'ctype_digit',
+		'id' => 'is_number',
 	],
 	'/geoserviceDispatcher/services/vehicleinfo/vehicles' => [
 		'lastUpdate' => 'ctype_digit',
@@ -35,16 +54,16 @@ $method = [
 		'colorType' => function($type) { return in_array($type, ['ROUTE_BASED']); },
 	],
 	'/services/routeInfo/routeStops' => [
-		'routeId' => 'ctype_digit',
+		'routeId' => 'is_number',
 	],
 	'/services/stopInfo/stop' => [
-		'stop' => 'ctype_digit',
+		'stop' => 'is_number',
 	],
 	'/services/stopInfo/stopPoint' => [
-		'stopPoint' => 'ctype_digit',
+		'stopPoint' => 'is_number',
 	],
 	'/services/passageInfo/stopPassages/stopPoint' => [
-		'stopPoint' => 'ctype_digit',
+		'stopPoint' => 'is_number',
 		'mode' => function($mode) { return in_array($mode, ['arrival', 'departure']); },
 		'startTime' => 'ctype_digit',
 		'timeFrame' => 'ctype_digit',
