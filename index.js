@@ -331,9 +331,9 @@ function translate() {
 		setText(refresh_text, lang.enter_stop_name_to_begin);
 	}
 	
-	if(!stop_id) return;
-	
 	setText(page_title, lang.page_title);
+	
+	if(!stop_id) return;
 	
 	loadTimes();
 	loadRoute();
