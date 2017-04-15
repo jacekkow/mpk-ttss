@@ -3,6 +3,8 @@ var lang = {
 	page_title: 'TTSS Krak\u00F3w - Real-time tram departures',
 	page_title_stop_name: 'TTSS Krak\u00F3w - $stop - Real-time tram departures',
 	
+	map: 'Map',
+	
 	jquery_not_loaded: 'Required JavaScript jQuery library failed to load. You may try refreshing the page.',
 	enter_stop_name_to_begin: 'Enter the stop name to begin.',
 	select_stop_click_go: 'Select the stop and click "Go".',
@@ -64,4 +66,5 @@ var lang = {
 	error_request_failed_status: 'Internet request failed with error: $status.',
 	error_request_failed_connectivity: 'Request failed - please check your network connectivity.',
 	error_new_version: 'Website has been updated, reloading...',
+	error_refresh: 'Error! Refresh the page to update information.',
 };

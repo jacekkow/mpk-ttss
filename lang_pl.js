@@ -3,6 +3,8 @@ var lang = {
 	page_title: 'TTSS Krak\u00F3w - Odjazdy tramwajów na żywo',
 	page_title_stop_name: 'TTSS Krak\u00F3w - $stop - Odjazdy tramwajów na żywo',
 	
+	map: 'Map',
+	
 	jquery_not_loaded: 'Wymagana biblioteka jQuery nie została poprawnie załadowana. Spróbuj odświeżyć stronę.',
 	enter_stop_name_to_begin: 'Zacznij wpisywać nazwę przystanku.',
 	select_stop_click_go: 'Wyierz przystanek i kliknij "Dalej".',
@@ -64,4 +66,5 @@ var lang = {
 	error_request_failed_status: 'Wykonanie żądania internetowego nie udało się. Błąd: $status.',
 	error_request_failed_connectivity: 'Wykonanie żądania internetowego nie udało się - sprawdź połączenie z siecią.',
 	error_new_version: 'Strona została zaktualizowana, przeładowuję...',
+	error_refresh: 'Błąd! Odśwież stronę, by zaktualizować dane.',
 };

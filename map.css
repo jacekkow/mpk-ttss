@@ -1,0 +1,49 @@
+html, body, #map {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	font-family: sans-serif;
+}
+
+#popup {
+	color: black;
+	background: white;
+	padding: 5px;
+	border: 1px solid black;
+	border-radius: 10px;
+	font-size: 12px;
+}
+#popup p {
+	margin: 0;
+	padding: 5px;
+}
+#popup .bold {
+	font-weight: bold;
+}
+
+#title {
+	top: .5em;
+	left: .5em;
+	padding: 2px .5em;
+	font-weight: bold;
+	background-color: rgba(255,255,255,.6);
+}
+#fail {
+	top: -10em;
+	right: 0.5em;
+	background: red;
+	color: white;
+	font-weight: bold;
+	padding: 5px;
+}
+.ol-zoom {
+	top: 2.2em;
+}
+
+a {
+	color: #337ab7;
+	text-decoration: none;
+}
+a:hover {
+	text-decoration: underline;
+}
