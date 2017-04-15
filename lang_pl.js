@@ -3,7 +3,7 @@ var lang = {
 	page_title: 'TTSS Krak\u00F3w - Odjazdy tramwajów na żywo',
 	page_title_stop_name: 'TTSS Krak\u00F3w - $stop - Odjazdy tramwajów na żywo',
 	
-	map: 'Map',
+	map: 'Mapa',
 	
 	jquery_not_loaded: 'Wymagana biblioteka jQuery nie została poprawnie załadowana. Spróbuj odświeżyć stronę.',
 	enter_stop_name_to_begin: 'Zacznij wpisywać nazwę przystanku.',
