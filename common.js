@@ -159,10 +159,3 @@ function setText(element, text) {
 	deleteChildren(element);
 	element.appendChild(document.createTextNode(text));
 }
-
-// Other functions
-var decodeEntitiesTextArea = document.createElement('textarea');
-function decodeEntities(text) {
-	decodeEntitiesTextArea.innerHTML = text;
-	return decodeEntitiesTextArea.value;
-}

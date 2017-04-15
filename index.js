@@ -387,7 +387,7 @@ function stop_autocomplete() {
 			if(data[i].id > 6000) continue;
 			var opt = document.createElement('option');
 			opt.value = data[i].id;
-			setText(opt, decodeEntities(data[i].name));
+			setText(opt, data[i].name);
 			stop_name_autocomplete.appendChild(opt);
 		}
 		
