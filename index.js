@@ -325,15 +325,15 @@ function translate() {
 	
 	stop_name.setAttribute('placeholder', lang.stop_name_placeholder);
 	
-	if(stop_id) return;
-	
-	setText(page_title, lang.page_title);
-	
 	if(stop_name_autocomplete.value) {
 		setText(refresh_text, lang.select_stop_click_go);
 	} else {
 		setText(refresh_text, lang.enter_stop_name_to_begin);
 	}
+	
+	if(!stop_id) return;
+	
+	setText(page_title, lang.page_title);
 	
 	loadTimes();
 	loadRoute();
