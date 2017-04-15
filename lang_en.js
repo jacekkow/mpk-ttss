@@ -63,4 +63,5 @@ var lang = {
 	error_request_failed: 'Internet request failed.',
 	error_request_failed_status: 'Internet request failed with error: $status.',
 	error_request_failed_connectivity: 'Request failed - please check your network connectivity.',
+	error_new_version: 'Website has been updated, reloading...',
 };

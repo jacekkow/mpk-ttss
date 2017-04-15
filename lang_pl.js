@@ -63,4 +63,5 @@ var lang = {
 	error_request_failed: 'Wykonanie żądania internetowego nie udało się.',
 	error_request_failed_status: 'Wykonanie żądania internetowego nie udało się. Błąd: $status.',
 	error_request_failed_connectivity: 'Wykonanie żądania internetowego nie udało się - sprawdź połączenie z siecią.',
+	error_new_version: 'Strona została zaktualizowana, przeładowuję...',
 };

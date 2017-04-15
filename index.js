@@ -115,7 +115,7 @@ function fail(message, more) {
 	setText(alert_text, message);
 	alert.style.display = 'block';
 	
-	console.log(message + ' More details follow.');
+	console.log(message + (more ? ' More details follow.' : ''));
 	if(more) console.log(more);
 }
 
@@ -437,6 +437,8 @@ function init() {
 	hash();
 	
 	window.addEventListener('hashchange', hash);
+	
+	checkVersionInit();
 }
 
 init();

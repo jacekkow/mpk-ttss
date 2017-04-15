@@ -4,6 +4,33 @@ var special_directions = {
 	'Zajezdnia Podgórze' : 'P',
 };
 
+var script_version;
+var script_version_xhr;
+
+// Check for website updates
+function checkVersion() {
+	if(script_version_xhr) script_version_xhr.abort();
+	
+	script_version_xhr = $.get(
+		'version.php'
+	).done(function(data) {
+		if(!script_version) {
+			script_version = data;
+			return;
+		}
+		
+		if(script_version != data) {
+			fail(lang.error_new_version);
+			location.reload(true);
+		}
+	});
+}
+
+function checkVersionInit() {
+	checkVersion();
+	setInterval(checkVersion, 3600000);
+}
+
 // Webservice-related functions
 function parseVehicle(vehicleId) {
 	if(!vehicleId) return;
