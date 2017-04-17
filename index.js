@@ -5,7 +5,7 @@ var ttss_refresh = 20000; // 20 seconds
 var page_title = document.getElementsByTagName('title')[0];
 var ignore_hashchange = false;
 
-var language = 'en';
+var language = 'pl';
 var lang_select = document.getElementById('lang-select');
 
 var stop_id = '';

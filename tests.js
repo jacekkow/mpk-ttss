@@ -27,15 +27,15 @@ casper.test.begin('Stop name autocompletion', 4, function(test) {
 });
 
 casper.test.begin('Translation engine', 2, function(test) {
-	casper.start('http://127.0.0.1:8080/#!pl', function() {
-		test.assertTitleMatches(/odjazdy/i, 'Page title: ...odjazdy...');
+	casper.start('http://127.0.0.1:8080/#!en', function() {
+		test.assertTitleMatches(/departures/i, 'Page title: ...departures...');
 	});
 	
 	casper.wait(200, function() {
 		test.assertSelectorHasText(
 			'[data-translate=header_line]',
-			'Linia',
-			'Translation: Line -> Linia'
+			'Line',
+			'Translation: Linia -> Line'
 		);
 	});
 	
