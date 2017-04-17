@@ -37,6 +37,8 @@ var alert_text = document.getElementById('alert-text');
 var alert_close = document.getElementById('alert-close');
 
 var nav = document.getElementsByTagName('nav')[0];
+var vehicle_data = document.getElementById('vehicle-data');
+var vehicle_data_style = document.getElementById('vehicle-data-style');
 
 function parseStatus(status) {
 	switch(status.status) {
@@ -179,7 +181,9 @@ function loadTimes(stopId) {
 			var tr = document.createElement('tr');
 			addCellWithText(tr, data.old[i].patternText);
 			var dir_cell = addCellWithText(tr, data.old[i].direction);
-			dir_cell.appendChild(displayVehicle(parseVehicle(data.old[i].vehicleId)));
+			var vehicle = parseVehicle(data.actual[i].vehicleId);
+			dir_cell.appendChild(displayVehicle(vehicle));
+			addCellWithText(tr, vehicle.num).className = 'vehicleData';
 			var status = parseStatus(data.old[i]);
 			addCellWithText(tr, status);
 			addCellWithText(tr, '');
@@ -193,7 +197,9 @@ function loadTimes(stopId) {
 			var tr = document.createElement('tr');
 			addCellWithText(tr, data.actual[i].patternText);
 			var dir_cell = addCellWithText(tr, data.actual[i].direction);
-			dir_cell.appendChild(displayVehicle(parseVehicle(data.actual[i].vehicleId)));
+			var vehicle = parseVehicle(data.actual[i].vehicleId);
+			dir_cell.appendChild(displayVehicle(vehicle));
+			addCellWithText(tr, vehicle.num).className = 'vehicleData';
 			var status = parseStatus(data.actual[i]);
 			var status_cell = addCellWithText(tr, status);
 			var delay = parseDelay(data.actual[i]);
@@ -425,13 +431,19 @@ function init() {
 		loadTimes(stop_name_autocomplete.value);
 	});
 	
-	refresh_button.addEventListener('click', function(e) {
+	refresh_button.addEventListener('click', function() {
 		loadTimes();
 		loadRoute();
 	});
 	
-	alert_close.addEventListener('click', function(e) {
+	alert_close.addEventListener('click', function() {
 		alert.style.display = 'none';
+	});
+	
+	vehicle_data.addEventListener('click', function(e) {
+		e.preventDefault();
+		vehicle_data.style.display = 'none';
+		setText(vehicle_data_style, '.vehicleData { display: table-cell; }')
 	});
 	
 	hash();

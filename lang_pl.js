@@ -17,6 +17,7 @@ var lang = {
 	
 	header_line: 'Linia',
 	header_direction: 'Kierunek',
+	header_vehicle: 'Pojazd',
 	header_time: 'Odjazd',
 	header_delay: 'Opóźn.',
 	header_lines: 'Linie',

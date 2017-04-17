@@ -39,8 +39,14 @@ tr.active {
 	margin: -5px 0;
 	font-size: 21px;
 }
+#vehicle-data {
+	float: right;
+}
 .bigger {
 	font-size: 21px;
+}
+.vehicleData {
+	display: none;
 }
 
 /* Change navbar behavior for low media width */

@@ -17,6 +17,7 @@ var lang = {
 	
 	header_line: 'Line',
 	header_direction: 'Direction',
+	header_vehicle: 'Vehicle',
 	header_time: 'Time',
 	header_delay: 'Delay',
 	header_lines: 'Lines',
