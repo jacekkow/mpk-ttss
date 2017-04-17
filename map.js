@@ -1,6 +1,6 @@
 //var ttss_base = 'http://www.ttss.krakow.pl/internetservice';
 var ttss_base = '/proxy.php';
-var ttss_refresh = 5000; // 5 seconds
+var ttss_refresh = 10000; // 10 seconds
 
 var vehicles_xhr = null;
 var vehicles_timer = null;
