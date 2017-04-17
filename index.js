@@ -160,7 +160,6 @@ function loadTimes(stopId) {
 	
 	ignore_hashchange = true;
 	window.location.hash = '#!' + language + stopId;
-	ignore_hashchange = false;
 	refresh_button.removeAttribute('disabled');
 	
 	loading_start();
@@ -365,8 +364,8 @@ function translate() {
 }
 
 function change_language(lang) {
-	if(!lang || lang.length != 2) return;
-	if(lang == language) return;
+	if(!lang || lang.length != 2) return false;
+	if(lang == language) return false;
 	lang_select.value = lang;
 	if(!lang_select.value) {
 		lang_select.value = language;
@@ -385,18 +384,25 @@ function change_language(lang) {
 	
 	ignore_hashchange = true;
 	window.location.hash = '#!' + language + stop_id;
-	ignore_hashchange = false;
+	
+	return true;
 }
 
 function hash() {
-	if(ignore_hashchange) return;
+	if(ignore_hashchange) {
+		ignore_hashchange = false;
+		return;
+	}
 	
 	if(window.location.hash.match(/^#![0-9]+$/)) {
 		loadTimes(parseInt(window.location.hash.substr(2)));
 	} else if(window.location.hash.match(/^#![a-z]{2}[0-9]*$/)) {
 		var stop = parseInt(window.location.hash.substr(4));
 		if(stop) stop_id = stop;
-		change_language(window.location.hash.substr(2, 2));
+		
+		if(!change_language(window.location.hash.substr(2, 2))) {
+			loadTimes(parseInt(window.location.hash.substr(2)));
+		}
 	}
 }
 
