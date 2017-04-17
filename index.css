@@ -35,9 +35,14 @@ tr.active {
 }
 
 .vehicleInfo {
+	font-size: 21px;
+}
+#times-table .vehicleInfo {
 	float: right;
 	margin: -5px 0;
-	font-size: 21px;
+}
+#route-vehicle .vehicleInfo {
+	margin-right: .5em;
 }
 #vehicle-data {
 	float: right;

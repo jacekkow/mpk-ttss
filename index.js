@@ -26,6 +26,7 @@ var route_id;
 var route_xhr;
 var route_line = document.getElementById('route-line');
 var route_table = document.getElementById('route-table');
+var route_vehicle = document.getElementById('route-vehicle');
 
 var refresh_button = document.getElementById('refresh');
 var refresh_text = document.getElementById('refresh-text');
@@ -189,7 +190,9 @@ function loadTimes(stopId) {
 			addCellWithText(tr, '');
 			
 			tr.className = 'active';
-			tr.addEventListener('click', function(tripId){ return function(){ loadRoute(tripId); } }(data.old[i].tripId) );
+			tr.addEventListener('click', function(tripId, vehicleInfo) {
+				return function(){ loadRoute(tripId, vehicleInfo); }
+			}(data.actual[i].tripId, vehicle));
 			times_table.appendChild(tr);
 		}
 		
@@ -215,7 +218,9 @@ function loadTimes(stopId) {
 				tr.className = 'warning';
 			}
 			
-			tr.addEventListener('click', function(tripId){ return function(){ loadRoute(tripId); } }(data.actual[i].tripId) );
+			tr.addEventListener('click', function(tripId, vehicleInfo) {
+				return function(){ loadRoute(tripId, vehicleInfo); }
+			}(data.actual[i].tripId, vehicle));
 			times_table.appendChild(tr);
 		}
 		
@@ -236,12 +241,15 @@ function loadTimes(stopId) {
 	}).fail(fail_ajax).always(loading_end);
 }
 
-function loadRoute(tripId) {
+function loadRoute(tripId, vehicleInfo) {
 	if(!tripId) tripId = route_id;
 	if(!tripId) return;
 	
+	if(!vehicleInfo) vehicleInfo = route_vehicle_info;
+	
 	console.log('loadRoute(' + tripId + ')');
 	route_id = tripId;
+	route_vehicle_info = vehicleInfo;
 	
 	if(route_xhr) route_xhr.abort();
 	route_xhr = $.get(
@@ -255,6 +263,14 @@ function loadRoute(tripId) {
 		}
 		
 		setText(route_line, data.routeName + ' ' + data.directionText);
+		
+		deleteChildren(route_vehicle);
+		if(vehicleInfo) {
+			var span = displayVehicle(vehicleInfo);
+			setText(route_vehicle, span.title);
+			route_vehicle.insertBefore(span, route_vehicle.firstChild);
+		}
+		
 		deleteChildren(route_table);
 		
 		for(var i = 0, il = data.old.length; i < il; i++) {
