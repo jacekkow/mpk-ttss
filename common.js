@@ -135,6 +135,14 @@ function parseVehicle(vehicleId) {
 	};
 }
 
+function tramIdToVehicleId(tramId) {
+	if(0 <= tramId && tramId <= 999) {
+		var vehicleId = '0000' + (tramId + 736);
+		vehicleId = vehicleId.substr(vehicleId.length - 4)
+		return '635218529567218' + vehicleId;
+	}
+}
+
 // Element mangling
 function deleteChildren(element) {
 	while(element.lastChild) element.removeChild(element.lastChild);

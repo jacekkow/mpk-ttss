@@ -20,6 +20,8 @@ var popup_element = document.getElementById('popup');
 var popup = null;
 var fail_element = document.getElementById('fail');
 
+var ignore_hashchange = false;
+
 function fail(msg) {
 	console.log(msg);
 	
@@ -142,6 +144,8 @@ function updateVehicles() {
 			updateVehicles();
 		}, ttss_refresh);
 	}).fail(fail_ajax);
+	
+	return vehicles_xhr;
 }
 
 function updateStopSource(stops, prefix, source) {
@@ -166,7 +170,7 @@ function updateStopSource(stops, prefix, source) {
 }
 
 function updateStops() {
-	$.get(
+	return $.get(
 		ttss_base + '/geoserviceDispatcher/services/stopinfo/stops'
 			+ '?left=-648000000'
 			+ '&bottom=-324000000'
@@ -178,7 +182,7 @@ function updateStops() {
 }
 
 function updateStopPoints() {
-	$.get(
+	return $.get(
 		ttss_base + '/geoserviceDispatcher/services/stopinfo/stopPoints'
 			+ '?left=-648000000'
 			+ '&bottom=-324000000'
@@ -187,6 +191,80 @@ function updateStopPoints() {
 	).done(function(data) {
 		updateStopSource(data.stopPoints, 'p', stop_points_source);
 	}).fail(fail_ajax);
+}
+
+function featureClicked(feature) {
+	if(!feature) {
+		popupHide();
+		
+		ignore_hashchange = true;
+		window.location.hash = '';
+		
+		return;
+	}
+	
+	var coordinates = feature.getGeometry().getCoordinates();
+	
+	deleteChildren(popup_element);
+	
+	addParaWithText(popup_element, feature.get('name')).className = 'bold';
+	switch(feature.getId().substr(0, 1)) {
+		case 'v':
+			var vehicle_type = parseVehicle(feature.get('id'));
+			if(vehicle_type) {
+				addParaWithText(popup_element, vehicle_type.num + ' ' + vehicle_type.type);
+			}
+		break;
+	}
+	
+	ignore_hashchange = true;
+	window.location.hash = '#!' + feature.getId();
+	
+	popupShow(coordinates, feature.getId());
+}
+
+function hash() {
+	if(ignore_hashchange) {
+		ignore_hashchange = false;
+		return;
+	}
+	
+	var tramId = null;
+	
+	var vehicleId = null;
+	var stopId = null;
+	var stopPointId = null;
+	
+	var feature = null;
+	
+	if(window.location.hash.match(/^#!t[0-9]{3}$/)) {
+		tramId = parseInt(window.location.hash.substr(3));
+	} else if(window.location.hash.match(/^#![A-Za-z]{2}[0-9]{3}$/)) {
+		tramId = parseInt(window.location.hash.substr(4));
+	} else if(window.location.hash.match(/^#!v[0-9]+$/)) {
+		vehicleId = window.location.hash.substr(3);
+	} else if(window.location.hash.match(/^#!s[0-9]+$/)) {
+		stopId = window.location.hash.substr(3);
+	} else if(window.location.hash.match(/^#!p[0-9]+$/)) {
+		stopPointId = window.location.hash.substr(3);
+	}
+	
+	if(tramId) {
+		vehicleId = tramIdToVehicleId(tramId);
+	}
+	
+	if(vehicleId) {
+		feature = vehicles_source.getFeatureById('v' + vehicleId);
+	} else if(stopId) {
+		feature = stops_source.getFeatureById('s' + stopId);
+	} else if(stopPointId) {
+		feature = stop_points_source.getFeatureById('p' + stopPointId);
+	}
+	
+	featureClicked(feature);
+	if(feature) {
+		map.getView().setCenter(feature.getGeometry().getCoordinates());
+	}
 }
 
 function init() {
@@ -261,25 +339,7 @@ function init() {
 	// Display popup on click
 	map.on('singleclick', function(e) {
 		var feature = map.forEachFeatureAtPixel(e.pixel, function(feature) { return feature; });
-		if(feature) {
-			var coordinates = feature.getGeometry().getCoordinates();
-			
-			deleteChildren(popup_element);
-			
-			addParaWithText(popup_element, feature.get('name')).className = 'bold';
-			switch(feature.getId().substr(0, 1)) {
-				case 'v':
-					var vehicle_type = parseVehicle(feature.get('id'));
-					if(vehicle_type) {
-						addParaWithText(popup_element, vehicle_type.num + ' ' + vehicle_type.type);
-					}
-				break;
-			}
-			
-			popupShow(coordinates, feature.getId());
-		} else {
-			popupHide();
-		}
+		featureClicked(feature);
 	});
 
 	// Change mouse cursor when over marker
@@ -300,9 +360,15 @@ function init() {
 		}
 	});
 	
-	updateVehicles();
-	updateStops();
-	updateStopPoints();
+	$.when(
+		updateVehicles(),
+		updateStops(),
+		updateStopPoints()
+	).done(function() {
+		hash();
+	});
+	
+	window.addEventListener('hashchange', hash);
 	
 	setTimeout(function() {
 		if(vehicles_xhr) vehicles_xhr.abort();
