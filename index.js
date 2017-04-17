@@ -184,7 +184,7 @@ function loadTimes(stopId) {
 			var dir_cell = addCellWithText(tr, data.old[i].direction);
 			var vehicle = parseVehicle(data.old[i].vehicleId);
 			dir_cell.appendChild(displayVehicle(vehicle));
-			addCellWithText(tr, vehicle.num).className = 'vehicleData';
+			addCellWithText(tr, (vehicle ? vehicle.num : '')).className = 'vehicleData';
 			var status = parseStatus(data.old[i]);
 			addCellWithText(tr, status);
 			addCellWithText(tr, '');
@@ -202,7 +202,7 @@ function loadTimes(stopId) {
 			var dir_cell = addCellWithText(tr, data.actual[i].direction);
 			var vehicle = parseVehicle(data.actual[i].vehicleId);
 			dir_cell.appendChild(displayVehicle(vehicle));
-			addCellWithText(tr, vehicle.num).className = 'vehicleData';
+			addCellWithText(tr, (vehicle ? vehicle.num : '')).className = 'vehicleData';
 			var status = parseStatus(data.actual[i]);
 			var status_cell = addCellWithText(tr, status);
 			var delay = parseDelay(data.actual[i]);
@@ -267,7 +267,9 @@ function loadRoute(tripId, vehicleInfo) {
 		deleteChildren(route_vehicle);
 		if(vehicleInfo) {
 			var span = displayVehicle(vehicleInfo);
-			setText(route_vehicle, span.title);
+			if(span) {
+				setText(route_vehicle, span.title);
+			}
 			route_vehicle.insertBefore(span, route_vehicle.firstChild);
 		}
 		
