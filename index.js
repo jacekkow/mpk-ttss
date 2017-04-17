@@ -182,7 +182,7 @@ function loadTimes(stopId) {
 			var tr = document.createElement('tr');
 			addCellWithText(tr, data.old[i].patternText);
 			var dir_cell = addCellWithText(tr, data.old[i].direction);
-			var vehicle = parseVehicle(data.actual[i].vehicleId);
+			var vehicle = parseVehicle(data.old[i].vehicleId);
 			dir_cell.appendChild(displayVehicle(vehicle));
 			addCellWithText(tr, vehicle.num).className = 'vehicleData';
 			var status = parseStatus(data.old[i]);
@@ -192,7 +192,7 @@ function loadTimes(stopId) {
 			tr.className = 'active';
 			tr.addEventListener('click', function(tripId, vehicleInfo) {
 				return function(){ loadRoute(tripId, vehicleInfo); }
-			}(data.actual[i].tripId, vehicle));
+			}(data.old[i].tripId, vehicle));
 			times_table.appendChild(tr);
 		}
 		
