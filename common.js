@@ -33,10 +33,10 @@ function checkVersionInit() {
 
 // Webservice-related functions
 function parseVehicle(vehicleId) {
-	if(!vehicleId) return;
+	if(!vehicleId) return false;
 	if(vehicleId.substr(0, 15) != '635218529567218') {
 		console.log('Unknown vehicle, vehicleId=' + vehicleId);
-		return;
+		return false;
 	}
 	
 	var id = parseInt(vehicleId.substr(15)) - 736;
@@ -122,7 +122,7 @@ function parseVehicle(vehicleId) {
 		low = 1;
 	} else {
 		console.log('Unknown vehicle, vehicleId=' + vehicleId + ', id=' + id);
-		return;
+		return false;
 	}
 	
 	return {

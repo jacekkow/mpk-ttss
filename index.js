@@ -27,6 +27,7 @@ var route_xhr;
 var route_line = document.getElementById('route-line');
 var route_table = document.getElementById('route-table');
 var route_vehicle = document.getElementById('route-vehicle');
+var route_vehicle_info;
 
 var refresh_button = document.getElementById('refresh');
 var refresh_text = document.getElementById('refresh-text');
@@ -245,7 +246,7 @@ function loadRoute(tripId, vehicleInfo) {
 	if(!tripId) tripId = route_id;
 	if(!tripId) return;
 	
-	if(!vehicleInfo) vehicleInfo = route_vehicle_info;
+	if(vehicleInfo === undefined) vehicleInfo = route_vehicle_info;
 	
 	console.log('loadRoute(' + tripId + ')');
 	route_id = tripId;
