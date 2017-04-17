@@ -153,6 +153,9 @@ function updateStopSource(stops, prefix, source) {
 	
 	for(var i = 0; i < stops.length; i++) {
 		var stop = stops[i];
+		
+		if(stop.category == 'other') continue;
+		
 		stop.geometry = getGeometry(stop);
 		var stop_feature = new ol.Feature(stop);
 		
