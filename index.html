@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 	<head>
-		<title>TTSS Kraków - Real-time tram departures</title>
+		<title>TTSS Kraków - Odjazdy tramwajów na żywo</title>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,13 +18,13 @@
 					<li>
 						<form class="navbar-form navbar-left">
 							<select class="form-control" id="lang-select">
-								<option value="en">EN</option>
 								<option value="pl">PL</option>
+								<option value="en">EN</option>
 							</select>
 						</form>
 					</li>
 					<li>
-						<a href="/map.html" data-translate="map">Map</a>
+						<a href="/map.html" data-translate="map">Mapa</a>
 					</li>
 				</ul>
 				
@@ -42,15 +42,15 @@
 					</div>
 				</form>
 				
-				<button type="button" class="btn btn-default navbar-btn pull-right" id="refresh" disabled="disabled" data-translate="refresh_button">&#x27f3; Refresh</button>
-				<p class="navbar-text pull-right" id="refresh-text">Initializing...</p>
+				<button type="button" class="btn btn-default navbar-btn pull-right" id="refresh" disabled="disabled" data-translate="refresh_button">&#x27f3; Odśwież</button>
+				<p class="navbar-text pull-right" id="refresh-text">Ładowanie...</p>
 			</div>
 		</nav>
 		
 		<div class="container-fluid">
 			<div id="alert" class="alert alert-danger alert-dismissible" style="display:none">
 				<a href="#" class="close" id="alert-close" aria-label="close">&times;</a>
-				<strong data-translate="error_title">Error occured!</strong> <span id="alert-text"></span>
+				<strong data-translate="error_title">Wystąpił błąd!</strong> <span id="alert-text"></span>
 			</div>
 			
 			<div class="row">
@@ -62,10 +62,10 @@
 					<table class="table table-striped table-condensed">
 						<thead>
 							<tr>
-								<th data-translate="header_line">Line</th>
-								<th data-translate="header_direction">Direction</th>
-								<th data-translate="header_time">Time</th>
-								<th data-translate="header_delay">Delay</th>
+								<th data-translate="header_line">Linia</th>
+								<th data-translate="header_direction">Kierunek</th>
+								<th data-translate="header_time">Czas</th>
+								<th data-translate="header_delay">Opóźn.</th>
 							</tr>
 						</thead>
 						<tbody id="times-table">
@@ -74,14 +74,14 @@
 				</div>
 				<div class="col-md-6">
 					<!--
-					<h3 data-translate="header_lines">Lines</h3>
+					<h3 data-translate="header_lines">Linie</h3>
 					
 					<table class="table table-condensed">
 						<thead>
 							<tr>
-								<th data-translate="header_line">Line</th>
-								<th data-translate="header_route">Route</th>
-								<th data-translate="header_carrier">Carrier</th>
+								<th data-translate="header_line">Linia</th>
+								<th data-translate="header_route">Trasa</th>
+								<th data-translate="header_carrier">Przewoźnik</th>
 							</tr>
 						</thead>
 						<tbody id="times-lines">
@@ -89,15 +89,15 @@
 					</table>
 					-->
 					
-					<p data-translate="help_click_for_schedule">Click on an entry in the departures timetable to see the tram's schedule.</p>
+					<p data-translate="help_click_for_schedule">Kliknij na wpis w tabeli odjazdów by zobaczyć rozkład jazdy danego tramwaju.</p>
 					
 					<h3 id="route-line"></h3>
 					
 					<table class="table table-condensed">
 						<thead>
 							<tr>
-								<th data-translate="header_time">Time</th>
-								<th data-translate="header_stop">Stop</th>
+								<th data-translate="header_time">Czas</th>
+								<th data-translate="header_stop">Przystanek</th>
 							</tr>
 						</thead>
 						<tbody id="route-table">
@@ -105,29 +105,29 @@
 					</table>
 					
 					<p class="small">
-						<span data-translate="help_legend">Legend:</span>
-						<span class="label bg-active" data-translate="status_departed">Departed</span>
-						<span class="label bg-success" data-translate="status_stopped">At stop</span>
-						<span class="label bg-default" data-translate="status_default">En route</span>
-						<span class="label bg-warning" data-translate="status_delayed_4">Delayed 4′+</span>
-						<span class="label bg-danger" data-translate="status_delayed_10">Delayed 10′+</span>
+						<span data-translate="help_legend">Legenda:</span>
+						<span class="label bg-active" data-translate="status_departed">Odjechał</span>
+						<span class="label bg-success" data-translate="status_stopped">Na przystanku</span>
+						<span class="label bg-default" data-translate="status_default">W trasie</span>
+						<span class="label bg-warning" data-translate="status_delayed_4">Opóźniony 4′+</span>
+						<span class="label bg-danger" data-translate="status_delayed_10">Opóźniony 10′+</span>
 					</p>
 					
 					<p class="small">
-						<span class="bigger" title="Bombardier NGT6, Bombardier NGT8, PESA 2014N Krakowiak, Newag Nevelo 126N" data-translate="low_floor_sign">&#x267F;</span> - <span data-translate="low_floor_description">low-floor tram</span>.
-						<span class="bigger" title="Düwag/Man/MPK N8C-NF, Düwag/MPK GT8C, Bombardier-Rotax/MPK EU8N, Protram 405N-Kr" data-translate="partially_low_floor_sign">*&#x267F;</span> - <span data-translate="partially_low_floor_description">partially low-floor tram</span>.
-						<span class="bigger" title="other tram types" data-translate="high_floor_sign">&#x2010;</span> - <span data-translate="high_floor_description">high-floor tram</span>.
-						<span data-translate="help_hover_for_more">Hover the icon for more details.</span>
+						<span class="bigger" title="Bombardier NGT6, Bombardier NGT8, PESA 2014N Krakowiak, Newag Nevelo 126N" data-translate="low_floor_sign">&#x267F;</span> - <span data-translate="low_floor_description">tramwaj niskopodłogowy</span>.
+						<span class="bigger" title="Düwag/Man/MPK N8C-NF, Düwag/MPK GT8C, Bombardier-Rotax/MPK EU8N, Protram 405N-Kr" data-translate="partially_low_floor_sign">*&#x267F;</span> - <span data-translate="partially_low_floor_description">tramwaj częściowo niskopodłogowy</span>.
+						<span class="bigger" title="other tram types" data-translate="high_floor_sign">&#x2010;</span> - <span data-translate="high_floor_description">tramwaj wysokopodłogowy</span>.
+						<span data-translate="help_hover_for_more">Najedź na ikonę, by uzyskać więcej informacji.</span>
 					</p>
 					
-					<p class="small" data-translate="help_text">Relative times (eg. 3 min) are real-time arrivals based on tram location data. Absolute times (eg. 8:01) are scheduled departures, shown when the tram cannot be located. "?" means unknown delay.</p>
+					<p class="small" data-translate="help_text">Względne czasy (np. 3 min) są podawane na podstawie faktycznej lokalizacji tramwajów. Czasy bezwzględne (np. 8:01) to odjazdy rozkładowe, pokazywane gdy tramwaj nie może być zlokalizowany. "?" oznacza nieznane opóźnienie.</p>
 					
-					<p class="small">&copy; 2016-2017 Jacek Kowalski - <a href="https://github.com/jacekkow/mpk-ttss" data-translate="help_source">Source</a> - <a href="https://raw.githubusercontent.com/jacekkow/mpk-ttss/master/LICENSE" data-translate="help_license">License</a></p>
+					<p class="small">&copy; 2016-2017 Jacek Kowalski - <a href="https://github.com/jacekkow/mpk-ttss" data-translate="help_source">Źródło</a> - <a href="https://raw.githubusercontent.com/jacekkow/mpk-ttss/master/LICENSE" data-translate="help_license">Licencja</a></p>
 				</div>
 			</div>
 		</div>
 		<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha384-3ceskX3iaEnIogmQchP8opvBy3Mi7Ce34nWjpBIwVTHfGYWQS9jwHDVRnpKKHJg7"  crossorigin="anonymous"></script>
-		<script tyle="text/javascript" src="lang_en.js" id="lang_script"></script>
+		<script tyle="text/javascript" src="lang_pl.js" id="lang_script"></script>
 		<script tyle="text/javascript" src="common.js"></script>
 		<script type="text/javascript" src="index.js"></script>
 	</body>
