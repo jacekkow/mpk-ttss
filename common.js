@@ -49,12 +49,12 @@ function parseVehicle(vehicleId) {
 		id = 216;
 	}
 	
-	if(101 <= id && id <= 173) {
+	if(101 <= id && id <= 174) {
 		prefix = 'HW';
 		type = 'E1';
 		low = 0;
 		
-		if((108 <= id && id <= 113) || id == 127 || id == 131 || id == 132 || id == 134 || (137 <= id && id <= 139) || (148 <= id && id <= 150) || (153 <= id && id <= 166) || id == 161) {
+		if((108 <= id && id <= 113) || id == 127 || id == 131 || id == 132 || id == 134 || (137 <= id && id <= 139) || (148 <= id && id <= 150) || (153 <= id && id <= 155)) {
 			prefix = 'RW';
 		}
 	} else if(201 <= id && id <= 293) {
@@ -86,7 +86,7 @@ function parseVehicle(vehicleId) {
 		type = 'N8S-NF';
 		low = 0;
 		
-		if((451 <= id && id <= 455) || id == 462) {
+		if((451 <= id && id <= 456) || id == 459 || id == 460 || id == 462) {
 			type = 'N8C-NF';
 			low = 1;
 		}
@@ -117,7 +117,7 @@ function parseVehicle(vehicleId) {
 			prefix = 'HG';
 		}
 	} else if(id === 999) {
-		prefix = 'HX';
+		prefix = 'HG';
 		type = '405N-Kr';
 		low = 1;
 	} else {
