@@ -84,11 +84,10 @@ function parseVehicle(vehicleId) {
 	} else if(451 <= id && id <= 462) {
 		prefix = 'HK';
 		type = 'N8S-NF';
-		low = 0;
+		low = 1;
 		
-		if((451 <= id && id <= 456) || id == 459 || id == 460 || id == 462) {
+		if((451 <= id && id <= 456) || id == 462) {
 			type = 'N8C-NF';
-			low = 1;
 		}
 	} else if(601 <= id && id <= 650) {
 		prefix = 'RP';
