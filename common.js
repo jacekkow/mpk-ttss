@@ -73,8 +73,10 @@ function parseVehicle(vehicleId) {
 		type = 'GT8S';
 		low = 0;
 		
-		if(id == 313 || id == 323) {
+		if(id == 313) {
 			type = 'GT8C'
+			low = 1;
+		} else if(id == 323) {
 			low = 1;
 		}
 	} else if(401 <= id && id <= 440) {
