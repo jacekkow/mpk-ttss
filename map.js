@@ -114,14 +114,9 @@ function updateVehicles() {
 				}
 				
 				vehicle_feature.setStyle(new ol.style.Style({
-					image: new ol.style.RegularShape({
-						fill: new ol.style.Fill({color: '#3399ff'}),
-						stroke: new ol.style.Stroke({color: color_type, width: 2}),
-						points: 3,
-						radius: 12,
+					image: new ol.style.Icon({
+						src: 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" height="30" width="20"><polygon points="10,0 20,23 0,23" style="fill:#3399ff;stroke:'+color_type+';stroke-width:2" /></svg>'),
 						rotation: Math.PI * parseFloat(vehicle.heading) / 180.0,
-						rotateWithView: true,
-						angle: 0
 					}),
 					text: new ol.style.Text({
 						font: 'bold 10px sans-serif',
