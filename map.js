@@ -19,6 +19,7 @@ var feature_xhr = null;
 var feature_timer = null;
 
 var map = null;
+var map_sphere = null;
 var popup_element = document.getElementById('popup');
 var fail_element = document.getElementById('fail');
 
@@ -430,6 +431,26 @@ function hash() {
 	featureClicked(feature);
 }
 
+function getDistance(c1, c2) {
+	if(c1.getGeometry) {
+		c1 = c1.getGeometry().getCoordinates();
+	}
+	if(c2.getGeometry) {
+		c2 = c2.getGeometry().getCoordinates();
+	}
+	
+	var c1 = ol.proj.transform(c1, 'EPSG:3857', 'EPSG:4326');
+	var c2 = ol.proj.transform(c2, 'EPSG:3857', 'EPSG:4326');
+	return map_sphere.haversineDistance(c1, c2);
+}
+
+function returnClosest(point, f1, f2) {
+	if(!f1) return f2;
+	if(!f2) return f1;
+	
+	return (getDistance(point, f1) < getDistance(point, f2)) ? f1 : f2;
+}
+
 function init() {
 	if(!window.jQuery) {
 		fail(lang.jquery_not_loaded);
@@ -490,10 +511,29 @@ function init() {
 			})
 		]),
 	});
+	map_sphere = new ol.Sphere(6378137);
 	
 	// Display popup on click
 	map.on('singleclick', function(e) {
+		var point = e.coordinate;
 		var feature = map.forEachFeatureAtPixel(e.pixel, function(feature) { return feature; });
+		
+		if(!feature) {
+			if(stops_layer.getVisible()) {
+				feature = returnClosest(point, feature, stops_source.getClosestFeatureToCoordinate(point));
+			}
+			if(stop_points_layer.getVisible()) {
+				feature = returnClosest(point, feature, stop_points_source.getClosestFeatureToCoordinate(point));
+			}
+			if(vehicles_layer.getVisible()) {
+				feature = returnClosest(point, feature, vehicles_source.getClosestFeatureToCoordinate(point));
+			}
+			
+			if(getDistance(point, feature) > 200) {
+				feature = null;
+			}
+		}
+		
 		featureClicked(feature);
 	});
 
