@@ -14,10 +14,10 @@ var stops_layer = null;
 var stop_points_source = null;
 var stop_points_layer = null;
 
+var feature_id = null;
+
 var map = null;
-var popup_feature_id = null;
 var popup_element = document.getElementById('popup');
-var popup = null;
 var fail_element = document.getElementById('fail');
 
 var ignore_hashchange = false;
@@ -42,20 +42,8 @@ function fail_ajax(data) {
 	}
 }
 
-function popupHide() {
-	popup.setPosition(undefined);
-	popup_feature_id = null;
-}
-
-function popupShow(coordinates, id) {
-	popup.setPosition(coordinates);
-	if(id) {
-		popup_feature_id = id;
-	}
-}
-
 function getGeometry(object) {
-	return new ol.geom.Point(ol.proj.fromLonLat([object.longitude / 3600000.0, object.latitude / 3600000.0]))
+	return new ol.geom.Point(ol.proj.fromLonLat([object.longitude / 3600000.0, object.latitude / 3600000.0]));
 }
 
 function updateVehicles() {
@@ -77,8 +65,8 @@ function updateVehicles() {
 			if(vehicle.isDeleted) {
 				if(vehicle_feature) {
 					vehicles_source.removeFeature(vehicle_feature);
-					if(popup_feature_id == vehicle_feature.getId()) {
-						popupHide();
+					if(feature_id == vehicle_feature.getId()) {
+						featureClicked();
 					}
 				}
 				continue;
@@ -128,10 +116,6 @@ function updateVehicles() {
 			} else {
 				vehicle_feature.setProperties(vehicle);
 				vehicle_feature.getStyle().getImage().setRotation(Math.PI * parseFloat(vehicle.heading) / 180.0);
-				
-				if(popup_feature_id == vehicle_feature.getId()) {
-					popupShow(vehicle_feature.getGeometry().getCoordinates());
-				}
 			}
 		}
 		
@@ -193,7 +177,9 @@ function updateStopPoints() {
 
 function featureClicked(feature) {
 	if(!feature) {
-		popupHide();
+		feature_id = null;
+		
+		$(popup_element).removeClass('show');
 		
 		ignore_hashchange = true;
 		window.location.hash = '';
@@ -205,20 +191,49 @@ function featureClicked(feature) {
 	
 	deleteChildren(popup_element);
 	
-	addParaWithText(popup_element, feature.get('name')).className = 'bold';
+	var type;
+	var name = feature.get('name');
+	var additional;
+	
 	switch(feature.getId().substr(0, 1)) {
 		case 'v':
-			var vehicle_type = parseVehicle(feature.get('id'));
-			if(vehicle_type) {
-				addParaWithText(popup_element, vehicle_type.num + ' ' + vehicle_type.type);
+			type = lang.type_vehicle;
+			
+			if(!feature.get('vehicle_type')) {
+				break;
 			}
+			
+			var span = displayVehicle(feature.get('vehicle_type'));
+			
+			additional = document.createElement('p');
+			setText(additional, span.title);
+			additional.insertBefore(span, additional.firstChild);
 		break;
+		case 's':
+			type = lang.type_stop;
+		break;
+		case 'p':
+			type = lang.type_stoppoint;
+		break;
+	}
+	
+	addParaWithText(popup_element, type).className = 'type';
+	addParaWithText(popup_element, name).className = 'name';
+	
+	if(additional) {
+		popup_element.appendChild(additional);
 	}
 	
 	ignore_hashchange = true;
 	window.location.hash = '#!' + feature.getId();
 	
-	popupShow(coordinates, feature.getId());
+	map.getView().animate({
+		center: feature.getGeometry().getCoordinates(),
+	});
+	
+	$(popup_element).addClass('show');
+	
+	feature_id = feature.getId();
 }
 
 function hash() {
@@ -260,9 +275,6 @@ function hash() {
 	}
 	
 	featureClicked(feature);
-	if(feature) {
-		map.getView().setCenter(feature.getGeometry().getCoordinates());
-	}
 }
 
 function init() {
@@ -298,13 +310,6 @@ function init() {
 		source: vehicles_source,
 	});
 	
-	popup = new ol.Overlay({
-		element: popup_element,
-		positioning: 'bottom-center',
-		stopEvent: false,
-		offset: [0, -12]
-	});
-	
 	map = new ol.Map({
 		target: 'map',
 		layers: [
@@ -315,7 +320,6 @@ function init() {
 			stop_points_layer,
 			vehicles_layer,
 		],
-		overlays: [popup],
 		view: new ol.View({
 			center: ol.proj.fromLonLat([19.94, 50.06]),
 			zoom: 13

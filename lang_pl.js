@@ -38,6 +38,10 @@ var lang = {
 	time_minutes_ago_prefix: '',
 	time_minutes_ago_suffix: ' min temu',
 	
+	type_vehicle: 'Pojazd',
+	type_stop: 'Przystanek',
+	type_stoppoint: 'Punkt przystankowy',
+	
 	tram_type_pattern: '$num $type ($floor)',
 	high_floor: 'wysokopodłogowy',
 	high_floor_sign: '\u2010\u00A0',

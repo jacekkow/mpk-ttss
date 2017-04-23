@@ -87,32 +87,6 @@ function parseDelay(status) {
 	return lang.time_minutes_prefix + ((actual.getTime() - planned.getTime()) / 1000 / 60) + lang.time_minutes_suffix;
 }
 
-function displayVehicle(vehicleInfo) {
-	if(!vehicleInfo) return document.createTextNode('');
-	
-	var span = document.createElement('span');
-	span.className = 'vehicleInfo';
-	
-	var floor_type = '';
-	if(vehicleInfo.low == 0) {
-		setText(span, lang.high_floor_sign);
-		floor_type = lang.high_floor;
-	} else if(vehicleInfo.low == 1) {
-		setText(span, lang.partially_low_floor_sign);
-		floor_type = lang.partially_low_floor;
-	} else if(vehicleInfo.low == 2) {
-		setText(span, lang.low_floor_sign);
-		floor_type = lang.low_floor;
-	}
-	
-	span.title = lang.tram_type_pattern
-		.replace('$num', vehicleInfo.num)
-		.replace('$type', vehicleInfo.type)
-		.replace('$floor', floor_type);
-	
-	return span;
-}
-
 function fail(message, more) {
 	if(times_timer) clearTimeout(times_timer);
 	
