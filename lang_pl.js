@@ -12,6 +12,7 @@ var lang = {
 	go_button: 'Dalej',
 	refresh_button: '\u27f3 Odśwież',
 	last_refreshed: 'Ostatnio odświeżone $time',
+	loading: 'Ładowanie...',
 	
 	line_alert_pattern: 'Linia $line: $alert',
 	
@@ -41,6 +42,8 @@ var lang = {
 	type_vehicle: 'Pojazd',
 	type_stop: 'Przystanek',
 	type_stoppoint: 'Punkt przystankowy',
+	
+	departures_for_stop: 'Kliknij, by zobaczyć odjazdy dla całego przystanku (a nie tylko punktu przystankowego).',
 	
 	tram_type_pattern: '$num $type ($floor)',
 	high_floor: 'wysokopodłogowy',

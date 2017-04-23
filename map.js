@@ -1,5 +1,5 @@
 //var ttss_base = 'http://www.ttss.krakow.pl/internetservice';
-var ttss_base = '/proxy.php';
+var ttss_base = 'proxy.php';
 var ttss_refresh = 10000; // 10 seconds
 
 var vehicles_xhr = null;
@@ -15,6 +15,8 @@ var stop_points_source = null;
 var stop_points_layer = null;
 
 var feature_id = null;
+var feature_xhr = null;
+var feature_timer = null;
 
 var map = null;
 var popup_element = document.getElementById('popup');
@@ -29,17 +31,29 @@ function fail(msg) {
 	fail_element.style.top = '0.5em';
 }
 
-function fail_ajax(data) {
+function fail_popup(msg) {
+	addElementWithText(popup_element, 'p', msg).className = 'error';
+}
+
+function fail_ajax_generic(data, fnc) {
 	// abort() is not a failure
 	if(data.readyState == 0 && data.statusText == 'abort') return;
 	
 	if(data.status == 0) {
-		fail(lang.error_request_failed_connectivity, data);
+		fnc(lang.error_request_failed_connectivity, data);
 	} else if (data.statusText) {
-		fail(lang.error_request_failed_status.replace('$status', data.statusText), data);
+		fnc(lang.error_request_failed_status.replace('$status', data.statusText), data);
 	} else {
-		fail(lang.error_request_failed, data);
+		fnc(lang.error_request_failed, data);
 	}
+}
+
+function fail_ajax(data) {
+	fail_ajax_generic(data, fail);
+}
+
+function fail_ajax_popup(data) {
+	fail_ajax_generic(data, fail_popup);
 }
 
 function getGeometry(object) {
@@ -175,6 +189,98 @@ function updateStopPoints() {
 	}).fail(fail_ajax);
 }
 
+function vehicleTable(tripId, table) {
+	if(feature_xhr) feature_xhr.abort();
+	if(feature_timer) clearTimeout(feature_timer);
+	
+	feature_xhr = $.get(
+		ttss_base + '/services/tripInfo/tripPassages'
+			+ '?tripId=' + encodeURIComponent(tripId)
+			+ '&mode=departure'
+	).done(function(data) {
+		if(!data.routeName || !data.directionText || data.old.length + data.actual.length == 0) {
+			return;
+		}
+		
+		deleteChildren(table);
+		
+		for(var i = 0, il = data.old.length; i < il; i++) {
+			var tr = document.createElement('tr');
+			addCellWithText(tr, data.old[i].actualTime || data.old[i].plannedTime);
+			addCellWithText(tr, data.old[i].stop_seq_num + '. ' + data.old[i].stop.name);
+			
+			tr.className = 'active';
+			table.appendChild(tr);
+		}
+		
+		for(var i = 0, il = data.actual.length; i < il; i++) {
+			var tr = document.createElement('tr');
+			addCellWithText(tr, data.actual[i].actualTime || data.actual[i].plannedTime);
+			addCellWithText(tr, data.actual[i].stop_seq_num + '. ' + data.actual[i].stop.name);
+			
+			if(data.actual[i].status == 'STOPPING') {
+				tr.className = 'success';
+			}
+			table.appendChild(tr);
+		}
+		
+		feature_timer = setTimeout(function() { vehicleTable(tripId, table); }, ttss_refresh);
+	}).fail(fail_ajax_popup);
+}
+
+function stopTable(stopType, stopId, table) {
+	if(feature_xhr) feature_xhr.abort();
+	if(feature_timer) clearTimeout(feature_timer);
+	
+	feature_xhr = $.get(
+		ttss_base + '/services/passageInfo/stopPassages/' + stopType
+			+ '?' + stopType + '=' + encodeURIComponent(stopId)
+			+ '&mode=departure'
+	).done(function(data) {
+		deleteChildren(table);
+		
+		for(var i = 0, il = data.old.length; i < il; i++) {
+			var tr = document.createElement('tr');
+			addCellWithText(tr, data.old[i].patternText);
+			var dir_cell = addCellWithText(tr, data.old[i].direction);
+			var vehicle = parseVehicle(data.old[i].vehicleId);
+			dir_cell.appendChild(displayVehicle(vehicle));
+			var status = parseStatus(data.old[i]);
+			addCellWithText(tr, status);
+			addCellWithText(tr, '');
+			
+			tr.className = 'active';
+			table.appendChild(tr);
+		}
+		
+		for(var i = 0, il = data.actual.length; i < il; i++) {
+			var tr = document.createElement('tr');
+			addCellWithText(tr, data.actual[i].patternText);
+			var dir_cell = addCellWithText(tr, data.actual[i].direction);
+			var vehicle = parseVehicle(data.actual[i].vehicleId);
+			dir_cell.appendChild(displayVehicle(vehicle));
+			var status = parseStatus(data.actual[i]);
+			var status_cell = addCellWithText(tr, status);
+			var delay = parseDelay(data.actual[i]);
+			var delay_cell = addCellWithText(tr, delay);
+			
+			if(status == lang.boarding_sign) {
+				tr.className = 'success';
+				status_cell.className = 'status-boarding';
+			} else if(parseInt(delay) > 9) {
+				tr.className = 'danger';
+				delay_cell.className = 'status-delayed';
+			} else if(parseInt(delay) > 3) {
+				tr.className = 'warning';
+			}
+			
+			table.appendChild(tr);
+		}
+		
+		feature_timer = setTimeout(function() { stopTable(stopType, stopId, table); }, ttss_refresh);
+	}).fail(fail_ajax_popup);
+}
+
 function featureClicked(feature) {
 	if(!feature) {
 		feature_id = null;
@@ -191,9 +297,18 @@ function featureClicked(feature) {
 	
 	deleteChildren(popup_element);
 	
+	var close = addParaWithText(popup_element, '×');
+	close.className = 'close';
+	close.addEventListener('click', function() { featureClicked(); });
+	
 	var type;
 	var name = feature.get('name');
 	var additional;
+	var table = document.createElement('table');
+	var thead = document.createElement('thead');
+	var tbody = document.createElement('tbody');
+	table.appendChild(thead);
+	table.appendChild(tbody);
 	
 	switch(feature.getId().substr(0, 1)) {
 		case 'v':
@@ -208,14 +323,50 @@ function featureClicked(feature) {
 			additional = document.createElement('p');
 			setText(additional, span.title);
 			additional.insertBefore(span, additional.firstChild);
+			
+			addElementWithText(thead, 'th', lang.header_time);
+			addElementWithText(thead, 'th', lang.header_stop);
+			
+			vehicleTable(feature.get('tripId'), tbody);
 		break;
 		case 's':
 			type = lang.type_stop;
+			
+			addElementWithText(thead, 'th', lang.header_line);
+			addElementWithText(thead, 'th', lang.header_direction);
+			addElementWithText(thead, 'th', lang.header_time);
+			addElementWithText(thead, 'th', lang.header_delay);
+			
+			stopTable('stop', feature.get('shortName'), tbody);
 		break;
 		case 'p':
 			type = lang.type_stoppoint;
+			
+			additional = document.createElement('p');
+			additional.className = 'small';
+			addElementWithText(additional, 'a', lang.departures_for_stop).addEventListener(
+				'click',
+				function() {
+					featureClicked(stops_source.forEachFeature(function(stop_feature) {
+						if(stop_feature.get('shortName') == feature.get('shortName')) {
+							return stop_feature;
+						}
+					}));
+				}
+			);
+			
+			addElementWithText(thead, 'th', lang.header_line);
+			addElementWithText(thead, 'th', lang.header_direction);
+			addElementWithText(thead, 'th', lang.header_time);
+			addElementWithText(thead, 'th', lang.header_delay);
+			
+			stopTable('stopPoint', feature.get('stopPoint'), tbody);
 		break;
 	}
+	
+	var loader = addElementWithText(tbody, 'td', lang.loading);
+	loader.className = 'active';
+	loader.colspan = thead.childNodes.length;
 	
 	addParaWithText(popup_element, type).className = 'type';
 	addParaWithText(popup_element, name).className = 'name';
@@ -223,6 +374,8 @@ function featureClicked(feature) {
 	if(additional) {
 		popup_element.appendChild(additional);
 	}
+	
+	popup_element.appendChild(table);
 	
 	ignore_hashchange = true;
 	window.location.hash = '#!' + feature.getId();

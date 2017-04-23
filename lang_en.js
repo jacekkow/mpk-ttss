@@ -12,6 +12,7 @@ var lang = {
 	go_button: 'Go',
 	refresh_button: '\u27f3 Refresh',
 	last_refreshed: 'Last refreshed: $time',
+	loading: 'Loading...',
 	
 	line_alert_pattern: 'Line $line: $alert',
 	
@@ -41,6 +42,8 @@ var lang = {
 	type_vehicle: 'Vehicle',
 	type_stop: 'Stop',
 	type_stoppoint: 'Stop point',
+	
+	departures_for_stop: 'Click for stop departures (and not only this stop point).',
 	
 	tram_type_pattern: '$num $type ($floor)',
 	high_floor: 'high floor',

@@ -33,7 +33,9 @@ html, body, #map {
 	transition: right .4s;
 	transition: width .4s;
 	
-	opacity: .8;
+	opacity: .85;
+	
+	overflow-y: auto;
 }
 
 #popup.show {
@@ -51,6 +53,11 @@ html, body, #map {
 	}
 }
 
+#popup .close {
+	float: right;
+	cursor: pointer;
+	font-size: 20px;
+}
 #popup .type {
 	padding-bottom: 0;
 	color: #444;
@@ -65,6 +72,37 @@ html, body, #map {
 }
 #popup .vehicleInfo {
 	font-size: 21px;
+	margin: -4px 0 -5px;
+}
+#popup table {
+	margin-top: 3px;
+	border-top: 1px solid gray;
+	width: 100%;
+	border-collapse: collapse;
+}
+#popup table th {
+	text-align: left;
+	border-bottom: 1px solid #999;
+	padding-top: 5px;
+}
+#popup table td {
+	vertical-align: top;
+}
+#popup .active {
+	background: #f5f5f5;
+	color: gray;
+}
+#popup .success {
+	background: #dff0d8;
+}
+#popup .warning {
+	background: #fcf8e3;
+}
+#popup .danger {
+	background: #f2dede;
+}
+#popup table .vehicleInfo {
+	float: right;
 }
 
 #title {
@@ -74,13 +112,16 @@ html, body, #map {
 	font-weight: bold;
 	background-color: rgba(255,255,255,.6);
 }
-#fail {
-	top: -10em;
-	right: 0.5em;
+
+#fail, #popup .error {
 	background: red;
 	color: white;
 	font-weight: bold;
 	padding: 5px;
+}
+#fail {
+	top: -10em;
+	right: 0.5em;
 }
 .ol-zoom {
 	top: 2.2em;
@@ -89,7 +130,12 @@ html, body, #map {
 a {
 	color: #337ab7;
 	text-decoration: none;
+	cursor: pointer;
 }
 a:hover {
 	text-decoration: underline;
+}
+
+.small {
+	font-size: 80%;
 }

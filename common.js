@@ -31,6 +31,52 @@ function checkVersionInit() {
 	setInterval(checkVersion, 3600000);
 }
 
+/* Parsing of received JSON parts */
+function parseStatus(status) {
+	switch(status.status) {
+		case 'STOPPING':
+			return lang.boarding_sign;
+		case 'PREDICTED':
+			if(status.actualRelativeTime <= 0)
+				return lang.boarding_sign;
+			if(status.actualRelativeTime >= 60)
+				return lang.time_minutes_prefix + Math.floor(status.actualRelativeTime / 60) + lang.time_minutes_suffix;
+			return lang.time_seconds_prefix + status.actualRelativeTime + lang.time_seconds_suffix;
+		case 'DEPARTED':
+			return lang.time_minutes_ago_prefix + Math.floor(-status.actualRelativeTime / 60) + lang.time_minutes_ago_suffix;
+		default:
+			return status.mixedTime;
+	}
+}
+
+function parseTime(date, time) {
+	var result = new Date(date.getFullYear(), date.getMonth(), date.getDay());
+	var time_split = time.split(':');
+	result.setHours(time_split[0]);
+	result.setMinutes(time_split[1]);
+	
+	if(result.getTime() - date.getTime() > 72000000) {
+		result.setTime(result.getTime() - 86400000);
+	}
+	
+	if(date.getTime() - result.getTime() > 72000000) {
+		result.setTime(result.getTime() + 86400000);
+	}
+	
+	return result;
+}
+
+function parseDelay(status) {
+	if(!status.actualTime) return lang.unknown_sign;
+	if(!status.plannedTime) return lang.unknown_sign;
+	
+	var now = new Date();
+	var actual = parseTime(now, status.actualTime);
+	var planned = parseTime(now, status.plannedTime);
+	
+	return lang.time_minutes_prefix + ((actual.getTime() - planned.getTime()) / 1000 / 60) + lang.time_minutes_suffix;
+}
+
 // Webservice-related functions
 function parseVehicle(vehicleId) {
 	if(!vehicleId) return false;
