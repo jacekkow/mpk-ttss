@@ -458,7 +458,7 @@ function featureClicked(feature) {
 	
 	var loader = addElementWithText(tbody, 'td', lang.loading);
 	loader.className = 'active';
-	loader.colspan = thead.childNodes.length;
+	loader.colSpan = thead.childNodes.length;
 	
 	addParaWithText(popup_element, type).className = 'type';
 	addParaWithText(popup_element, name).className = 'name';
