@@ -14,9 +14,13 @@ var stops_layer = null;
 var stop_points_source = null;
 var stop_points_layer = null;
 
-var feature_id = null;
+var feature_clicked = null;
+var feature_selected = [];
 var feature_xhr = null;
 var feature_timer = null;
+
+var route_source = null;
+var route_layer = null;
 
 var map = null;
 var map_sphere = null;
@@ -26,8 +30,6 @@ var fail_element = document.getElementById('fail');
 var ignore_hashchange = false;
 
 function fail(msg) {
-	console.log(msg);
-	
 	setText(fail_element, msg);
 	fail_element.style.top = '0.5em';
 }
@@ -61,6 +63,93 @@ function getGeometry(object) {
 	return new ol.geom.Point(ol.proj.fromLonLat([object.longitude / 3600000.0, object.latitude / 3600000.0]));
 }
 
+function styleVehicle(vehicle, selected) {
+	var color_type = 'black';
+	if(vehicle.get('vehicle_type')) {
+		switch(vehicle.get('vehicle_type').low) {
+			case 0:
+				color_type = 'orange';
+			break;
+			case 1:
+				color_type = 'blue';
+			break;
+			case 2:
+				color_type = 'green';
+			break;
+		}
+	}
+	
+	var fill = (selected ? '#a00' : '#3399ff');
+	
+	var image = '<svg xmlns="http://www.w3.org/2000/svg" height="30" width="20"><polygon points="10,0 20,23 0,23" style="fill:'+fill+';stroke:'+color_type+';stroke-width:2" /></svg>';
+	
+	return new ol.style.Style({
+		image: new ol.style.Icon({
+			src: 'data:image/svg+xml;base64,' + btoa(image),
+			rotation: Math.PI * parseFloat(vehicle.get('heading')) / 180.0,
+		}),
+		text: new ol.style.Text({
+			font: 'bold 10px sans-serif',
+			text: vehicle.get('line'),
+			fill: new ol.style.Fill({color: 'white'}),
+		}),
+	});
+}
+
+function styleStop(stop, selected) {
+	var fill = 'orange';
+	var stroke = 'red';
+	var stroke_width = 1;
+	var radius = 3;
+	
+	if(selected == 2) {
+		radius = 5;
+	} else if(selected) {
+		fill = 'red';
+		stroke = '#900';
+		stroke_width = 2;
+		radius = 5;
+	}
+	
+	return new ol.style.Style({
+		image: new ol.style.Circle({
+			fill: new ol.style.Fill({color: fill}),
+			stroke: new ol.style.Stroke({color: stroke, width: stroke_width}),
+			radius: radius,
+		}),
+	});
+}
+
+function styleFeature(feature, selected) {
+	if(!feature) return;
+	if(!feature.getId()) return;
+	
+	var style = null;
+	
+	switch(feature.getId().substr(0, 1)) {
+		case 'v':
+			style = styleVehicle(feature, selected);
+		break;
+		
+		case 's':
+		case 'p':
+			style = styleStop(feature, selected);
+		break;
+	}
+	
+	feature.setStyle(style);
+	if(selected) {
+		feature_selected.push(feature);
+	}
+}
+
+function unstyleSelectedFeatures() {
+	for(var i = 0; i < feature_selected.length; i++) {
+		styleFeature(feature_selected[i]);
+	}
+	feature_selected = [];
+}
+
 function updateVehicles() {
 	if(vehicles_timer) clearTimeout(vehicles_timer);
 	if(vehicles_xhr) vehicles_xhr.abort();
@@ -80,7 +169,7 @@ function updateVehicles() {
 			if(vehicle.isDeleted) {
 				if(vehicle_feature) {
 					vehicles_source.removeFeature(vehicle_feature);
-					if(feature_id == vehicle_feature.getId()) {
+					if(feature_clicked.getId() == vehicle_feature.getId()) {
 						featureClicked();
 					}
 				}
@@ -101,32 +190,7 @@ function updateVehicles() {
 				vehicle_feature = new ol.Feature(vehicle);
 				vehicle_feature.setId('v' + vehicle.id);
 				
-				var color_type = 'black';
-				if(vehicle.vehicle_type) {
-					switch(vehicle.vehicle_type.low) {
-						case 0:
-							color_type = 'orange';
-							break;
-						case 1:
-							color_type = 'blue';
-							break;
-						case 2:
-							color_type = 'green';
-							break;
-					}
-				}
-				
-				vehicle_feature.setStyle(new ol.style.Style({
-					image: new ol.style.Icon({
-						src: 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" height="30" width="20"><polygon points="10,0 20,23 0,23" style="fill:#3399ff;stroke:'+color_type+';stroke-width:2" /></svg>'),
-						rotation: Math.PI * parseFloat(vehicle.heading) / 180.0,
-					}),
-					text: new ol.style.Text({
-						font: 'bold 10px sans-serif',
-						text: vehicle.line,
-						fill: new ol.style.Fill({color: 'white'}),
-					}),
-				}));
+				styleFeature(vehicle_feature);
 				vehicles_source.addFeature(vehicle_feature);
 			} else {
 				vehicle_feature.setProperties(vehicle);
@@ -154,13 +218,7 @@ function updateStopSource(stops, prefix, source) {
 		var stop_feature = new ol.Feature(stop);
 		
 		stop_feature.setId(prefix + stop.id);
-		stop_feature.setStyle(new ol.style.Style({
-			image: new ol.style.Circle({
-				fill: new ol.style.Fill({color: 'orange'}),
-				stroke: new ol.style.Stroke({color: 'red', width: 1}),
-				radius: 3,
-			}),
-		}));
+		styleFeature(stop_feature);
 		
 		source.addFeature(stop_feature);
 	}
@@ -190,7 +248,7 @@ function updateStopPoints() {
 	}).fail(fail_ajax);
 }
 
-function vehicleTable(tripId, table) {
+function vehicleTable(tripId, table, vehicleId) {
 	if(feature_xhr) feature_xhr.abort();
 	if(feature_timer) clearTimeout(feature_timer);
 	
@@ -214,10 +272,15 @@ function vehicleTable(tripId, table) {
 			table.appendChild(tr);
 		}
 		
+		unstyleSelectedFeatures();
+		styleFeature(feature_clicked, true);
+		
 		for(var i = 0, il = data.actual.length; i < il; i++) {
 			var tr = document.createElement('tr');
 			addCellWithText(tr, data.actual[i].actualTime || data.actual[i].plannedTime);
 			addCellWithText(tr, data.actual[i].stop_seq_num + '. ' + data.actual[i].stop.name);
+			
+			styleFeature(stops_source.getFeatureById('s' + data.actual[i].stop.id), 2);
 			
 			if(data.actual[i].status == 'STOPPING') {
 				tr.className = 'success';
@@ -226,6 +289,29 @@ function vehicleTable(tripId, table) {
 		}
 		
 		feature_timer = setTimeout(function() { vehicleTable(tripId, table); }, ttss_refresh);
+		
+		if(!vehicleId) return;
+	       
+		feature_xhr = $.get(
+			ttss_base + '/internetservice/geoserviceDispatcher/services/pathinfo/vehicle'
+				+ '?id=' + encodeURIComponent(vehicleId)
+		).done(function(data) {
+			if(!data || !data.paths || !data.paths[0] || !data.paths[0].wayPoints) return;
+			
+			var point = null;
+			var points = [];
+			for(var i = 0; i < data.paths[0].wayPoints.length; i++) {
+				point = data.paths[0].wayPoints[i];
+				points.push(ol.proj.fromLonLat([
+					point.lon / 3600000.0,
+					point.lat / 3600000.0,
+				]));
+			}
+			
+			route_source.addFeature(new ol.Feature({
+				geometry: new ol.geom.LineString(points)
+			}));
+		});
 	}).fail(fail_ajax_popup);
 }
 
@@ -283,8 +369,13 @@ function stopTable(stopType, stopId, table) {
 }
 
 function featureClicked(feature) {
+	if(feature && !feature.getId()) return;
+	
+	unstyleSelectedFeatures();
+	route_source.clear();
+	
 	if(!feature) {
-		feature_id = null;
+		feature_clicked = null;
 		
 		$(popup_element).removeClass('show');
 		
@@ -328,7 +419,7 @@ function featureClicked(feature) {
 			addElementWithText(thead, 'th', lang.header_time);
 			addElementWithText(thead, 'th', lang.header_stop);
 			
-			vehicleTable(feature.get('tripId'), tbody);
+			vehicleTable(feature.get('tripId'), tbody, feature.get('id'));
 		break;
 		case 's':
 			type = lang.type_stop;
@@ -381,13 +472,15 @@ function featureClicked(feature) {
 	ignore_hashchange = true;
 	window.location.hash = '#!' + feature.getId();
 	
-	map.getView().animate({
+	styleFeature(feature, true);
+	
+	setTimeout(function () {map.getView().animate({
 		center: feature.getGeometry().getCoordinates(),
-	});
+	}) }, 10);
 	
 	$(popup_element).addClass('show');
 	
-	feature_id = feature.getId();
+	feature_clicked = feature;
 }
 
 function hash() {
@@ -484,12 +577,23 @@ function init() {
 		source: vehicles_source,
 	});
 	
+	route_source = new ol.source.Vector({
+		features: [],
+	});
+	route_layer = new ol.layer.Vector({
+		source: route_source,
+		style: new ol.style.Style({
+			stroke: new ol.style.Stroke({ color: [255, 153, 0, .8], width: 5 })
+		}),
+	});
+	
 	map = new ol.Map({
 		target: 'map',
 		layers: [
 			new ol.layer.Tile({
 				source: new ol.source.OSM()
 			}),
+			route_layer,
 			stops_layer,
 			stop_points_layer,
 			vehicles_layer,
@@ -510,6 +614,7 @@ function init() {
 				element: fail_element,
 			})
 		]),
+		loadTilesWhileAnimating: true,
 	});
 	map_sphere = new ol.Sphere(6378137);
 	
@@ -546,13 +651,7 @@ function init() {
 	
 	// Change layer visibility on zoom
 	map.getView().on('change:resolution', function(e) {
-		if(map.getView().getZoom() >= 16) {
-			stops_layer.setVisible(false);
-			stop_points_layer.setVisible(true);
-		} else {
-			stops_layer.setVisible(true);
-			stop_points_layer.setVisible(false);
-		}
+		stop_points_layer.setVisible(map.getView().getZoom() >= 16);
 	});
 	
 	$.when(
