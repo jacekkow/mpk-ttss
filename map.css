@@ -30,8 +30,7 @@ html, body, #map {
 	top: 0;
 	bottom: 0;
 	
-	transition: right .4s;
-	transition: width .4s;
+	transition: right .4s, width .4s;
 	
 	opacity: .85;
 	
