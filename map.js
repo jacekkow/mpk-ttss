@@ -293,7 +293,7 @@ function vehicleTable(tripId, table, vehicleId) {
 		if(!vehicleId) return;
 	       
 		feature_xhr = $.get(
-			ttss_base + '/internetservice/geoserviceDispatcher/services/pathinfo/vehicle'
+			ttss_base + '/geoserviceDispatcher/services/pathinfo/vehicle'
 				+ '?id=' + encodeURIComponent(vehicleId)
 		).done(function(data) {
 			if(!data || !data.paths || !data.paths[0] || !data.paths[0].wayPoints) return;

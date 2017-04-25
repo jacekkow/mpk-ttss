@@ -73,6 +73,7 @@ $rewrite = [
 	'/lookup/autocomplete/json' => '/services/lookup/autocomplete/json',
 	'/passageInfo/stopPassages/stop' => '/services/passageInfo/stopPassages/stop',
 	'/routeInfo/routeStops' => '/services/routeInfo/routeStops',
+	'/internetservice/geoserviceDispatcher/services/pathinfo/vehicle' => '/geoserviceDispatcher/services/pathinfo/vehicle',
 ];
 
 $path = $_SERVER['PATH_INFO'];
