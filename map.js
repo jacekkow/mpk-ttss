@@ -258,7 +258,7 @@ function vehicleTable(tripId, table, vehicleId) {
 			+ '?tripId=' + encodeURIComponent(tripId)
 			+ '&mode=departure'
 	).done(function(data) {
-		if(!data.routeName || !data.directionText || data.old.length + data.actual.length == 0) {
+		if(!data.routeName || !data.directionText) {
 			return;
 		}
 		
