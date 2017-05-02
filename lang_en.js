@@ -43,6 +43,7 @@ var lang = {
 	type_stop: 'Stop',
 	type_stoppoint: 'Stop point',
 	
+	select_feature: 'There is more than one feature here. Select the proper one:',
 	departures_for_stop: 'Click for stop departures (and not only this stop point).',
 	
 	tram_type_pattern: '$num $type ($floor)',

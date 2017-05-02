@@ -25,6 +25,7 @@ var route_layer = null;
 var map = null;
 var map_sphere = null;
 var popup_element = document.getElementById('popup');
+var popup_close_callback;
 var fail_element = document.getElementById('fail');
 
 var ignore_hashchange = false;
@@ -368,6 +369,31 @@ function stopTable(stopType, stopId, table) {
 	}).fail(fail_ajax_popup);
 }
 
+function showPanel(contents, closeCallback) {
+	var old_callback = popup_close_callback;
+	popup_close_callback = null;
+	if(old_callback) old_callback();
+	popup_close_callback = closeCallback;
+	
+	deleteChildren(popup_element);
+	
+	var close = addParaWithText(popup_element, '×');
+	close.className = 'close';
+	close.addEventListener('click', function() { hidePanel(); });
+	
+	popup_element.appendChild(contents);
+	
+	$(popup_element).addClass('show');
+}
+
+function hidePanel() {
+	var old_callback = popup_close_callback;
+	popup_close_callback = null;
+	if(old_callback) old_callback();
+	
+	$(popup_element).removeClass('show');
+}
+
 function featureClicked(feature) {
 	if(feature && !feature.getId()) return;
 	
@@ -375,23 +401,13 @@ function featureClicked(feature) {
 	route_source.clear();
 	
 	if(!feature) {
-		feature_clicked = null;
-		
-		$(popup_element).removeClass('show');
-		
-		ignore_hashchange = true;
-		window.location.hash = '';
-		
+		hidePanel();
 		return;
 	}
 	
 	var coordinates = feature.getGeometry().getCoordinates();
 	
-	deleteChildren(popup_element);
-	
-	var close = addParaWithText(popup_element, '×');
-	close.className = 'close';
-	close.addEventListener('click', function() { featureClicked(); });
+	var div = document.createElement('div');
 	
 	var type;
 	var name = feature.get('name');
@@ -460,17 +476,14 @@ function featureClicked(feature) {
 	loader.className = 'active';
 	loader.colSpan = thead.childNodes.length;
 	
-	addParaWithText(popup_element, type).className = 'type';
-	addParaWithText(popup_element, name).className = 'name';
+	addParaWithText(div, type).className = 'type';
+	addParaWithText(div, name).className = 'name';
 	
 	if(additional) {
-		popup_element.appendChild(additional);
+		div.appendChild(additional);
 	}
 	
-	popup_element.appendChild(table);
-	
-	ignore_hashchange = true;
-	window.location.hash = '#!' + feature.getId();
+	div.appendChild(table);
 	
 	styleFeature(feature, true);
 	
@@ -478,7 +491,22 @@ function featureClicked(feature) {
 		center: feature.getGeometry().getCoordinates(),
 	}) }, 10);
 	
-	$(popup_element).addClass('show');
+	ignore_hashchange = true;
+	window.location.hash = '#!' + feature.getId();
+	
+	showPanel(div, function() {
+		if(!ignore_hashchange) {
+			ignore_hashchange = true;
+			window.location.hash = '';
+			
+			feature_clicked = null;
+			unstyleSelectedFeatures();
+			route_source.clear();
+			
+			if(feature_xhr) feature_xhr.abort();
+			if(feature_timer) clearTimeout(feature_timer);
+		}
+	});
 	
 	feature_clicked = feature;
 }
@@ -621,8 +649,50 @@ function init() {
 	// Display popup on click
 	map.on('singleclick', function(e) {
 		var point = e.coordinate;
-		var feature = map.forEachFeatureAtPixel(e.pixel, function(feature) { return feature; });
+		var features = [];
+		map.forEachFeatureAtPixel(e.pixel, function(feature) { if(feature.getId()) features.push(feature); });
 		
+		if(features.length > 1) {
+			var div = document.createElement('div');
+			
+			addParaWithText(div, lang.select_feature);
+			
+			for(var i = 0; i < features.length; i++) {
+				var feature = features[i];
+				
+				var p = document.createElement('p');
+				var a = document.createElement('a');
+				p.appendChild(a);
+				a.addEventListener('click', function(feature) { return function() {
+					featureClicked(feature);
+				}}(feature));
+				
+				var type = '';
+				switch(feature.getId().substr(0, 1)) {
+					case 'v':
+						type = lang.type_vehicle + ' ' + feature.get('vehicle_type').num;
+					break;
+					case 's':
+						type = lang.type_stop;
+					break;
+					case 'p':
+						type = lang.type_stoppoint;
+					break;
+				}
+				
+				addElementWithText(a, 'span', type).className = 'small';
+				a.appendChild(document.createTextNode(' '));
+				addElementWithText(a, 'span', feature.get('name'));
+				
+				div.appendChild(p);
+			}
+			
+			showPanel(div);
+			
+			return;
+		}
+		
+		var feature = features[0];
 		if(!feature) {
 			if(stops_layer.getVisible()) {
 				feature = returnClosest(point, feature, stops_source.getClosestFeatureToCoordinate(point));
@@ -640,6 +710,10 @@ function init() {
 		}
 		
 		featureClicked(feature);
+	});
+	
+	fail_element.addEventListener('click', function() {
+		fail_element.style.top = '-10em';
 	});
 
 	// Change mouse cursor when over marker

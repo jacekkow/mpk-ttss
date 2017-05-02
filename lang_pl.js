@@ -43,6 +43,7 @@ var lang = {
 	type_stop: 'Przystanek',
 	type_stoppoint: 'Punkt przystankowy',
 	
+	select_feature: 'W tym miejscu znajduje się więcej niż jeden element. Wybierz właściwy z listy:',
 	departures_for_stop: 'Kliknij, by zobaczyć odjazdy dla całego przystanku (a nie tylko punktu przystankowego).',
 	
 	tram_type_pattern: '$num $type ($floor)',
