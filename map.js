@@ -15,7 +15,6 @@ var stop_points_source = null;
 var stop_points_layer = null;
 
 var feature_clicked = null;
-var feature_selected = [];
 var feature_xhr = null;
 var feature_timer = null;
 
@@ -94,92 +93,102 @@ function getGeometry(object) {
 	return new ol.geom.Point(ol.proj.fromLonLat([object.longitude / 3600000.0, object.latitude / 3600000.0]));
 }
 
-function styleVehicle(vehicle, selected) {
-	var color_type = 'black';
-	if(vehicle.get('vehicle_type')) {
-		switch(vehicle.get('vehicle_type').low) {
-			case 0:
-				color_type = 'orange';
+var Style = {
+	specialSelection: 2,
+	selectedFeatures: [],
+	
+	getStyleForVehicle: function(vehicleFeature, isSelected) {
+		var color_type = 'black';
+		if(vehicleFeature.get('vehicle_type')) {
+			switch(vehicleFeature.get('vehicle_type').low) {
+				case 0:
+					color_type = 'orange';
+				break;
+				case 1:
+					color_type = 'blue';
+				break;
+				case 2:
+					color_type = 'green';
+				break;
+			}
+		}
+		
+		var fill = (isSelected ? '#a00' : '#3399ff');
+		
+		var image = '<svg xmlns="http://www.w3.org/2000/svg" height="30" width="20"><polygon points="10,0 20,23 0,23" style="fill:'+fill+';stroke:'+color_type+';stroke-width:2" /></svg>';
+		
+		return new ol.style.Style({
+			image: new ol.style.Icon({
+				src: 'data:image/svg+xml;base64,' + btoa(image),
+				rotation: Math.PI * parseFloat(vehicleFeature.get('heading')) / 180.0,
+			}),
+			text: new ol.style.Text({
+				font: 'bold 10px sans-serif',
+				text: vehicleFeature.get('line'),
+				fill: new ol.style.Fill({color: 'white'}),
+			}),
+		});
+	},
+	
+	getStyleForStop: function(stopFeature, isSelected) {
+		var fill = 'orange';
+		var stroke = 'red';
+		var stroke_width = 1;
+		var radius = 3;
+		
+		if(isSelected == this.specialSelection) {
+			radius = 5;
+		} else if(isSelected) {
+			fill = 'red';
+			stroke = '#900';
+			stroke_width = 2;
+			radius = 5;
+		}
+		
+		return new ol.style.Style({
+			image: new ol.style.Circle({
+				fill: new ol.style.Fill({color: fill}),
+				stroke: new ol.style.Stroke({color: stroke, width: stroke_width}),
+				radius: radius,
+			}),
+		});
+	},
+	
+	getStyleForStopPoint: function(stopFeature, isSelected) {
+		return this.getStyleForStop(stopFeature, isSelected);
+	},
+	
+	feature: function(feature, isSelected) {
+		if(!feature) return;
+		if(!feature.getId()) return;
+		
+		var style = null;
+		
+		switch(feature.getId().substr(0, 1)) {
+			case 'v':
+				style = this.getStyleForVehicle(feature, isSelected);
 			break;
-			case 1:
-				color_type = 'blue';
+			case 's':
+				style = this.getStyleForStop(feature, isSelected);
 			break;
-			case 2:
-				color_type = 'green';
+			case 'p':
+				style = this.getStyleForStopPoint(feature, isSelected);
 			break;
 		}
-	}
-	
-	var fill = (selected ? '#a00' : '#3399ff');
-	
-	var image = '<svg xmlns="http://www.w3.org/2000/svg" height="30" width="20"><polygon points="10,0 20,23 0,23" style="fill:'+fill+';stroke:'+color_type+';stroke-width:2" /></svg>';
-	
-	return new ol.style.Style({
-		image: new ol.style.Icon({
-			src: 'data:image/svg+xml;base64,' + btoa(image),
-			rotation: Math.PI * parseFloat(vehicle.get('heading')) / 180.0,
-		}),
-		text: new ol.style.Text({
-			font: 'bold 10px sans-serif',
-			text: vehicle.get('line'),
-			fill: new ol.style.Fill({color: 'white'}),
-		}),
-	});
-}
-
-function styleStop(stop, selected) {
-	var fill = 'orange';
-	var stroke = 'red';
-	var stroke_width = 1;
-	var radius = 3;
-	
-	if(selected == 2) {
-		radius = 5;
-	} else if(selected) {
-		fill = 'red';
-		stroke = '#900';
-		stroke_width = 2;
-		radius = 5;
-	}
-	
-	return new ol.style.Style({
-		image: new ol.style.Circle({
-			fill: new ol.style.Fill({color: fill}),
-			stroke: new ol.style.Stroke({color: stroke, width: stroke_width}),
-			radius: radius,
-		}),
-	});
-}
-
-function styleFeature(feature, selected) {
-	if(!feature) return;
-	if(!feature.getId()) return;
-	
-	var style = null;
-	
-	switch(feature.getId().substr(0, 1)) {
-		case 'v':
-			style = styleVehicle(feature, selected);
-		break;
 		
-		case 's':
-		case 'p':
-			style = styleStop(feature, selected);
-		break;
-	}
+		feature.setStyle(style);
+		if(isSelected) {
+			this.selectedFeatures.push(feature);
+		}
+	},
 	
-	feature.setStyle(style);
-	if(selected) {
-		feature_selected.push(feature);
+	unstyleSelected: function() {
+		for(var i = 0; i < this.selectedFeatures.length; i++) {
+			this.feature(this.selectedFeatures[i]);
+		}
+		this.selectedFeatures = [];
 	}
-}
-
-function unstyleSelectedFeatures() {
-	for(var i = 0; i < feature_selected.length; i++) {
-		styleFeature(feature_selected[i]);
-	}
-	feature_selected = [];
-}
+};
 
 function updateVehicles() {
 	if(vehicles_timer) clearTimeout(vehicles_timer);
@@ -221,7 +230,7 @@ function updateVehicles() {
 				vehicle_feature = new ol.Feature(vehicle);
 				vehicle_feature.setId('v' + vehicle.id);
 				
-				styleFeature(vehicle_feature);
+				Style.feature(vehicle_feature);
 				vehicles_source.addFeature(vehicle_feature);
 			} else {
 				vehicle_feature.setProperties(vehicle);
@@ -249,7 +258,7 @@ function updateStopSource(stops, prefix, source) {
 		var stop_feature = new ol.Feature(stop);
 		
 		stop_feature.setId(prefix + stop.id);
-		styleFeature(stop_feature);
+		Style.feature(stop_feature);
 		
 		source.addFeature(stop_feature);
 	}
@@ -303,15 +312,15 @@ function vehicleTable(tripId, table, vehicleId) {
 			table.appendChild(tr);
 		}
 		
-		unstyleSelectedFeatures();
-		styleFeature(feature_clicked, true);
+		Style.unstyleSelected();
+		Style.feature(feature_clicked, true);
 		
 		for(var i = 0, il = data.actual.length; i < il; i++) {
 			var tr = document.createElement('tr');
 			addCellWithText(tr, data.actual[i].actualTime || data.actual[i].plannedTime);
 			addCellWithText(tr, data.actual[i].stop_seq_num + '. ' + data.actual[i].stop.name);
 			
-			styleFeature(stops_source.getFeatureById('s' + data.actual[i].stop.id), 2);
+			Style.feature(stops_source.getFeatureById('s' + data.actual[i].stop.id), 2);
 			
 			if(data.actual[i].status == 'STOPPING') {
 				tr.className = 'success';
@@ -402,7 +411,7 @@ function stopTable(stopType, stopId, table) {
 function featureClicked(feature) {
 	if(feature && !feature.getId()) return;
 	
-	unstyleSelectedFeatures();
+	Style.unstyleSelected();
 	route_source.clear();
 	
 	if(!feature) {
@@ -490,7 +499,7 @@ function featureClicked(feature) {
 	
 	div.appendChild(table);
 	
-	styleFeature(feature, true);
+	Style.feature(feature, true);
 	
 	setTimeout(function () {map.getView().animate({
 		center: feature.getGeometry().getCoordinates(),
@@ -505,7 +514,7 @@ function featureClicked(feature) {
 			window.location.hash = '';
 			
 			feature_clicked = null;
-			unstyleSelectedFeatures();
+			Style.unstyleSelected();
 			route_source.clear();
 			
 			if(feature_xhr) feature_xhr.abort();
