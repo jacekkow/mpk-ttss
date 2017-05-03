@@ -24,19 +24,49 @@ var route_layer = null;
 
 var map = null;
 var map_sphere = null;
-var popup_element = document.getElementById('popup');
-var popup_close_callback;
 var fail_element = document.getElementById('fail');
 
 var ignore_hashchange = false;
 
+var Panel = {
+	element: document.getElementById('popup'),
+	closeCallback: undefined,
+	
+	callCloseCallback: function() {
+		var callback = this.closeCallback;
+		this.closeCallback = null;
+		if(callback) callback();
+	},
+	
+	show: function(contents, closeCallback) {
+		this.callCloseCallback();
+		this.closeCallback = closeCallback;
+		
+		deleteChildren(this.element);
+		
+		var close = addParaWithText(this.element, '×');
+		close.className = 'close';
+		close.addEventListener('click', this.hide.bind(this));
+		
+		this.element.appendChild(contents);
+		
+		$(this.element).addClass('show');
+	},
+	
+	hide: function() {
+		this.callCloseCallback();
+		
+		$(this.element).removeClass('show');
+	},
+	
+	fail: function(message) {
+		addParaWithText(this.element, message).className = 'error';
+	},
+};
+
 function fail(msg) {
 	setText(fail_element, msg);
 	fail_element.style.top = '0.5em';
-}
-
-function fail_popup(msg) {
-	addElementWithText(popup_element, 'p', msg).className = 'error';
 }
 
 function fail_ajax_generic(data, fnc) {
@@ -57,7 +87,7 @@ function fail_ajax(data) {
 }
 
 function fail_ajax_popup(data) {
-	fail_ajax_generic(data, fail_popup);
+	fail_ajax_generic(data, Panel.fail);
 }
 
 function getGeometry(object) {
@@ -369,31 +399,6 @@ function stopTable(stopType, stopId, table) {
 	}).fail(fail_ajax_popup);
 }
 
-function showPanel(contents, closeCallback) {
-	var old_callback = popup_close_callback;
-	popup_close_callback = null;
-	if(old_callback) old_callback();
-	popup_close_callback = closeCallback;
-	
-	deleteChildren(popup_element);
-	
-	var close = addParaWithText(popup_element, '×');
-	close.className = 'close';
-	close.addEventListener('click', function() { hidePanel(); });
-	
-	popup_element.appendChild(contents);
-	
-	$(popup_element).addClass('show');
-}
-
-function hidePanel() {
-	var old_callback = popup_close_callback;
-	popup_close_callback = null;
-	if(old_callback) old_callback();
-	
-	$(popup_element).removeClass('show');
-}
-
 function featureClicked(feature) {
 	if(feature && !feature.getId()) return;
 	
@@ -401,7 +406,7 @@ function featureClicked(feature) {
 	route_source.clear();
 	
 	if(!feature) {
-		hidePanel();
+		Panel.hide();
 		return;
 	}
 	
@@ -494,7 +499,7 @@ function featureClicked(feature) {
 	ignore_hashchange = true;
 	window.location.hash = '#!' + feature.getId();
 	
-	showPanel(div, function() {
+	Panel.show(div, function() {
 		if(!ignore_hashchange) {
 			ignore_hashchange = true;
 			window.location.hash = '';
@@ -687,7 +692,7 @@ function init() {
 				div.appendChild(p);
 			}
 			
-			showPanel(div);
+			Panel.show(div);
 			
 			return;
 		}
