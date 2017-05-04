@@ -761,3 +761,4 @@ function init() {
 }
 
 init();
+checkVersion();

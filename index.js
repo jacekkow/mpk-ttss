@@ -403,8 +403,7 @@ function init() {
 	hash();
 	
 	window.addEventListener('hashchange', hash);
-	
-	checkVersionInit();
 }
 
 init();
+checkVersion();
