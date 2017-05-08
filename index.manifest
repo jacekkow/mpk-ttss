@@ -1,0 +1,45 @@
+{
+  "short_name": "TTSS Odjazdy",
+  "name": "TTSS Kraków - Odjazdy",
+  "icons": [
+    {
+      "src": "icons/index48.png",
+      "type": "image/png",
+      "sizes": "48x48"
+    },
+    {
+      "src": "icons/index64.png",
+      "type": "image/png",
+      "sizes": "64x64"
+    },
+    {
+      "src": "icons/index96.png",
+      "type": "image/png",
+      "sizes": "96x96"
+    },
+    {
+      "src": "icons/index128.png",
+      "type": "image/png",
+      "sizes": "128x128"
+    },
+    {
+      "src": "icons/index144.png",
+      "type": "image/png",
+      "sizes": "144x144"
+    },
+    {
+      "src": "icons/index192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icons/index256.png",
+      "type": "image/png",
+      "sizes": "256x256"
+    }
+  ],
+  "start_url": "index.html",
+  "display": "standalone",
+  "theme_color": "#337ab7",
+  "background_color": "#337ab7"
+}
