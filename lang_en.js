@@ -70,6 +70,10 @@ var lang = {
 	help_source: 'Source',
 	help_license: 'License',
 	
+	copy_osm: 'Map: <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors.',
+	copy_zikit: 'Data: <a href="http://www.ttss.krakow.pl/internetservice/">ZIKiT</a>',
+	copy_jacekk: 'Realization: <a href="https://github.com/jacekkow/mpk-ttss">Jacek Kowalski</a>',
+	
 	error_title: 'Error occured!',
 	error_request_failed: 'Internet request failed.',
 	error_request_failed_status: 'Internet request failed with error: $status.',

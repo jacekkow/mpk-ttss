@@ -70,6 +70,10 @@ var lang = {
 	help_source: 'Kod źródłowy',
 	help_license: 'Licencja',
 	
+	copy_osm: 'Mapa: <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>.',
+	copy_zikit: 'Dane: <a href="http://www.ttss.krakow.pl/internetservice/">ZIKiT</a>.',
+	copy_jacekk: 'Wykonanie: <a href="https://github.com/jacekkow/mpk-ttss">Jacek Kowalski</a>.',
+	
 	error_title: 'Wystąpił błąd!',
 	error_request_failed: 'Wykonanie żądania internetowego nie udało się.',
 	error_request_failed_status: 'Wykonanie żądania internetowego nie udało się. Błąd: $status.',

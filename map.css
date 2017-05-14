@@ -15,6 +15,7 @@ html, body, #map {
 #map .ol-attribution {
 	left: 0;
 	right: auto;
+	text-align: left;
 }
 
 #popup {

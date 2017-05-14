@@ -616,6 +616,7 @@ function init() {
 	});
 	stops_layer = new ol.layer.Vector({
 		source: stops_source,
+		
 	});
 	
 	stop_points_source = new ol.source.Vector({
@@ -628,6 +629,7 @@ function init() {
 	
 	vehicles_source = new ol.source.Vector({
 		features: [],
+		attributions: lang.copy_zikit,
 	});
 	vehicles_layer = new ol.layer.Vector({
 		source: vehicles_source,
@@ -635,6 +637,7 @@ function init() {
 	
 	route_source = new ol.source.Vector({
 		features: [],
+		attributions: lang.copy_jacekk,
 	});
 	route_layer = new ol.layer.Vector({
 		source: route_source,
@@ -647,7 +650,9 @@ function init() {
 		target: 'map',
 		layers: [
 			new ol.layer.Tile({
-				source: new ol.source.OSM()
+				source: new ol.source.OSM({
+					attributions: lang.copy_osm,
+				})
 			}),
 			route_layer,
 			stops_layer,
