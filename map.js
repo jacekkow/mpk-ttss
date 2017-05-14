@@ -23,7 +23,6 @@ var route_layer = null;
 
 var map = null;
 var map_sphere = null;
-var fail_element = document.getElementById('fail');
 
 var ignore_hashchange = false;
 
@@ -63,10 +62,25 @@ var Panel = {
 	},
 };
 
-function fail(msg) {
-	setText(fail_element, msg);
-	fail_element.style.top = '0.5em';
-}
+var Alert = {
+	element: document.getElementById('fail'),
+	action: undefined,
+	
+	fail: function(message, action) {
+		if(this.action) {
+			this.element.removeEventListener('click', this.action);
+			this.action = undefined;
+		}
+		
+		setText(this.element, message);
+		this.element.style.top = '0.5em';
+		
+		if(action) {
+			this.action = action;
+			this.element.addEventListener('click', action);
+		}
+	},
+};
 
 function fail_ajax_generic(data, fnc) {
 	// abort() is not a failure
@@ -82,11 +96,11 @@ function fail_ajax_generic(data, fnc) {
 }
 
 function fail_ajax(data) {
-	fail_ajax_generic(data, fail);
+	fail_ajax_generic(data, Alert.fail.bind(Alert));
 }
 
 function fail_ajax_popup(data) {
-	fail_ajax_generic(data, Panel.fail);
+	fail_ajax_generic(data, Panel.fail.bind(Panel));
 }
 
 function getGeometry(object) {
@@ -588,7 +602,7 @@ function returnClosest(point, f1, f2) {
 
 function init() {
 	if(!window.jQuery) {
-		fail(lang.jquery_not_loaded);
+		Alert.fail(lang.jquery_not_loaded);
 		return;
 	}
 	
@@ -653,7 +667,7 @@ function init() {
 				element: document.getElementById('title'),
 			}),
 			new ol.control.Control({
-				element: fail_element,
+				element: Alert.element,
 			})
 		]),
 		loadTilesWhileAnimating: true,
@@ -725,10 +739,6 @@ function init() {
 		
 		featureClicked(feature);
 	});
-	
-	fail_element.addEventListener('click', function() {
-		fail_element.style.top = '-10em';
-	});
 
 	// Change mouse cursor when over marker
 	map.on('pointermove', function(e) {
@@ -756,7 +766,7 @@ function init() {
 		if(vehicles_xhr) vehicles_xhr.abort();
 		if(vehicles_timer) clearTimeout(vehicles_timer);
 		  
-		fail(lang.error_refresh);
+		Alert.fail(lang.error_refresh);
 	}, 1800000);
 }
 
