@@ -27,7 +27,7 @@ var map_sphere = null;
 var ignore_hashchange = false;
 
 var Panel = {
-	element: document.getElementById('popup'),
+	element: document.getElementById('panel'),
 	closeCallback: undefined,
 	
 	callCloseCallback: function() {
@@ -63,22 +63,16 @@ var Panel = {
 };
 
 var Alert = {
-	element: document.getElementById('fail'),
-	action: undefined,
+	element: document.getElementById('alert'),
 	
-	fail: function(message, action) {
-		if(this.action) {
-			this.element.removeEventListener('click', this.action);
-			this.action = undefined;
-		}
-		
+	show: function(message) {
 		setText(this.element, message);
-		this.element.style.top = '0.5em';
-		
-		if(action) {
-			this.action = action;
-			this.element.addEventListener('click', action);
-		}
+		this.element.className = '';
+	},
+	
+	fail: function(message) {
+		this.show(message);
+		this.element.className = 'error';
 	},
 };
 
@@ -602,7 +596,7 @@ function returnClosest(point, f1, f2) {
 
 function init() {
 	if(!window.jQuery) {
-		Alert.fail(lang.jquery_not_loaded);
+		Alert.show(lang.jquery_not_loaded);
 		return;
 	}
 	
@@ -667,14 +661,7 @@ function init() {
 			attributionOptions: ({
 				collapsible: false,
 			})
-		}).extend([
-			new ol.control.Control({
-				element: document.getElementById('title'),
-			}),
-			new ol.control.Control({
-				element: Alert.element,
-			})
-		]),
+		}),
 		loadTilesWhileAnimating: true,
 	});
 	map_sphere = new ol.Sphere(6378137);
@@ -771,7 +758,7 @@ function init() {
 		if(vehicles_xhr) vehicles_xhr.abort();
 		if(vehicles_timer) clearTimeout(vehicles_timer);
 		  
-		Alert.fail(lang.error_refresh);
+		Alert.show(lang.error_refresh);
 	}, 1800000);
 }
 

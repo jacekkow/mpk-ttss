@@ -1,0 +1,98 @@
+{
+  "actual": [
+    {
+      "actualTime": "00:19",
+      "status": "PREDICTED",
+      "stop": {
+        "id": "6350927454370005272",
+        "name": "Smolki",
+        "shortName": "572"
+      },
+      "stop_seq_num": "15"
+    },
+    {
+      "actualTime": "00:21",
+      "status": "PREDICTED",
+      "stop": {
+        "id": "6350927454370005282",
+        "name": "Rondo Matecznego",
+        "shortName": "610"
+      },
+      "stop_seq_num": "16"
+    },
+    {
+      "actualTime": "00:22",
+      "status": "PREDICTED",
+      "stop": {
+        "id": "6350927454370005283",
+        "name": "Rzemieślnicza",
+        "shortName": "611"
+      },
+      "stop_seq_num": "17"
+    },
+    {
+      "actualTime": "00:24",
+      "status": "PREDICTED",
+      "stop": {
+        "id": "6350927454370005306",
+        "name": "Łagiewniki",
+        "shortName": "922"
+      },
+      "stop_seq_num": "18"
+    },
+    {
+      "actualTime": "00:27",
+      "status": "PREDICTED",
+      "stop": {
+        "id": "6350927454370005286",
+        "name": "PT",
+        "shortName": "614"
+      },
+      "stop_seq_num": "19"
+    }
+  ],
+  "directionText": "Zajezdnia Podgórze",
+  "old": [
+    {
+      "plannedTime": "00:15",
+      "status": "DEPARTED",
+      "stop": {
+        "id": "6350927454370005331",
+        "name": "Cmentarz Podgórski",
+        "shortName": "621"
+      },
+      "stop_seq_num": "11"
+    },
+    {
+      "actualTime": "00:16",
+      "status": "DEPARTED",
+      "stop": {
+        "id": "6350927454370005329",
+        "name": "Powstańców Wielkopolskich",
+        "shortName": "568"
+      },
+      "stop_seq_num": "12"
+    },
+    {
+      "actualTime": "00:17",
+      "status": "DEPARTED",
+      "stop": {
+        "id": "6350927454370005330",
+        "name": "Limanowskiego",
+        "shortName": "569"
+      },
+      "stop_seq_num": "13"
+    },
+    {
+      "actualTime": "00:18",
+      "status": "DEPARTED",
+      "stop": {
+        "id": "6350927454370005271",
+        "name": "Korona",
+        "shortName": "571"
+      },
+      "stop_seq_num": "14"
+    }
+  ],
+  "routeName": "9"
+}

@@ -1,9 +1,12 @@
 var lang = {
 	page_name: 'TTSS Kraków',
+	
+	index: 'Departures',
 	page_title: 'TTSS Krak\u00F3w - Real-time tram departures',
 	page_title_stop_name: 'TTSS Krak\u00F3w - $stop - Real-time tram departures',
 	
 	map: 'Map',
+	map_title: 'TTSS Kraków - Tram map',
 	
 	jquery_not_loaded: 'Required JavaScript jQuery library failed to load. You may try refreshing the page.',
 	enter_stop_name_to_begin: 'Enter the stop name to begin.',

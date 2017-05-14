@@ -1,34 +1,76 @@
-html, body, #map {
+html, body, #map, #header {
 	margin: 0;
-	font-family: sans-serif;
+	padding: 0;
+	font: 14px sans-serif;
 	overflow: hidden;
 }
 
-#map {
+#header {
 	position: absolute;
 	top: 0;
 	left: 0;
 	right: 0;
-	bottom: 0;
+	height: 2em;
+	background: #f8f8f8;
+	border-bottom: 1px solid #999;
+}
+#header ul {
+	display: table;
+	padding: 0;
+	margin: 0;
+	width: 100%;
+}
+#header ul li {
+	display: table-cell;
+	list-style: none;
+	white-space: nowrap;
+	vertical-align: top;
+}
+#header ul li:last-child {
+	width: 100%;
+	white-space: inherit;
+	text-align: right;
+}
+#header ul li > * {
+	line-height: 1em;
+	display: inline-block;
+	padding: 0.5em;
+}
+#alert {
+	margin-left: 5px;
+	
+	transition: background-color .4s;
+}
+.error {
+	background-color: red;
+	color: white;
+	font-weight: bold;
 }
 
+#map {
+	position: absolute;
+	top: 29px;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
 #map .ol-attribution {
 	left: 0;
 	right: auto;
 	text-align: left;
 }
 
-#popup {
+#panel {
 	color: black;
 	background: white;
 	padding: 5px;
-	border-left: 1px solid black;
+	border-left: 1px solid #999;
 	font-size: 14px;
 	
 	position: absolute;
 	width: 350px;
 	right: -365px;
-	top: 0;
+	top: 29px;
 	bottom: 0;
 	
 	transition: right .4s, width .4s;
@@ -38,70 +80,65 @@ html, body, #map {
 	overflow-y: auto;
 }
 
-#popup.show {
+#panel.show {
 	right: 0;
 }
 
 @media (max-width: 600px) {
-	#popup {
+	#panel {
 		width: 80%;
 		right: -100%;
 	}
 	
-	#popup.show {
+	#panel.show {
 		right: 0%;
 	}
 }
 
-#popup .close {
-	float: right;
-	cursor: pointer;
-	font-size: 20px;
-}
-#popup .type {
+#panel .type {
 	padding-bottom: 0;
 	color: #444;
 	font-size: 80%;
 }
-#popup p {
+#panel p {
 	margin: 0;
 	padding: 5px;
 }
-#popup .name {
+#panel .name {
 	font-weight: bold;
 }
-#popup .vehicleInfo {
+#panel .vehicleInfo {
 	font-size: 21px;
 	margin: -4px 0 -5px;
 }
-#popup table {
+#panel table {
 	margin-top: 3px;
 	border-top: 1px solid gray;
 	width: 100%;
 	border-collapse: collapse;
 }
-#popup table th {
+#panel table th {
 	text-align: left;
 	border-bottom: 1px solid #999;
 	padding-top: 5px;
 }
-#popup table td {
+#panel table td {
 	vertical-align: top;
 }
-#popup .active {
+#panel .active {
 	background: #f5f5f5;
 	color: gray;
 }
-#popup .success {
+#panel .success {
 	background: #dff0d8;
 }
-#popup .warning {
+#panel .warning {
 	background: #fcf8e3;
 }
-#popup .danger {
+#panel .danger {
 	background: #f2dede;
 }
-#popup table .vehicleInfo {
+#panel table .vehicleInfo {
 	float: right;
 }
 
@@ -113,18 +150,12 @@ html, body, #map {
 	background-color: rgba(255,255,255,.6);
 }
 
-#fail, #popup .error {
-	background: red;
-	color: white;
-	font-weight: bold;
-	padding: 5px;
-}
-#fail {
-	top: -10em;
-	right: 0.5em;
-}
-.ol-zoom {
-	top: 2.2em;
+.close {
+	float: right;
+	cursor: pointer;
+	font-size: 20px;
+	margin: 0;
+	padding: 3px;
 }
 
 a {
