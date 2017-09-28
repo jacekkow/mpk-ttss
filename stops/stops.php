@@ -15,8 +15,8 @@ $stops = array (
   747  => 'Borek Fałęcki',
   824  => 'Borek Fałęcki I',
   612  => 'Borsucza',
-  451  => 'Brama nr 4',
-  453  => 'Brama nr 5',
+  451  => 'Brama nr 4', # nieczynny - przebudowa linii do Pleszowa
+  453  => 'Brama nr 5', # nieczynny - przebudowa linii do Pleszowa
   61   => 'Bratysławska',
   89   => 'Bronowice',
   135  => 'Bronowice Małe',
@@ -26,16 +26,16 @@ $stops = array (
   3039 => 'Centrum Kongresowe ICE',
   2691 => 'Chmieleniec',
   87   => 'Cichy Kącik',
-  3037 => 'Cienista', # nieczynny
+  3037 => 'Cienista',
 # 2549 => 'Cmentarz Grębałów Zachód', # nowa nazwa # 2685 => 'Jarzębiny',
   621  => 'Cmentarz Podgórski',
   124  => 'Cmentarz Rakowicki',
-  318  => 'Cracovia',
+# 318  => 'Cracovia', # nowa nazwa # 3141 => 'Muzeum Narodowe',
   129  => 'Cystersów',
   3038 => 'Czerwone Maki P+R',
   407  => 'Czyżyny',
   392  => 'DH Wanda',
-  915  => 'Dajwór',
+  915  => 'Dajwór', # nieczynny - linia muzealna
   435  => 'Darwina',
   632  => 'Dauna',
   388  => 'Dunikowskiego',
@@ -51,7 +51,7 @@ $stops = array (
   464  => 'Elektromontaż',
   368  => 'Fabryczna',
   322  => 'Filharmonia',
-  1051 => 'Fort Mogiła', # nieczynny
+  1051 => 'Fort Mogiła', # nieczynny - przebudowa linii do Pleszowa
   367  => 'Francesco Nullo',
   560  => 'Gromadzka',
 # 585  => 'Grota Roweckiego', # nowa nazwa # 2687 => 'Grota-Roweckiego',
@@ -60,7 +60,7 @@ $stops = array (
   363  => 'Hala Targowa',
 # 6990 => 'Hala Targowa', # duplikat # 363  => 'Hala Targowa',
   2685 => 'Jarzębiny',
-  452  => 'Jeżynowa',
+  452  => 'Jeżynowa', # nieczynny - przebudowa linii do Pleszowa
   319  => 'Jubilat',
   624  => 'Kabel',
   2690 => 'Kampus UJ',
@@ -70,7 +70,7 @@ $stops = array (
   946  => 'Klimeckiego',
   584  => 'Kobierzyńska',
 # 401  => 'Kocmyrzowska', # nowa nazwa # 3037 => 'Cienista',
-  457  => 'Koksochemia',
+  457  => 'Koksochemia', # nieczynny - przebudowa linii do Pleszowa
   459  => 'Kombinat',
   313  => 'Komorowskiego',
   450  => 'Kopiec Wandy',
@@ -90,15 +90,16 @@ $stops = array (
   126  => 'Lubicz',
   930  => 'M1 Al. Pokoju',
   1263 => 'Mały Płaszów',
-  454  => 'Meksyk',
+  454  => 'Meksyk', # nieczynny - przebudowa linii do Pleszowa
   362  => 'Miodowa',
 # 6989 => 'Miodowa', # duplikat # 362  => 'Miodowa',
   375  => 'Mistrzejowice',
   2538 => 'Miśnieńska',
 # 574  => 'Most Grunwaldzki', # nowa nazwa # 3039 => 'Centrum Kongresowe ICE',
   460  => 'Mrozowa',
-  2726 => 'Muzeum Inżynierii Miejskiej',
+  2726 => 'Muzeum Inżynierii Miejskiej', # nieczynny - linia muzealna
   2811 => 'Muzeum Lotnictwa',
+  3141 => 'Muzeum Narodowe',
   2688 => 'Norymberska',
 # 372  => 'Nowohucka', # nowa nazwa # 3041 => 'Rondo 308. Dywizjonu',
   715  => 'Nowosądecka',
@@ -126,7 +127,7 @@ $stops = array (
   360  => 'Plac Wolnica',
   1360 => 'Plac Wszystkich Świętych',
   3033 => 'Plaza',
-  458  => 'Pleszów',
+  458  => 'Pleszów', # nieczynny - przebudowa linii do Pleszowa
   357  => 'Poczta Główna',
   73   => 'Politechnika',
 # 6689 => 'Politechnika', # duplikat # 73   => 'Politechnika',
@@ -173,7 +174,7 @@ $stops = array (
   2871 => 'TAURON Arena Kraków Al. Pokoju',
   3040 => 'TAURON Arena Kraków Wieczysta',
   77   => 'Teatr Bagatela',
-  420  => 'Teatr Ludowy', # nieczynny
+  420  => 'Teatr Ludowy',
   2859 => 'Teatr Variété',
   681  => 'Teligi',
   127  => 'Uniwersytet Ekonomiczny',
@@ -182,7 +183,7 @@ $stops = array (
   83   => 'Urzędnicza',
   463  => 'Walcownia',
   325  => 'Wawel',
-  2543 => 'Wańkowicza', # nieczynny
+  2543 => 'Wańkowicza',
   133  => 'Wesele',
   434  => 'Wiadukty',
 # 114  => 'Wieczysta', # nowa nazwa # 3040 => 'TAURON Arena Kraków Wieczysta',
