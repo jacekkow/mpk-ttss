@@ -35,7 +35,6 @@ function checkVersionInit() {
 function parseStatus(status) {
 	switch(status.status) {
 		case 'STOPPING':
-			return lang.boarding_sign;
 		case 'PREDICTED':
 			if(status.actualRelativeTime <= 0)
 				return lang.boarding_sign;
