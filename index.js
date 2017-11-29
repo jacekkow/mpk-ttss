@@ -1,5 +1,5 @@
 //var ttss_base = 'http://www.ttss.krakow.pl/internetservice';
-var ttss_base = '/proxy.php';
+var ttss_base = './proxy.php';
 var ttss_refresh = 20000; // 20 seconds
 
 var page_title = document.getElementsByTagName('title')[0];
@@ -33,6 +33,8 @@ var refresh_button = document.getElementById('refresh');
 var refresh_text = document.getElementById('refresh-text');
 var refresh_time;
 var refresh_timer;
+
+var smooth_timer;
 
 var alert = document.getElementById('alert');
 var alert_text = document.getElementById('alert-text');
@@ -77,6 +79,76 @@ function loading_end() {
 	nav.className = nav.className.replace(' loading', '');
 }
 
+function loadTimes_parse(data) {
+	setText(times_stop_name, data.stopName);
+	setText(page_title, lang.page_title_stop_name.replace('$stop', data.stopName));
+	deleteChildren(times_alerts);
+	deleteChildren(times_table);
+	//deleteChildren(times_lines);
+	
+	for(var i = 0, il = data.generalAlerts.length; i < il; i++) {
+		addParaWithText(times_alerts, data.generalAlerts[i].title);
+	}
+	
+	for(var i = 0, il = data.old.length; i < il; i++) {
+		var tr = document.createElement('tr');
+		addCellWithText(tr, data.old[i].patternText);
+		var dir_cell = addCellWithText(tr, data.old[i].direction);
+		var vehicle = parseVehicle(data.old[i].vehicleId);
+		dir_cell.appendChild(displayVehicle(vehicle));
+		addCellWithText(tr, (vehicle ? vehicle.num : '')).className = 'vehicleData';
+		var status = parseStatus(data.old[i]);
+		addCellWithText(tr, status);
+		addCellWithText(tr, '');
+		
+		tr.className = 'active';
+		tr.addEventListener('click', function(tripId, vehicleInfo) {
+			return function(){ loadRoute(tripId, vehicleInfo); }
+		}(data.old[i].tripId, vehicle));
+		times_table.appendChild(tr);
+	}
+	
+	for(var i = 0, il = data.actual.length; i < il; i++) {
+		var tr = document.createElement('tr');
+		addCellWithText(tr, data.actual[i].patternText);
+		var dir_cell = addCellWithText(tr, data.actual[i].direction);
+		var vehicle = parseVehicle(data.actual[i].vehicleId);
+		dir_cell.appendChild(displayVehicle(vehicle));
+		addCellWithText(tr, (vehicle ? vehicle.num : '')).className = 'vehicleData';
+		var status = parseStatus(data.actual[i]);
+		var status_cell = addCellWithText(tr, status);
+		var delay = parseDelay(data.actual[i]);
+		var delay_cell = addCellWithText(tr, delay);
+		
+		if(data.actual[i].status == 'STOPPING') {
+			tr.className = 'success';
+			if (data.actual[i].actualRelativeTime <= 0) {
+				status_cell.className = 'status-boarding';
+			}
+		} else if(parseInt(delay) > 9) {
+			tr.className = 'danger';
+			delay_cell.className = 'status-delayed';
+		} else if(parseInt(delay) > 3) {
+			tr.className = 'warning';
+		}
+		
+		tr.addEventListener('click', function(tripId, vehicleInfo) {
+			return function(){ loadRoute(tripId, vehicleInfo); }
+		}(data.actual[i].tripId, vehicle));
+		times_table.appendChild(tr);
+	}
+	
+	/*
+	for(var i = 0, il = data.routes.length; i < il; i++) {
+		var tr = document.createElement('tr');
+		addCellWithText(tr, data.routes[i].name);
+		addCellWithText(tr, data.routes[i].directions.join(' - '));
+		addCellWithText(tr, data.routes[i].authority);
+		times_lines.appendChild(tr);
+	}
+	*/
+}
+
 function loadTimes(stopId) {
 	if(!stopId) stopId = stop_id;
 	if(!stopId) return;
@@ -97,74 +169,36 @@ function loadTimes(stopId) {
 			+ '?stop=' + encodeURIComponent(stopId)
 			+ '&mode=departure'
 	).done(function(data) {
-		setText(times_stop_name, data.stopName);
-		setText(page_title, lang.page_title_stop_name.replace('$stop', data.stopName));
-		deleteChildren(times_alerts);
-		deleteChildren(times_table);
-		//deleteChildren(times_lines);
-		
-		for(var i = 0, il = data.generalAlerts.length; i < il; i++) {
-			addParaWithText(times_alerts, data.generalAlerts[i].title);
-		}
-		
-		for(var i = 0, il = data.old.length; i < il; i++) {
-			var tr = document.createElement('tr');
-			addCellWithText(tr, data.old[i].patternText);
-			var dir_cell = addCellWithText(tr, data.old[i].direction);
-			var vehicle = parseVehicle(data.old[i].vehicleId);
-			dir_cell.appendChild(displayVehicle(vehicle));
-			addCellWithText(tr, (vehicle ? vehicle.num : '')).className = 'vehicleData';
-			var status = parseStatus(data.old[i]);
-			addCellWithText(tr, status);
-			addCellWithText(tr, '');
-			
-			tr.className = 'active';
-			tr.addEventListener('click', function(tripId, vehicleInfo) {
-				return function(){ loadRoute(tripId, vehicleInfo); }
-			}(data.old[i].tripId, vehicle));
-			times_table.appendChild(tr);
-		}
-		
+		if(smooth_timer) clearInterval(smooth_timer);
+
+		var should_activate_smooth_timer = false;
 		for(var i = 0, il = data.actual.length; i < il; i++) {
-			var tr = document.createElement('tr');
-			addCellWithText(tr, data.actual[i].patternText);
-			var dir_cell = addCellWithText(tr, data.actual[i].direction);
-			var vehicle = parseVehicle(data.actual[i].vehicleId);
-			dir_cell.appendChild(displayVehicle(vehicle));
-			addCellWithText(tr, (vehicle ? vehicle.num : '')).className = 'vehicleData';
-			var status = parseStatus(data.actual[i]);
-			var status_cell = addCellWithText(tr, status);
-			var delay = parseDelay(data.actual[i]);
-			var delay_cell = addCellWithText(tr, delay);
-			
-			if(data.actual[i].status == 'STOPPING') {
-				tr.className = 'success';
-				if (data.actual[i].actualRelativeTime <= 0) {
-					status_cell.className = 'status-boarding';
-				}
-			} else if(parseInt(delay) > 9) {
-				tr.className = 'danger';
-				delay_cell.className = 'status-delayed';
-			} else if(parseInt(delay) > 3) {
-				tr.className = 'warning';
+			if(data.actual[i].actualRelativeTime < (60 + ttss_refresh/1000)) { // Now this is questionable, since smoothing could still be used to turn for example "5 min" to "4 min", though with times more than 60 seconds the prediction could be not enough precise, so we could skip this? It would also be unnecessary DOM updating every second without any visual change.
+				should_activate_smooth_timer = true;
 			}
+		}
+
+		if (should_activate_smooth_timer) smooth_timer = setInterval(function() {
 			
-			tr.addEventListener('click', function(tripId, vehicleInfo) {
-				return function(){ loadRoute(tripId, vehicleInfo); }
-			}(data.actual[i].tripId, vehicle));
-			times_table.appendChild(tr);
-		}
-		
-		/*
-		for(var i = 0, il = data.routes.length; i < il; i++) {
-			var tr = document.createElement('tr');
-			addCellWithText(tr, data.routes[i].name);
-			addCellWithText(tr, data.routes[i].directions.join(' - '));
-			addCellWithText(tr, data.routes[i].authority);
-			times_lines.appendChild(tr);
-		}
-		*/
-		
+			for(var i = 0, il = this.actual.length; i < il; i++) {
+				// Assuming there are no delays and predicted time will not raise, taking seconds from all predicted times should be OK
+				if(/*this.actual[i].actualRelativeTime <= (60 + ttss_refresh/1000) &&*/ ((data.actual[i].status == 'STOPPING' && this.actual[i].actualRelativeTime > 0) || this.actual[i].actualRelativeTime > 1)) {
+					this.actual[i].actualRelativeTime -= 1;
+				} else if (data.actual[i].status == 'PREDICTED' && this.actual[i].actualRelativeTime == 1) {
+					loadTimes();
+				}
+			}
+
+			for(var i = 0, il = this.old.length; i < il; i++) {
+				this.old[i].actualRelativeTime -= 1;
+			}
+
+			loadTimes_parse(this);
+
+		}.bind(data), 1000);
+
+		loadTimes_parse(data);
+
 		startTimer(new Date());
 		fail_hide();
 		

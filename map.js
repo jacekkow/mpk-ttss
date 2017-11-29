@@ -352,7 +352,7 @@ function stopTable(stopType, stopId, table) {
 			var delay = parseDelay(data.actual[i]);
 			var delay_cell = addCellWithText(tr, delay);
 			
-			if(status == lang.boarding_sign) {
+			if(data.actual[i].status == 'STOPPING') {
 				tr.className = 'success';
 				status_cell.className = 'status-boarding';
 			} else if(parseInt(delay) > 9) {
