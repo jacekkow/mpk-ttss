@@ -28,8 +28,8 @@
 						<a href="/map.html" data-translate="map">Mapa</a>
 					</li>
 				</ul>
-				
-				
+
+
 				<form class="navbar-form navbar-left">
 					<div class="input-group">
 						<span class="input-group-btn">
@@ -42,24 +42,24 @@
 						</span>
 					</div>
 				</form>
-				
+
 				<button type="button" class="btn btn-default navbar-btn pull-right" id="refresh" disabled="disabled" data-translate="refresh_button">&#x27f3; Odśwież</button>
 				<p class="navbar-text pull-right" id="refresh-text">Ładowanie...</p>
 			</div>
 		</nav>
-		
+
 		<div class="container-fluid">
 			<div id="alert" class="alert alert-danger alert-dismissible" style="display:none">
 				<a href="#" class="close" id="alert-close" aria-label="close">&times;</a>
 				<strong data-translate="error_title">Wystąpił błąd!</strong> <span id="alert-text"></span>
 			</div>
-			
+
 			<div class="row">
 				<div class="col-md-6">
 					<h2 id="times-stop-name"></h2>
-					
+
 					<div id="times-alerts"></div>
-					
+
 					<table class="table table-striped table-condensed">
 						<thead>
 							<tr>
@@ -80,7 +80,7 @@
 				<div class="col-md-6">
 					<!--
 					<h3 data-translate="header_lines">Linie</h3>
-					
+
 					<table class="table table-condensed">
 						<thead>
 							<tr>
@@ -93,13 +93,13 @@
 						</tbody>
 					</table>
 					-->
-					
+
 					<p data-translate="help_click_for_schedule">Kliknij na wpis w tabeli odjazdów by zobaczyć rozkład jazdy danego tramwaju.</p>
-					
+
 					<h3 id="route-line"></h3>
-					
+
 					<p id="route-vehicle"></p>
-					
+
 					<table class="table table-condensed">
 						<thead>
 							<tr>
@@ -110,7 +110,7 @@
 						<tbody id="route-table">
 						</tbody>
 					</table>
-					
+
 					<p class="small">
 						<span data-translate="help_legend">Legenda:</span>
 						<span class="label bg-active" data-translate="status_departed">Odjechał</span>
@@ -119,16 +119,16 @@
 						<span class="label bg-warning" data-translate="status_delayed_4">Opóźniony 4′+</span>
 						<span class="label bg-danger" data-translate="status_delayed_10">Opóźniony 10′+</span>
 					</p>
-					
+
 					<p class="small">
 						<span class="bigger" title="Bombardier NGT6, Bombardier NGT8, PESA 2014N Krakowiak, Newag Nevelo 126N" data-translate="low_floor_sign">&#x267F;</span> - <span data-translate="low_floor_description">tramwaj niskopodłogowy</span>.
 						<span class="bigger" title="Düwag/Man/MPK N8C-NF, Düwag/MPK GT8C, Bombardier-Rotax/MPK EU8N, Protram 405N-Kr" data-translate="partially_low_floor_sign">*&#x267F;</span> - <span data-translate="partially_low_floor_description">tramwaj częściowo niskopodłogowy</span>.
 						<span class="bigger" title="other tram types" data-translate="high_floor_sign">&#x2010;</span> - <span data-translate="high_floor_description">tramwaj wysokopodłogowy</span>.
 						<span data-translate="help_hover_for_more">Najedź na ikonę, by uzyskać więcej informacji.</span>
 					</p>
-					
+
 					<p class="small" data-translate="help_text">Względne czasy (np. 3 min) są podawane na podstawie faktycznej lokalizacji tramwajów. Czasy bezwzględne (np. 8:01) to odjazdy rozkładowe, pokazywane gdy tramwaj nie może być zlokalizowany. "?" oznacza nieznane opóźnienie.</p>
-					
+
 					<p class="small">&copy; 2016-2017 Jacek Kowalski - <a href="https://github.com/jacekkow/mpk-ttss" data-translate="help_source">Źródło</a> - <a href="https://raw.githubusercontent.com/jacekkow/mpk-ttss/master/LICENSE" data-translate="help_license">Licencja</a></p>
 				</div>
 			</div>

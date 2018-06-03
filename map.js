@@ -42,7 +42,7 @@ function fail_popup(msg) {
 function fail_ajax_generic(data, fnc) {
 	// abort() is not a failure
 	if(data.readyState == 0 && data.statusText == 'abort') return;
-	
+
 	if(data.status == 0) {
 		fnc(lang.error_request_failed_connectivity, data);
 	} else if (data.statusText) {
@@ -79,11 +79,11 @@ function styleVehicle(vehicle, selected) {
 			break;
 		}
 	}
-	
+
 	var fill = (selected ? '#a00' : '#3399ff');
-	
+
 	var image = '<svg xmlns="http://www.w3.org/2000/svg" height="30" width="20"><polygon points="10,0 20,23 0,23" style="fill:'+fill+';stroke:'+color_type+';stroke-width:2" /></svg>';
-	
+
 	return new ol.style.Style({
 		image: new ol.style.Icon({
 			src: 'data:image/svg+xml;base64,' + btoa(image),
@@ -102,7 +102,7 @@ function styleStop(stop, selected) {
 	var stroke = 'red';
 	var stroke_width = 1;
 	var radius = 3;
-	
+
 	if(selected == 2) {
 		radius = 5;
 	} else if(selected) {
@@ -111,7 +111,7 @@ function styleStop(stop, selected) {
 		stroke_width = 2;
 		radius = 5;
 	}
-	
+
 	return new ol.style.Style({
 		image: new ol.style.Circle({
 			fill: new ol.style.Fill({color: fill}),
@@ -124,20 +124,20 @@ function styleStop(stop, selected) {
 function styleFeature(feature, selected) {
 	if(!feature) return;
 	if(!feature.getId()) return;
-	
+
 	var style = null;
-	
+
 	switch(feature.getId().substr(0, 1)) {
 		case 'v':
 			style = styleVehicle(feature, selected);
 		break;
-		
+
 		case 's':
 		case 'p':
 			style = styleStop(feature, selected);
 		break;
 	}
-	
+
 	feature.setStyle(style);
 	if(selected) {
 		feature_selected.push(feature);
@@ -154,18 +154,18 @@ function unstyleSelectedFeatures() {
 function updateVehicles() {
 	if(vehicles_timer) clearTimeout(vehicles_timer);
 	if(vehicles_xhr) vehicles_xhr.abort();
-	
+
 	vehicles_xhr = $.get(
-		ttss_base + '/geoserviceDispatcher/services/vehicleinfo/vehicles' 
+		ttss_base + '/geoserviceDispatcher/services/vehicleinfo/vehicles'
 			+ '?positionType=CORRECTED'
 			+ '&colorType=ROUTE_BASED'
 			+ '&lastUpdate=' + encodeURIComponent(vehicles_last_update)
 	).done(function(data) {
 		vehicles_last_update = data.lastUpdate;
-		
+
 		for(var i = 0; i < data.vehicles.length; i++) {
 			var vehicle = data.vehicles[i];
-			
+
 			var vehicle_feature = vehicles_source.getFeatureById('v' + vehicle.id);
 			if(vehicle.isDeleted) {
 				if(vehicle_feature) {
@@ -176,21 +176,21 @@ function updateVehicles() {
 				}
 				continue;
 			}
-			
+
 			var vehicle_name_space = vehicle.name.indexOf(' ');
 			vehicle.line = vehicle.name.substr(0, vehicle_name_space);
 			vehicle.direction = vehicle.name.substr(vehicle_name_space+1);
 			if(special_directions[vehicle.direction]) {
 				vehicle.line = special_directions[vehicle.direction];
 			}
-			
+
 			vehicle.geometry = getGeometry(vehicle);
 			vehicle.vehicle_type = parseVehicle(vehicle.id);
-			
+
 			if(!vehicle_feature) {
 				vehicle_feature = new ol.Feature(vehicle);
 				vehicle_feature.setId('v' + vehicle.id);
-				
+
 				styleFeature(vehicle_feature);
 				vehicles_source.addFeature(vehicle_feature);
 			} else {
@@ -198,29 +198,29 @@ function updateVehicles() {
 				vehicle_feature.getStyle().getImage().setRotation(Math.PI * parseFloat(vehicle.heading) / 180.0);
 			}
 		}
-		
+
 		vehicles_timer = setTimeout(function() {
 			updateVehicles();
 		}, ttss_refresh);
 	}).fail(fail_ajax);
-	
+
 	return vehicles_xhr;
 }
 
 function updateStopSource(stops, prefix, source) {
 	source.clear();
-	
+
 	for(var i = 0; i < stops.length; i++) {
 		var stop = stops[i];
-		
+
 		if(stop.category == 'other') continue;
-		
+
 		stop.geometry = getGeometry(stop);
 		var stop_feature = new ol.Feature(stop);
-		
+
 		stop_feature.setId(prefix + stop.id);
 		styleFeature(stop_feature);
-		
+
 		source.addFeature(stop_feature);
 	}
 }
@@ -252,7 +252,7 @@ function updateStopPoints() {
 function vehicleTable(tripId, table, vehicleId) {
 	if(feature_xhr) feature_xhr.abort();
 	if(feature_timer) clearTimeout(feature_timer);
-	
+
 	feature_xhr = $.get(
 		ttss_base + '/services/tripInfo/tripPassages'
 			+ '?tripId=' + encodeURIComponent(tripId)
@@ -261,44 +261,44 @@ function vehicleTable(tripId, table, vehicleId) {
 		if(!data.routeName || !data.directionText) {
 			return;
 		}
-		
+
 		deleteChildren(table);
-		
+
 		for(var i = 0, il = data.old.length; i < il; i++) {
 			var tr = document.createElement('tr');
 			addCellWithText(tr, data.old[i].actualTime || data.old[i].plannedTime);
 			addCellWithText(tr, data.old[i].stop_seq_num + '. ' + data.old[i].stop.name);
-			
+
 			tr.className = 'active';
 			table.appendChild(tr);
 		}
-		
+
 		unstyleSelectedFeatures();
 		styleFeature(feature_clicked, true);
-		
+
 		for(var i = 0, il = data.actual.length; i < il; i++) {
 			var tr = document.createElement('tr');
 			addCellWithText(tr, data.actual[i].actualTime || data.actual[i].plannedTime);
 			addCellWithText(tr, data.actual[i].stop_seq_num + '. ' + data.actual[i].stop.name);
-			
+
 			styleFeature(stops_source.getFeatureById('s' + data.actual[i].stop.id), 2);
-			
+
 			if(data.actual[i].status == 'STOPPING') {
 				tr.className = 'success';
 			}
 			table.appendChild(tr);
 		}
-		
+
 		feature_timer = setTimeout(function() { vehicleTable(tripId, table); }, ttss_refresh);
-		
+
 		if(!vehicleId) return;
-	       
+
 		feature_xhr = $.get(
 			ttss_base + '/geoserviceDispatcher/services/pathinfo/vehicle'
 				+ '?id=' + encodeURIComponent(vehicleId)
 		).done(function(data) {
 			if(!data || !data.paths || !data.paths[0] || !data.paths[0].wayPoints) return;
-			
+
 			var point = null;
 			var points = [];
 			for(var i = 0; i < data.paths[0].wayPoints.length; i++) {
@@ -308,7 +308,7 @@ function vehicleTable(tripId, table, vehicleId) {
 					point.lat / 3600000.0,
 				]));
 			}
-			
+
 			route_source.addFeature(new ol.Feature({
 				geometry: new ol.geom.LineString(points)
 			}));
@@ -319,14 +319,14 @@ function vehicleTable(tripId, table, vehicleId) {
 function stopTable(stopType, stopId, table) {
 	if(feature_xhr) feature_xhr.abort();
 	if(feature_timer) clearTimeout(feature_timer);
-	
+
 	feature_xhr = $.get(
 		ttss_base + '/services/passageInfo/stopPassages/' + stopType
 			+ '?' + stopType + '=' + encodeURIComponent(stopId)
 			+ '&mode=departure'
 	).done(function(data) {
 		deleteChildren(table);
-		
+
 		for(var i = 0, il = data.old.length; i < il; i++) {
 			var tr = document.createElement('tr');
 			addCellWithText(tr, data.old[i].patternText);
@@ -336,11 +336,11 @@ function stopTable(stopType, stopId, table) {
 			var status = parseStatus(data.old[i]);
 			addCellWithText(tr, status);
 			addCellWithText(tr, '');
-			
+
 			tr.className = 'active';
 			table.appendChild(tr);
 		}
-		
+
 		for(var i = 0, il = data.actual.length; i < il; i++) {
 			var tr = document.createElement('tr');
 			addCellWithText(tr, data.actual[i].patternText);
@@ -351,7 +351,7 @@ function stopTable(stopType, stopId, table) {
 			var status_cell = addCellWithText(tr, status);
 			var delay = parseDelay(data.actual[i]);
 			var delay_cell = addCellWithText(tr, delay);
-			
+
 			if(status == lang.boarding_sign) {
 				tr.className = 'success';
 				status_cell.className = 'status-boarding';
@@ -361,10 +361,10 @@ function stopTable(stopType, stopId, table) {
 			} else if(parseInt(delay) > 3) {
 				tr.className = 'warning';
 			}
-			
+
 			table.appendChild(tr);
 		}
-		
+
 		feature_timer = setTimeout(function() { stopTable(stopType, stopId, table); }, ttss_refresh);
 	}).fail(fail_ajax_popup);
 }
@@ -374,15 +374,15 @@ function showPanel(contents, closeCallback) {
 	popup_close_callback = null;
 	if(old_callback) old_callback();
 	popup_close_callback = closeCallback;
-	
+
 	deleteChildren(popup_element);
-	
+
 	var close = addParaWithText(popup_element, '×');
 	close.className = 'close';
 	close.addEventListener('click', function() { hidePanel(); });
-	
+
 	popup_element.appendChild(contents);
-	
+
 	$(popup_element).addClass('show');
 }
 
@@ -390,25 +390,25 @@ function hidePanel() {
 	var old_callback = popup_close_callback;
 	popup_close_callback = null;
 	if(old_callback) old_callback();
-	
+
 	$(popup_element).removeClass('show');
 }
 
 function featureClicked(feature) {
 	if(feature && !feature.getId()) return;
-	
+
 	unstyleSelectedFeatures();
 	route_source.clear();
-	
+
 	if(!feature) {
 		hidePanel();
 		return;
 	}
-	
+
 	var coordinates = feature.getGeometry().getCoordinates();
-	
+
 	var div = document.createElement('div');
-	
+
 	var type;
 	var name = feature.get('name');
 	var additional;
@@ -417,39 +417,39 @@ function featureClicked(feature) {
 	var tbody = document.createElement('tbody');
 	table.appendChild(thead);
 	table.appendChild(tbody);
-	
+
 	switch(feature.getId().substr(0, 1)) {
 		case 'v':
 			type = lang.type_vehicle;
-			
+
 			if(!feature.get('vehicle_type')) {
 				break;
 			}
-			
+
 			var span = displayVehicle(feature.get('vehicle_type'));
-			
+
 			additional = document.createElement('p');
 			setText(additional, span.title);
 			additional.insertBefore(span, additional.firstChild);
-			
+
 			addElementWithText(thead, 'th', lang.header_time);
 			addElementWithText(thead, 'th', lang.header_stop);
-			
+
 			vehicleTable(feature.get('tripId'), tbody, feature.get('id'));
 		break;
 		case 's':
 			type = lang.type_stop;
-			
+
 			addElementWithText(thead, 'th', lang.header_line);
 			addElementWithText(thead, 'th', lang.header_direction);
 			addElementWithText(thead, 'th', lang.header_time);
 			addElementWithText(thead, 'th', lang.header_delay);
-			
+
 			stopTable('stop', feature.get('shortName'), tbody);
 		break;
 		case 'p':
 			type = lang.type_stoppoint;
-			
+
 			additional = document.createElement('p');
 			additional.className = 'small';
 			addElementWithText(additional, 'a', lang.departures_for_stop).addEventListener(
@@ -462,52 +462,52 @@ function featureClicked(feature) {
 					}));
 				}
 			);
-			
+
 			addElementWithText(thead, 'th', lang.header_line);
 			addElementWithText(thead, 'th', lang.header_direction);
 			addElementWithText(thead, 'th', lang.header_time);
 			addElementWithText(thead, 'th', lang.header_delay);
-			
+
 			stopTable('stopPoint', feature.get('stopPoint'), tbody);
 		break;
 	}
-	
+
 	var loader = addElementWithText(tbody, 'td', lang.loading);
 	loader.className = 'active';
 	loader.colSpan = thead.childNodes.length;
-	
+
 	addParaWithText(div, type).className = 'type';
 	addParaWithText(div, name).className = 'name';
-	
+
 	if(additional) {
 		div.appendChild(additional);
 	}
-	
+
 	div.appendChild(table);
-	
+
 	styleFeature(feature, true);
-	
+
 	setTimeout(function () {map.getView().animate({
 		center: feature.getGeometry().getCoordinates(),
 	}) }, 10);
-	
+
 	ignore_hashchange = true;
 	window.location.hash = '#!' + feature.getId();
-	
+
 	showPanel(div, function() {
 		if(!ignore_hashchange) {
 			ignore_hashchange = true;
 			window.location.hash = '';
-			
+
 			feature_clicked = null;
 			unstyleSelectedFeatures();
 			route_source.clear();
-			
+
 			if(feature_xhr) feature_xhr.abort();
 			if(feature_timer) clearTimeout(feature_timer);
 		}
 	});
-	
+
 	feature_clicked = feature;
 }
 
@@ -516,15 +516,15 @@ function hash() {
 		ignore_hashchange = false;
 		return;
 	}
-	
+
 	var tramId = null;
-	
+
 	var vehicleId = null;
 	var stopId = null;
 	var stopPointId = null;
-	
+
 	var feature = null;
-	
+
 	if(window.location.hash.match(/^#!t[0-9]{3}$/)) {
 		tramId = parseInt(window.location.hash.substr(3));
 	} else if(window.location.hash.match(/^#![A-Za-z]{2}[0-9]{3}$/)) {
@@ -536,11 +536,11 @@ function hash() {
 	} else if(window.location.hash.match(/^#!p[0-9]+$/)) {
 		stopPointId = window.location.hash.substr(3);
 	}
-	
+
 	if(tramId) {
 		vehicleId = tramIdToVehicleId(tramId);
 	}
-	
+
 	if(vehicleId) {
 		feature = vehicles_source.getFeatureById('v' + vehicleId);
 	} else if(stopId) {
@@ -548,7 +548,7 @@ function hash() {
 	} else if(stopPointId) {
 		feature = stop_points_source.getFeatureById('p' + stopPointId);
 	}
-	
+
 	featureClicked(feature);
 }
 
@@ -559,7 +559,7 @@ function getDistance(c1, c2) {
 	if(c2.getGeometry) {
 		c2 = c2.getGeometry().getCoordinates();
 	}
-	
+
 	var c1 = ol.proj.transform(c1, 'EPSG:3857', 'EPSG:4326');
 	var c2 = ol.proj.transform(c2, 'EPSG:3857', 'EPSG:4326');
 	return map_sphere.haversineDistance(c1, c2);
@@ -568,7 +568,7 @@ function getDistance(c1, c2) {
 function returnClosest(point, f1, f2) {
 	if(!f1) return f2;
 	if(!f2) return f1;
-	
+
 	return (getDistance(point, f1) < getDistance(point, f2)) ? f1 : f2;
 }
 
@@ -577,19 +577,19 @@ function init() {
 		fail(lang.jquery_not_loaded);
 		return;
 	}
-	
+
 	$.ajaxSetup({
 		dataType: 'json',
 		timeout: 10000,
 	});
-	
+
 	stops_source = new ol.source.Vector({
 		features: [],
 	});
 	stops_layer = new ol.layer.Vector({
 		source: stops_source,
 	});
-	
+
 	stop_points_source = new ol.source.Vector({
 		features: [],
 	});
@@ -597,14 +597,14 @@ function init() {
 		source: stop_points_source,
 		visible: false,
 	});
-	
+
 	vehicles_source = new ol.source.Vector({
 		features: [],
 	});
 	vehicles_layer = new ol.layer.Vector({
 		source: vehicles_source,
 	});
-	
+
 	route_source = new ol.source.Vector({
 		features: [],
 	});
@@ -614,7 +614,7 @@ function init() {
 			stroke: new ol.style.Stroke({ color: [255, 153, 0, .8], width: 5 })
 		}),
 	});
-	
+
 	map = new ol.Map({
 		target: 'map',
 		layers: [
@@ -645,28 +645,28 @@ function init() {
 		loadTilesWhileAnimating: true,
 	});
 	map_sphere = new ol.Sphere(6378137);
-	
+
 	// Display popup on click
 	map.on('singleclick', function(e) {
 		var point = e.coordinate;
 		var features = [];
 		map.forEachFeatureAtPixel(e.pixel, function(feature) { if(feature.getId()) features.push(feature); });
-		
+
 		if(features.length > 1) {
 			var div = document.createElement('div');
-			
+
 			addParaWithText(div, lang.select_feature);
-			
+
 			for(var i = 0; i < features.length; i++) {
 				var feature = features[i];
-				
+
 				var p = document.createElement('p');
 				var a = document.createElement('a');
 				p.appendChild(a);
 				a.addEventListener('click', function(feature) { return function() {
 					featureClicked(feature);
 				}}(feature));
-				
+
 				var type = '';
 				switch(feature.getId().substr(0, 1)) {
 					case 'v':
@@ -679,19 +679,19 @@ function init() {
 						type = lang.type_stoppoint;
 					break;
 				}
-				
+
 				addElementWithText(a, 'span', type).className = 'small';
 				a.appendChild(document.createTextNode(' '));
 				addElementWithText(a, 'span', feature.get('name'));
-				
+
 				div.appendChild(p);
 			}
-			
+
 			showPanel(div);
-			
+
 			return;
 		}
-		
+
 		var feature = features[0];
 		if(!feature) {
 			if(stops_layer.getVisible()) {
@@ -703,15 +703,15 @@ function init() {
 			if(vehicles_layer.getVisible()) {
 				feature = returnClosest(point, feature, vehicles_source.getClosestFeatureToCoordinate(point));
 			}
-			
+
 			if(getDistance(point, feature) > 200) {
 				feature = null;
 			}
 		}
-		
+
 		featureClicked(feature);
 	});
-	
+
 	fail_element.addEventListener('click', function() {
 		fail_element.style.top = '-10em';
 	});
@@ -722,12 +722,12 @@ function init() {
 		var target = map.getTargetElement();
 		target.style.cursor = hit ? 'pointer' : '';
 	});
-	
+
 	// Change layer visibility on zoom
 	map.getView().on('change:resolution', function(e) {
 		stop_points_layer.setVisible(map.getView().getZoom() >= 16);
 	});
-	
+
 	$.when(
 		updateVehicles(),
 		updateStops(),
@@ -735,13 +735,13 @@ function init() {
 	).done(function() {
 		hash();
 	});
-	
+
 	window.addEventListener('hashchange', hash);
-	
+
 	setTimeout(function() {
 		if(vehicles_xhr) vehicles_xhr.abort();
 		if(vehicles_timer) clearTimeout(vehicles_timer);
-		  
+
 		fail(lang.error_refresh);
 	}, 1800000);
 }

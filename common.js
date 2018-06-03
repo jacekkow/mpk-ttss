@@ -10,7 +10,7 @@ var script_version_xhr;
 // Check for website updates
 function checkVersion() {
 	if(script_version_xhr) script_version_xhr.abort();
-	
+
 	script_version_xhr = $.get(
 		'version.php'
 	).done(function(data) {
@@ -18,7 +18,7 @@ function checkVersion() {
 			script_version = data;
 			return;
 		}
-		
+
 		if(script_version != data) {
 			fail(lang.error_new_version);
 			location.reload(true);
@@ -53,26 +53,26 @@ function parseTime(date, time) {
 	var time_split = time.split(':');
 	result.setHours(time_split[0]);
 	result.setMinutes(time_split[1]);
-	
+
 	if(result.getTime() - date.getTime() > 72000000) {
 		result.setTime(result.getTime() - 86400000);
 	}
-	
+
 	if(date.getTime() - result.getTime() > 72000000) {
 		result.setTime(result.getTime() + 86400000);
 	}
-	
+
 	return result;
 }
 
 function parseDelay(status) {
 	if(!status.actualTime) return lang.unknown_sign;
 	if(!status.plannedTime) return lang.unknown_sign;
-	
+
 	var now = new Date();
 	var actual = parseTime(now, status.actualTime);
 	var planned = parseTime(now, status.plannedTime);
-	
+
 	return lang.time_minutes_prefix + ((actual.getTime() - planned.getTime()) / 1000 / 60) + lang.time_minutes_suffix;
 }
 
@@ -83,24 +83,24 @@ function parseVehicle(vehicleId) {
 		console.log('Unknown vehicle, vehicleId=' + vehicleId);
 		return false;
 	}
-	
+
 	var id = parseInt(vehicleId.substr(15)) - 736;
 	var prefix;
 	var type;
 	var low; // low floor: 0 = no, 1 - semi, 2 - full
-	
+
 	// Single exception - old id used in one case
 	if(id == 831) {
 		id = 216;
 	} else if(id == 311) {
 		id = 899
 	}
-	
+
 	if(101 <= id && id <= 174) {
 		prefix = 'HW';
 		type = 'E1';
 		low = 0;
-		
+
 		if((108 <= id && id <= 113) || id == 127 || id == 131 || id == 132 || id == 134 || (137 <= id && id <= 139) || (148 <= id && id <= 150) || (153 <= id && id <= 155)) {
 			prefix = 'RW';
 		}
@@ -108,7 +108,7 @@ function parseVehicle(vehicleId) {
 		prefix = 'RZ';
 		type = '105Na';
 		low = 0;
-		
+
 		if(246 <= id) {
 			prefix = 'HZ';
 		}
@@ -119,7 +119,7 @@ function parseVehicle(vehicleId) {
 		prefix = 'RF';
 		type = 'GT8S';
 		low = 0;
-		
+
 		if(id == 313) {
 			type = 'GT8C'
 			low = 1;
@@ -135,7 +135,7 @@ function parseVehicle(vehicleId) {
 		prefix = 'HK';
 		type = 'N8S-NF';
 		low = 1;
-		
+
 		if((451 <= id && id <= 456) || id == 462) {
 			type = 'N8C-NF';
 		}
@@ -143,7 +143,7 @@ function parseVehicle(vehicleId) {
 		prefix = 'RP';
 		type = 'NGT6 (3)';
 		low = 2;
-		
+
 		if(id <= 613) {
 			type = 'NGT6 (1)';
 		} else if (id <= 626) {
@@ -161,7 +161,7 @@ function parseVehicle(vehicleId) {
 		prefix = 'RG';
 		type = '2014N';
 		low = 2;
-		
+
 		if(915 <= id) {
 			prefix = 'HG';
 		}
@@ -173,7 +173,7 @@ function parseVehicle(vehicleId) {
 		console.log('Unknown vehicle, vehicleId=' + vehicleId + ', id=' + id);
 		return false;
 	}
-	
+
 	return {
 		vehicleId: vehicleId,
 		prefix: prefix,
@@ -194,10 +194,10 @@ function tramIdToVehicleId(tramId) {
 
 function displayVehicle(vehicleInfo) {
 	if(!vehicleInfo) return document.createTextNode('');
-	
+
 	var span = document.createElement('span');
 	span.className = 'vehicleInfo';
-	
+
 	var floor_type = '';
 	if(vehicleInfo.low == 0) {
 		setText(span, lang.high_floor_sign);
@@ -209,12 +209,12 @@ function displayVehicle(vehicleInfo) {
 		setText(span, lang.low_floor_sign);
 		floor_type = lang.low_floor;
 	}
-	
+
 	span.title = lang.tram_type_pattern
 		.replace('$num', vehicleInfo.num)
 		.replace('$type', vehicleInfo.type)
 		.replace('$floor', floor_type);
-	
+
 	return span;
 }
 
