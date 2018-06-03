@@ -170,7 +170,7 @@ function updateVehicles() {
 			if(vehicle.isDeleted) {
 				if(vehicle_feature) {
 					vehicles_source.removeFeature(vehicle_feature);
-					if(feature_clicked.getId() == vehicle_feature.getId()) {
+					if(feature_clicked && feature_clicked.getId() === vehicle_feature.getId()) {
 						featureClicked();
 					}
 				}
