@@ -92,6 +92,8 @@ function parseVehicle(vehicleId) {
 	// Single exception - old id used in one case
 	if(id == 831) {
 		id = 216;
+	} else if(id == 311) {
+		id = 899
 	}
 	
 	if(101 <= id && id <= 174) {
@@ -121,7 +123,8 @@ function parseVehicle(vehicleId) {
 		if(id == 313) {
 			type = 'GT8C'
 			low = 1;
-		} else if(id == 323) {
+		} else if(id == 323 || id >= 325) {
+			type = 'GT8N'
 			low = 1;
 		}
 	} else if(401 <= id && id <= 440) {
