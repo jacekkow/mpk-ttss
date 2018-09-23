@@ -15,8 +15,8 @@ $stops = array (
   747  => 'Borek Fałęcki',
   824  => 'Borek Fałęcki I',
   612  => 'Borsucza',
-  451  => 'Brama nr 4', # nieczynny - przebudowa linii do Pleszowa
-  453  => 'Brama nr 5', # nieczynny - przebudowa linii do Pleszowa
+  451  => 'Brama nr 4',
+  453  => 'Brama nr 5',
   61   => 'Bratysławska',
   89   => 'Bronowice',
   135  => 'Bronowice Małe',
@@ -40,7 +40,7 @@ $stops = array (
   632  => 'Dauna',
   388  => 'Dunikowskiego',
   623  => 'Dworcowa',
-  131  => 'Dworzec Główny',
+# 131  => 'Dworzec Główny', # nowa nazwa # 3242 => 'Teatr Słowackiego',
   1173 => 'Dworzec Główny Tunel',
 # 8567 => 'Dworzec Główny Tunel', # duplikat # 1173 => 'Dworzec Główny Tunel',
   2608 => 'Dworzec Główny Zachód',
@@ -51,7 +51,7 @@ $stops = array (
   464  => 'Elektromontaż',
   368  => 'Fabryczna',
   322  => 'Filharmonia',
-  1051 => 'Fort Mogiła', # nieczynny - przebudowa linii do Pleszowa
+  1051 => 'Fort Mogiła',
   367  => 'Francesco Nullo',
   560  => 'Gromadzka',
 # 585  => 'Grota Roweckiego', # nowa nazwa # 2687 => 'Grota-Roweckiego',
@@ -60,7 +60,7 @@ $stops = array (
   363  => 'Hala Targowa',
 # 6990 => 'Hala Targowa', # duplikat # 363  => 'Hala Targowa',
   2685 => 'Jarzębiny',
-  452  => 'Jeżynowa', # nieczynny - przebudowa linii do Pleszowa
+  452  => 'Jeżynowa',
   319  => 'Jubilat',
   624  => 'Kabel',
   2690 => 'Kampus UJ',
@@ -70,7 +70,7 @@ $stops = array (
   946  => 'Klimeckiego',
   584  => 'Kobierzyńska',
 # 401  => 'Kocmyrzowska', # nowa nazwa # 3037 => 'Cienista',
-  457  => 'Koksochemia', # nieczynny - przebudowa linii do Pleszowa
+  457  => 'Koksochemia',
   459  => 'Kombinat',
   313  => 'Komorowskiego',
   450  => 'Kopiec Wandy',
@@ -91,7 +91,7 @@ $stops = array (
   126  => 'Lubicz',
   930  => 'M1 Al. Pokoju',
   1263 => 'Mały Płaszów',
-  454  => 'Meksyk', # nieczynny - przebudowa linii do Pleszowa
+  454  => 'Meksyk',
   362  => 'Miodowa',
 # 6989 => 'Miodowa', # duplikat # 362  => 'Miodowa',
   375  => 'Mistrzejowice',
@@ -119,7 +119,6 @@ $stops = array (
   466  => 'PH',
   614  => 'PT',
   960  => 'Park Jordana',
-  3158 => 'Podgórze SKA',
   716  => 'Piaski Nowe',
   379  => 'Piasta Kołodzieja',
   570  => 'Plac Bohaterów Getta',
@@ -130,8 +129,9 @@ $stops = array (
   360  => 'Plac Wolnica',
   1360 => 'Plac Wszystkich Świętych',
   3033 => 'Plaza',
-  458  => 'Pleszów', # nieczynny - przebudowa linii do Pleszowa
+  458  => 'Pleszów',
   357  => 'Poczta Główna',
+  3158 => 'Podgórze SKA',
   73   => 'Politechnika',
 # 6689 => 'Politechnika', # duplikat # 73   => 'Politechnika',
 # 568  => 'Powstańców Wielkopolskich', # nowa nazwa # 3158 => 'Podgórze SKA',
@@ -178,6 +178,7 @@ $stops = array (
   3040 => 'TAURON Arena Kraków Wieczysta',
   77   => 'Teatr Bagatela',
   420  => 'Teatr Ludowy',
+  3242 => 'Teatr Słowackiego',
   2859 => 'Teatr Variété',
   681  => 'Teligi',
   127  => 'Uniwersytet Ekonomiczny',

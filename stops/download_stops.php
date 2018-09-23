@@ -9,4 +9,10 @@ foreach($elements['stops'] as $element) {
 }
 
 asort($stops);
-var_export($stops);
+
+echo '<?php'."\n";
+echo '$stops = array ('."\n";
+foreach($stops as $id => $stop) {
+	echo '  '.str_pad($id, 4, ' ', STR_PAD_RIGHT).' => '.var_export($stop, TRUE).','."\n";
+}
+echo ');'."\n";
