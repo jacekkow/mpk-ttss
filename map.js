@@ -99,16 +99,21 @@ function styleVehicle(vehicle, selected) {
 }
 
 function styleStop(stop, selected) {
-	var fill = 'orange';
-	var stroke = 'red';
+	var fill = '#FA0';
+	var stroke = '#B70';
+	var stroke_selected = '#F00';
 	var stroke_width = 1;
 	var radius = 3;
+	
+	if(stop.get('category') == 'bus') {
+		fill = '#07F';
+		stroke = '#05B';
+	}
 	
 	if(selected == 2) {
 		radius = 5;
 	} else if(selected) {
-		fill = 'red';
-		stroke = '#900';
+		stroke = stroke_selected;
 		stroke_width = 2;
 		radius = 5;
 	}
