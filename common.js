@@ -80,7 +80,6 @@ function parseDelay(status) {
 function parseVehicle(vehicleId) {
 	if(!vehicleId) return false;
 	if(vehicleId.substr(0, 15) != '635218529567218') {
-		console.log('Unknown vehicle, vehicleId=' + vehicleId);
 		return false;
 	}
 	

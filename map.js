@@ -422,14 +422,12 @@ function featureClicked(feature) {
 		case 'v':
 			type = lang.type_vehicle;
 			
-			if(!feature.get('vehicle_type')) {
-				break;
-			}
-			
 			var span = displayVehicle(feature.get('vehicle_type'));
 			
 			additional = document.createElement('p');
-			setText(additional, span.title);
+			if(span.title) {
+				setText(additional, span.title);
+			}
 			additional.insertBefore(span, additional.firstChild);
 			
 			addElementWithText(thead, 'th', lang.header_time);
@@ -529,11 +527,11 @@ function hash() {
 		tramId = parseInt(window.location.hash.substr(3));
 	} else if(window.location.hash.match(/^#![A-Za-z]{2}[0-9]{3}$/)) {
 		tramId = parseInt(window.location.hash.substr(4));
-	} else if(window.location.hash.match(/^#!v[0-9]+$/)) {
+	} else if(window.location.hash.match(/^#!v-?[0-9]+$/)) {
 		vehicleId = window.location.hash.substr(3);
-	} else if(window.location.hash.match(/^#!s[0-9]+$/)) {
+	} else if(window.location.hash.match(/^#!s-?[0-9]+$/)) {
 		stopId = window.location.hash.substr(3);
-	} else if(window.location.hash.match(/^#!p[0-9]+$/)) {
+	} else if(window.location.hash.match(/^#!p-?[0-9]+$/)) {
 		stopPointId = window.location.hash.substr(3);
 	}
 	
@@ -670,7 +668,10 @@ function init() {
 				var type = '';
 				switch(feature.getId().substr(0, 1)) {
 					case 'v':
-						type = lang.type_vehicle + ' ' + feature.get('vehicle_type').num;
+						type = lang.type_vehicle;
+						if(feature.get('vehicle_type').num) {
+							type += ' ' + feature.get('vehicle_type').num;
+						}
 					break;
 					case 's':
 						type = lang.type_stop;

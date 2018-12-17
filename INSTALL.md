@@ -4,6 +4,7 @@
 
 Webserver with PHP 5.4+ (PHP 7+ recommended) and modules:
 - iconv,
+- mbstring,
 - PDO,
 - PDO SQLite.
 
