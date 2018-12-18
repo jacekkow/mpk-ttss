@@ -7,6 +7,8 @@ var special_directions = {
 var script_version;
 var script_version_xhr;
 
+var vehicles_info;
+
 // Check for website updates
 function checkVersion() {
 	if(script_version_xhr) script_version_xhr.abort();
@@ -79,108 +81,27 @@ function parseDelay(status) {
 // Webservice-related functions
 function parseVehicle(vehicleId) {
 	if(!vehicleId) return false;
-	if(vehicleId.substr(0, 15) != '635218529567218') {
+	if(!vehicles_info || !vehicles_info[vehicleId]) {
 		return false;
-	}
-	
-	var id = parseInt(vehicleId.substr(15)) - 736;
-	var prefix;
-	var type;
-	var low; // low floor: 0 = no, 1 - semi, 2 - full
-	
-	// Single exception - old id used in one case
-	if(id == 831) {
-		id = 216;
-	} else if(id == 311) {
-		id = 899
-	}
-	
-	if(101 <= id && id <= 174) {
-		prefix = 'HW';
-		type = 'E1';
-		low = 0;
-		
-		if((108 <= id && id <= 113) || id == 127 || id == 131 || id == 132 || id == 134 || (137 <= id && id <= 139) || (148 <= id && id <= 150) || (153 <= id && id <= 155)) {
-			prefix = 'RW';
-		}
-	} else if(201 <= id && id <= 293) {
-		prefix = 'RZ';
-		type = '105Na';
-		low = 0;
-		
-		if(246 <= id) {
-			prefix = 'HZ';
-		}
-		if(id == 290) {
-			type = '105Nb';
-		}
-	} else if(301 <= id && id <= 328) {
-		prefix = 'RF';
-		type = 'GT8S';
-		low = 0;
-		
-		if(id == 313) {
-			type = 'GT8C'
-			low = 1;
-		} else if(id == 323 || id >= 325) {
-			type = 'GT8N'
-			low = 1;
-		}
-	} else if(401 <= id && id <= 440) {
-		prefix = 'HL';
-		type = 'EU8N';
-		low = 1;
-	} else if(451 <= id && id <= 462) {
-		prefix = 'HK';
-		type = 'N8S-NF';
-		low = 1;
-		
-		if((451 <= id && id <= 456) || id == 462) {
-			type = 'N8C-NF';
-		}
-	} else if(601 <= id && id <= 650) {
-		prefix = 'RP';
-		type = 'NGT6 (3)';
-		low = 2;
-		
-		if(id <= 613) {
-			type = 'NGT6 (1)';
-		} else if (id <= 626) {
-			type = 'NGT6 (2)';
-		}
-	} else if(801 <= id && id <= 824) {
-		prefix = 'RY';
-		type = 'NGT8';
-		low = 2;
-	} else if(id == 899) {
-		prefix = 'RY';
-		type = '126N';
-		low = 2;
-	} else if(901 <= id && id <= 936) {
-		prefix = 'RG';
-		type = '2014N';
-		low = 2;
-		
-		if(915 <= id) {
-			prefix = 'HG';
-		}
-	} else if(id === 999) {
-		prefix = 'HG';
-		type = '405N-Kr';
-		low = 1;
 	} else {
-		console.log('Unknown vehicle, vehicleId=' + vehicleId + ', id=' + id);
-		return false;
+		var vehicle = vehicles_info[vehicleId];
+		return {
+			vehicleId: vehicleId,
+			prefix: vehicle['num'].substr(0, 2),
+			id: vehicle['num'].substr(2, 3),
+			num: vehicle['num'],
+			type: vehicle['type'],
+			low: vehicle['low']
+		};
 	}
-	
-	return {
-		vehicleId: vehicleId,
-		prefix: prefix,
-		id: id,
-		num: prefix + id,
-		type: type,
-		low: low
-	};
+}
+
+function updateVehicleInfo() {
+	return $.get(
+		'https://mpk.jacekk.net/vehicles/'
+	).done(function(data) {
+		vehicles_info = data;
+	});
 }
 
 function tramIdToVehicleId(tramId) {
@@ -198,13 +119,13 @@ function displayVehicle(vehicleInfo) {
 	span.className = 'vehicleInfo';
 	
 	var floor_type = '';
-	if(vehicleInfo.low == 0) {
+	if(vehicleInfo.low == '0') {
 		setText(span, lang.high_floor_sign);
 		floor_type = lang.high_floor;
-	} else if(vehicleInfo.low == 1) {
+	} else if(vehicleInfo.low == '1') {
 		setText(span, lang.partially_low_floor_sign);
 		floor_type = lang.partially_low_floor;
-	} else if(vehicleInfo.low == 2) {
+	} else if(vehicleInfo.low == '2') {
 		setText(span, lang.low_floor_sign);
 		floor_type = lang.low_floor;
 	}

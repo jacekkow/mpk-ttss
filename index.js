@@ -402,6 +402,8 @@ function init() {
 		setText(vehicle_data_style, '.vehicleData { display: table-cell; }')
 	});
 	
+	updateVehicleInfo()
+	
 	hash();
 	
 	window.addEventListener('hashchange', hash);

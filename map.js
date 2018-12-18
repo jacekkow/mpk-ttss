@@ -7,6 +7,7 @@ var vehicles_timer = null;
 var vehicles_last_update = 0;
 var vehicles_source = null;
 var vehicles_layer = null;
+var vehicles_info = {};
 
 var stops_xhr = null;
 var stops_source = null;
@@ -68,13 +69,13 @@ function styleVehicle(vehicle, selected) {
 	var color_type = 'black';
 	if(vehicle.get('vehicle_type')) {
 		switch(vehicle.get('vehicle_type').low) {
-			case 0:
+			case '0':
 				color_type = 'orange';
 			break;
-			case 1:
+			case '1':
 				color_type = 'blue';
 			break;
-			case 2:
+			case '2':
 				color_type = 'green';
 			break;
 		}
@@ -427,6 +428,8 @@ function featureClicked(feature) {
 			additional = document.createElement('p');
 			if(span.title) {
 				setText(additional, span.title);
+			} else {
+				setText(additional, feature.getId());
 			}
 			additional.insertBefore(span, additional.firstChild);
 			
@@ -716,7 +719,7 @@ function init() {
 	fail_element.addEventListener('click', function() {
 		fail_element.style.top = '-10em';
 	});
-
+	
 	// Change mouse cursor when over marker
 	map.on('pointermove', function(e) {
 		var hit = map.hasFeatureAtPixel(e.pixel);
@@ -728,6 +731,8 @@ function init() {
 	map.getView().on('change:resolution', function(e) {
 		stop_points_layer.setVisible(map.getView().getZoom() >= 16);
 	});
+	
+	updateVehicleInfo()
 	
 	$.when(
 		updateVehicles(),
