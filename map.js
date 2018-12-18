@@ -82,15 +82,13 @@ function styleVehicle(vehicle, selected) {
 				color_type = 'orange';
 			break;
 			case '1':
-				color_type = 'blue';
-			break;
 			case '2':
 				color_type = 'green';
 			break;
 		}
 	}
 	
-	var fill = '#F60';
+	var fill = '#B70';
 	if(vehicle.getId().startsWith('b')) {
 		fill = '#05B';
 	}
@@ -98,7 +96,7 @@ function styleVehicle(vehicle, selected) {
 		fill = '#292';
 	}
 	
-	var image = '<svg xmlns="http://www.w3.org/2000/svg" height="30" width="20"><polygon points="10,0 20,23 0,23" style="fill:'+fill+';stroke:'+color_type+';stroke-width:2" /></svg>';
+	var image = '<svg xmlns="http://www.w3.org/2000/svg" height="30" width="20"><polygon points="10,0 20,23 0,23" style="fill:'+fill+';stroke:'+color_type+';stroke-width:3" /></svg>';
 	
 	return new ol.style.Style({
 		image: new ol.style.Icon({
@@ -206,7 +204,7 @@ function updateTrams() {
 			}
 			
 			vehicle.geometry = getGeometry(vehicle);
-			vehicle.vehicle_type = parseVehicle(vehicle.id);
+			vehicle.vehicle_type = parseVehicle('t' + vehicle.id);
 			
 			if(!vehicle_feature) {
 				vehicle_feature = new ol.Feature(vehicle);
@@ -262,7 +260,7 @@ function updateBuses() {
 			}
 			
 			vehicle.geometry = getGeometry(vehicle);
-			vehicle.vehicle_type = parseVehicle(vehicle.id);
+			vehicle.vehicle_type = parseVehicle('b' + vehicle.id);
 			
 			if(!vehicle_feature) {
 				vehicle_feature = new ol.Feature(vehicle);
@@ -840,6 +838,7 @@ function init() {
 	});
 	
 	$.when(
+		updateVehicleInfo(),
 		updateTrams(),
 		updateBuses(),
 		updateStops(ttss_trams_base, 't'),
