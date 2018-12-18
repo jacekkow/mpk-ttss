@@ -732,9 +732,8 @@ function init() {
 		stop_points_layer.setVisible(map.getView().getZoom() >= 16);
 	});
 	
-	updateVehicleInfo()
-	
 	$.when(
+		updateVehicleInfo(),
 		updateVehicles(),
 		updateStops(),
 		updateStopPoints()

@@ -7,7 +7,7 @@ var special_directions = {
 var script_version;
 var script_version_xhr;
 
-var vehicles_info;
+var vehicles_info = {};
 
 // Check for website updates
 function checkVersion() {
@@ -105,10 +105,10 @@ function updateVehicleInfo() {
 }
 
 function tramIdToVehicleId(tramId) {
-	if(0 <= tramId && tramId <= 999) {
-		var vehicleId = '0000' + (tramId + 736);
-		vehicleId = vehicleId.substr(vehicleId.length - 4)
-		return '635218529567218' + vehicleId;
+	for(var prop in vehicles_info) {
+		if(vehicles_info[prop]['num'].substr(2) == tramId) {
+			return prop;
+		}
 	}
 }
 
