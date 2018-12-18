@@ -1,6 +1,7 @@
 //var ttss_base = 'http://www.ttss.krakow.pl/internetservice';
 var ttss_base = 'proxy.php';
 var ttss_refresh = 10000; // 10 seconds
+var ttss_position_type = 'CORRECTED';
 
 var vehicles_xhr = null;
 var vehicles_timer = null;
@@ -24,7 +25,6 @@ var route_source = null;
 var route_layer = null;
 
 var map = null;
-var map_sphere = null;
 var popup_element = document.getElementById('popup');
 var popup_close_callback;
 var fail_element = document.getElementById('fail');
@@ -88,7 +88,7 @@ function styleVehicle(vehicle, selected) {
 	return new ol.style.Style({
 		image: new ol.style.Icon({
 			src: 'data:image/svg+xml;base64,' + btoa(image),
-			rotation: Math.PI * parseFloat(vehicle.get('heading')) / 180.0,
+			rotation: Math.PI * parseFloat(vehicle.get('heading') ? vehicle.get('heading') : 0) / 180.0,
 		}),
 		text: new ol.style.Text({
 			font: 'bold 10px sans-serif',
@@ -158,7 +158,7 @@ function updateVehicles() {
 	
 	vehicles_xhr = $.get(
 		ttss_base + '/geoserviceDispatcher/services/vehicleinfo/vehicles' 
-			+ '?positionType=CORRECTED'
+			+ '?positionType=' + ttss_position_type
 			+ '&colorType=ROUTE_BASED'
 			+ '&lastUpdate=' + encodeURIComponent(vehicles_last_update)
 	).done(function(data) {
@@ -196,7 +196,7 @@ function updateVehicles() {
 				vehicles_source.addFeature(vehicle_feature);
 			} else {
 				vehicle_feature.setProperties(vehicle);
-				vehicle_feature.getStyle().getImage().setRotation(Math.PI * parseFloat(vehicle.heading) / 180.0);
+				vehicle_feature.getStyle().getImage().setRotation(Math.PI * parseFloat(vehicle.heading ? vehicle.heading : 0) / 180.0);
 			}
 		}
 		
@@ -536,6 +536,8 @@ function hash() {
 		stopId = window.location.hash.substr(3);
 	} else if(window.location.hash.match(/^#!p-?[0-9]+$/)) {
 		stopPointId = window.location.hash.substr(3);
+	} else if(window.location.hash == '#!RAW') {
+		ttss_position_type = 'RAW';
 	}
 	
 	if(tramId) {
@@ -563,7 +565,7 @@ function getDistance(c1, c2) {
 	
 	var c1 = ol.proj.transform(c1, 'EPSG:3857', 'EPSG:4326');
 	var c2 = ol.proj.transform(c2, 'EPSG:3857', 'EPSG:4326');
-	return map_sphere.haversineDistance(c1, c2);
+	return ol.sphere.getDistance(c1, c2);
 }
 
 function returnClosest(point, f1, f2) {
@@ -645,7 +647,6 @@ function init() {
 		]),
 		loadTilesWhileAnimating: true,
 	});
-	map_sphere = new ol.Sphere(6378137);
 	
 	// Display popup on click
 	map.on('singleclick', function(e) {
