@@ -90,7 +90,13 @@ function styleVehicle(vehicle, selected) {
 		}
 	}
 	
-	var fill = (selected ? '#a00' : '#3399ff');
+	var fill = '#F60';
+	if(vehicle.getId().startsWith('b')) {
+		fill = '#05B';
+	}
+	if(selected) {
+		fill = '#292';
+	}
 	
 	var image = '<svg xmlns="http://www.w3.org/2000/svg" height="30" width="20"><polygon points="10,0 20,23 0,23" style="fill:'+fill+';stroke:'+color_type+';stroke-width:2" /></svg>';
 	
