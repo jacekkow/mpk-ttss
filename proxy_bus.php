@@ -65,7 +65,7 @@ $method = [
 	],
 	'/geoserviceDispatcher/services/vehicleinfo/vehicles' => [
 		'lastUpdate' => 'ctype_digit',
-		'positionType' => function($type) { return in_array($type, ['CORRECTED']); },
+		'positionType' => function($type) { return in_array($type, ['CORRECTED', 'RAW']); },
 		'colorType' => function($type) { return in_array($type, ['ROUTE_BASED']); },
 	],
 ];
