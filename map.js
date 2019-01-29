@@ -1,13 +1,22 @@
-//var ttss_base = 'http://www.ttss.krakow.pl/internetservice';
-var ttss_base = 'proxy.php';
+//var ttss_trams_base = 'http://www.ttss.krakow.pl/internetservice';
+var ttss_trams_base = 'proxy_tram.php';
+//var ttss_buses_base = 'http://91.223.13.70/internetservice';
+var ttss_buses_base = 'proxy_bus.php';
 var ttss_refresh = 10000; // 10 seconds
 var ttss_position_type = 'CORRECTED';
 
-var vehicles_xhr = null;
-var vehicles_timer = null;
-var vehicles_last_update = 0;
-var vehicles_source = null;
-var vehicles_layer = null;
+var trams_xhr = null;
+var trams_timer = null;
+var trams_last_update = 0;
+var trams_source = null;
+var trams_layer = null;
+
+var buses_xhr = null;
+var buses_timer = null;
+var buses_last_update = 0;
+var buses_source = null;
+var buses_layer = null;
+
 var vehicles_info = {};
 
 var stops_xhr = null;
@@ -134,7 +143,8 @@ function styleFeature(feature, selected) {
 	var style = null;
 	
 	switch(feature.getId().substr(0, 1)) {
-		case 'v':
+		case 't':
+		case 'b':
 			style = styleVehicle(feature, selected);
 		break;
 		
@@ -157,25 +167,24 @@ function unstyleSelectedFeatures() {
 	feature_selected = [];
 }
 
-function updateVehicles() {
-	if(vehicles_timer) clearTimeout(vehicles_timer);
-	if(vehicles_xhr) vehicles_xhr.abort();
-	
-	vehicles_xhr = $.get(
-		ttss_base + '/geoserviceDispatcher/services/vehicleinfo/vehicles' 
+function updateTrams() {
+	if(trams_timer) clearTimeout(trams_timer);
+	if(trams_xhr) trams_xhr.abort();
+	trams_xhr = $.get(
+		ttss_trams_base + '/geoserviceDispatcher/services/vehicleinfo/vehicles'
 			+ '?positionType=' + ttss_position_type
 			+ '&colorType=ROUTE_BASED'
-			+ '&lastUpdate=' + encodeURIComponent(vehicles_last_update)
+			+ '&lastUpdate=' + encodeURIComponent(trams_last_update)
 	).done(function(data) {
-		vehicles_last_update = data.lastUpdate;
+		trams_last_update = data.lastUpdate;
 		
 		for(var i = 0; i < data.vehicles.length; i++) {
 			var vehicle = data.vehicles[i];
 			
-			var vehicle_feature = vehicles_source.getFeatureById('v' + vehicle.id);
+			var vehicle_feature = trams_source.getFeatureById('t' + vehicle.id);
 			if(vehicle.isDeleted) {
 				if(vehicle_feature) {
-					vehicles_source.removeFeature(vehicle_feature);
+					trams_source.removeFeature(vehicle_feature);
 					if(feature_clicked && feature_clicked.getId() === vehicle_feature.getId()) {
 						featureClicked();
 					}
@@ -195,27 +204,81 @@ function updateVehicles() {
 			
 			if(!vehicle_feature) {
 				vehicle_feature = new ol.Feature(vehicle);
-				vehicle_feature.setId('v' + vehicle.id);
+				vehicle_feature.setId('t' + vehicle.id);
 				
 				styleFeature(vehicle_feature);
-				vehicles_source.addFeature(vehicle_feature);
+				trams_source.addFeature(vehicle_feature);
 			} else {
 				vehicle_feature.setProperties(vehicle);
 				vehicle_feature.getStyle().getImage().setRotation(Math.PI * parseFloat(vehicle.heading ? vehicle.heading : 0) / 180.0);
 			}
 		}
 		
-		vehicles_timer = setTimeout(function() {
-			updateVehicles();
+		trams_timer = setTimeout(function() {
+			updateTrams();
 		}, ttss_refresh);
 	}).fail(fail_ajax);
 	
-	return vehicles_xhr;
+	return trams_xhr;
+}
+
+function updateBuses() {
+	if(buses_timer) clearTimeout(buses_timer);
+	if(buses_xhr) buses_xhr.abort();
+	
+	buses_xhr = $.get(
+		ttss_buses_base + '/geoserviceDispatcher/services/vehicleinfo/vehicles'
+			+ '?positionType=' + ttss_position_type
+			+ '&colorType=ROUTE_BASED'
+			+ '&lastUpdate=' + encodeURIComponent(buses_last_update)
+	).done(function(data) {
+		buses_last_update = data.lastUpdate;
+		
+		for(var i = 0; i < data.vehicles.length; i++) {
+			var vehicle = data.vehicles[i];
+			
+			var vehicle_feature = buses_source.getFeatureById('b' + vehicle.id);
+			if(vehicle.isDeleted) {
+				if(vehicle_feature) {
+					buses_source.removeFeature(vehicle_feature);
+					if(feature_clicked && feature_clicked.getId() === vehicle_feature.getId()) {
+						featureClicked();
+					}
+				}
+				continue;
+			}
+			
+			var vehicle_name_space = vehicle.name.indexOf(' ');
+			vehicle.line = vehicle.name.substr(0, vehicle_name_space);
+			vehicle.direction = vehicle.name.substr(vehicle_name_space+1);
+			if(special_directions[vehicle.direction]) {
+				vehicle.line = special_directions[vehicle.direction];
+			}
+			
+			vehicle.geometry = getGeometry(vehicle);
+			vehicle.vehicle_type = parseVehicle(vehicle.id);
+			
+			if(!vehicle_feature) {
+				vehicle_feature = new ol.Feature(vehicle);
+				vehicle_feature.setId('b' + vehicle.id);
+				
+				styleFeature(vehicle_feature);
+				buses_source.addFeature(vehicle_feature);
+			} else {
+				vehicle_feature.setProperties(vehicle);
+				vehicle_feature.getStyle().getImage().setRotation(Math.PI * parseFloat(vehicle.heading) / 180.0);
+			}
+		}
+		
+		buses_timer = setTimeout(function() {
+			updateBuses();
+		}, ttss_refresh);
+	}).fail(fail_ajax);
+	
+	return buses_xhr;
 }
 
 function updateStopSource(stops, prefix, source) {
-	source.clear();
-	
 	for(var i = 0; i < stops.length; i++) {
 		var stop = stops[i];
 		
@@ -231,36 +294,43 @@ function updateStopSource(stops, prefix, source) {
 	}
 }
 
-function updateStops() {
+function updateStops(base, suffix) {
 	return $.get(
-		ttss_base + '/geoserviceDispatcher/services/stopinfo/stops'
+		base + '/geoserviceDispatcher/services/stopinfo/stops'
 			+ '?left=-648000000'
 			+ '&bottom=-324000000'
 			+ '&right=648000000'
 			+ '&top=324000000'
 	).done(function(data) {
-		updateStopSource(data.stops, 's', stops_source);
+		updateStopSource(data.stops, 's' + suffix, stops_source);
 	}).fail(fail_ajax);
 }
 
-function updateStopPoints() {
+function updateStopPoints(base, suffix) {
 	return $.get(
-		ttss_base + '/geoserviceDispatcher/services/stopinfo/stopPoints'
+		base + '/geoserviceDispatcher/services/stopinfo/stopPoints'
 			+ '?left=-648000000'
 			+ '&bottom=-324000000'
 			+ '&right=648000000'
 			+ '&top=324000000'
 	).done(function(data) {
-		updateStopSource(data.stopPoints, 'p', stop_points_source);
+		updateStopSource(data.stopPoints, 'p' + suffix, stop_points_source);
 	}).fail(fail_ajax);
 }
 
-function vehicleTable(tripId, table, vehicleId) {
+function vehicleTable(tripId, table, featureId) {
 	if(feature_xhr) feature_xhr.abort();
 	if(feature_timer) clearTimeout(feature_timer);
 	
+	var url = ttss_trams_base;
+	if(featureId.startsWith('b')) {
+		url = ttss_buses_base;
+	}
+	
+	var vehicleId = featureId.substr(1);
+	
 	feature_xhr = $.get(
-		ttss_base + '/services/tripInfo/tripPassages'
+		url + '/services/tripInfo/tripPassages'
 			+ '?tripId=' + encodeURIComponent(tripId)
 			+ '&mode=departure'
 	).done(function(data) {
@@ -295,12 +365,12 @@ function vehicleTable(tripId, table, vehicleId) {
 			table.appendChild(tr);
 		}
 		
-		feature_timer = setTimeout(function() { vehicleTable(tripId, table); }, ttss_refresh);
+		feature_timer = setTimeout(function() { vehicleTable(tripId, table, featureId); }, ttss_refresh);
 		
 		if(!vehicleId) return;
 	       
 		feature_xhr = $.get(
-			ttss_base + '/geoserviceDispatcher/services/pathinfo/vehicle'
+			url + '/geoserviceDispatcher/services/pathinfo/vehicle'
 				+ '?id=' + encodeURIComponent(vehicleId)
 		).done(function(data) {
 			if(!data || !data.paths || !data.paths[0] || !data.paths[0].wayPoints) return;
@@ -322,12 +392,17 @@ function vehicleTable(tripId, table, vehicleId) {
 	}).fail(fail_ajax_popup);
 }
 
-function stopTable(stopType, stopId, table) {
+function stopTable(stopType, stopId, table, featureId) {
 	if(feature_xhr) feature_xhr.abort();
 	if(feature_timer) clearTimeout(feature_timer);
 	
+	var url = ttss_trams_base;
+	if(featureId.substr(1,1) == 'b') {
+		url = ttss_buses_base;
+	}
+	
 	feature_xhr = $.get(
-		ttss_base + '/services/passageInfo/stopPassages/' + stopType
+		url + '/services/passageInfo/stopPassages/' + stopType
 			+ '?' + stopType + '=' + encodeURIComponent(stopId)
 			+ '&mode=departure'
 	).done(function(data) {
@@ -371,7 +446,7 @@ function stopTable(stopType, stopId, table) {
 			table.appendChild(tr);
 		}
 		
-		feature_timer = setTimeout(function() { stopTable(stopType, stopId, table); }, ttss_refresh);
+		feature_timer = setTimeout(function() { stopTable(stopType, stopId, table, featureId); }, ttss_refresh);
 	}).fail(fail_ajax_popup);
 }
 
@@ -425,7 +500,8 @@ function featureClicked(feature) {
 	table.appendChild(tbody);
 	
 	switch(feature.getId().substr(0, 1)) {
-		case 'v':
+		case 't':
+		case 'b':
 			type = lang.type_vehicle;
 			
 			var span = displayVehicle(feature.get('vehicle_type'));
@@ -441,7 +517,7 @@ function featureClicked(feature) {
 			addElementWithText(thead, 'th', lang.header_time);
 			addElementWithText(thead, 'th', lang.header_stop);
 			
-			vehicleTable(feature.get('tripId'), tbody, feature.get('id'));
+			vehicleTable(feature.get('tripId'), tbody, feature.getId());
 		break;
 		case 's':
 			type = lang.type_stop;
@@ -451,7 +527,7 @@ function featureClicked(feature) {
 			addElementWithText(thead, 'th', lang.header_time);
 			addElementWithText(thead, 'th', lang.header_delay);
 			
-			stopTable('stop', feature.get('shortName'), tbody);
+			stopTable('stop', feature.get('shortName'), tbody, feature.getId());
 		break;
 		case 'p':
 			type = lang.type_stoppoint;
@@ -474,7 +550,7 @@ function featureClicked(feature) {
 			addElementWithText(thead, 'th', lang.header_time);
 			addElementWithText(thead, 'th', lang.header_delay);
 			
-			stopTable('stopPoint', feature.get('stopPoint'), tbody);
+			stopTable('stopPoint', feature.get('stopPoint'), tbody, feature.getId());
 		break;
 	}
 	
@@ -523,21 +599,26 @@ function hash() {
 		return;
 	}
 	
-	var tramId = null;
+	var depotId = null;
 	
-	var vehicleId = null;
+	var tramId = null;
+	var busId = null;
 	var stopId = null;
 	var stopPointId = null;
 	
 	var feature = null;
 	
 	if(window.location.hash.match(/^#!t[0-9]{3}$/)) {
-		tramId = parseInt(window.location.hash.substr(3));
+		depotId = parseInt(window.location.hash.substr(3));
 	} else if(window.location.hash.match(/^#![A-Za-z]{2}[0-9]{3}$/)) {
-		tramId = parseInt(window.location.hash.substr(4));
+		depotId = parseInt(window.location.hash.substr(4));
 	} else if(window.location.hash.match(/^#!v-?[0-9]+$/)) {
-		vehicleId = window.location.hash.substr(3);
-	} else if(window.location.hash.match(/^#!s-?[0-9]+$/)) {
+		tramId = window.location.hash.substr(3);
+	} else if(window.location.hash.match(/^#!t-?[0-9]+$/)) {
+		tramId = window.location.hash.substr(3);
+	} else if(window.location.hash.match(/^#!b-?[0-9]+$/)) {
+		busId = window.location.hash.substr(3);
+	} else if(window.location.hash.match(/^#!s[0-9]+$/)) {
 		stopId = window.location.hash.substr(3);
 	} else if(window.location.hash.match(/^#!p-?[0-9]+$/)) {
 		stopPointId = window.location.hash.substr(3);
@@ -545,12 +626,14 @@ function hash() {
 		ttss_position_type = 'RAW';
 	}
 	
-	if(tramId) {
-		vehicleId = tramIdToVehicleId(tramId);
+	if(depotId) {
+		tramId = tramIdToVehicleId(depotId);
 	}
 	
-	if(vehicleId) {
-		feature = vehicles_source.getFeatureById('v' + vehicleId);
+	if(tramId) {
+		feature = trams_source.getFeatureById('t' + tramId);
+	} else if(busId) {
+		feature = buses_source.getFeatureById('b' + busId);
 	} else if(stopId) {
 		feature = stops_source.getFeatureById('s' + stopId);
 	} else if(stopPointId) {
@@ -606,11 +689,18 @@ function init() {
 		visible: false,
 	});
 	
-	vehicles_source = new ol.source.Vector({
+	trams_source = new ol.source.Vector({
 		features: [],
 	});
-	vehicles_layer = new ol.layer.Vector({
-		source: vehicles_source,
+	trams_layer = new ol.layer.Vector({
+		source: trams_source,
+	});
+	
+	buses_source = new ol.source.Vector({
+		features: [],
+	});
+	buses_layer = new ol.layer.Vector({
+		source: buses_source,
 	});
 	
 	route_source = new ol.source.Vector({
@@ -632,7 +722,8 @@ function init() {
 			route_layer,
 			stops_layer,
 			stop_points_layer,
-			vehicles_layer,
+			buses_layer,
+			trams_layer,
 		],
 		view: new ol.View({
 			center: ol.proj.fromLonLat([19.94, 50.06]),
@@ -676,7 +767,8 @@ function init() {
 				
 				var type = '';
 				switch(feature.getId().substr(0, 1)) {
-					case 'v':
+					case 't':
+					case 'b':
 						type = lang.type_vehicle;
 						if(feature.get('vehicle_type').num) {
 							type += ' ' + feature.get('vehicle_type').num;
@@ -710,8 +802,11 @@ function init() {
 			if(stop_points_layer.getVisible()) {
 				feature = returnClosest(point, feature, stop_points_source.getClosestFeatureToCoordinate(point));
 			}
-			if(vehicles_layer.getVisible()) {
-				feature = returnClosest(point, feature, vehicles_source.getClosestFeatureToCoordinate(point));
+			if(trams_layer.getVisible()) {
+				feature = returnClosest(point, feature, trams_source.getClosestFeatureToCoordinate(point));
+			}
+			if(buses_layer.getVisible()) {
+				feature = returnClosest(point, feature, buses_source.getClosestFeatureToCoordinate(point));
 			}
 			
 			if(getDistance(point, feature) > 200) {
@@ -739,10 +834,12 @@ function init() {
 	});
 	
 	$.when(
-		updateVehicleInfo(),
-		updateVehicles(),
-		updateStops(),
-		updateStopPoints()
+		updateTrams(),
+		updateBuses(),
+		updateStops(ttss_trams_base, 't'),
+		updateStops(ttss_buses_base, 'b'),
+		updateStopPoints(ttss_trams_base, 't'),
+		updateStopPoints(ttss_buses_base, 'b'),
 	).done(function() {
 		hash();
 	});
@@ -750,8 +847,10 @@ function init() {
 	window.addEventListener('hashchange', hash);
 	
 	setTimeout(function() {
-		if(vehicles_xhr) vehicles_xhr.abort();
-		if(vehicles_timer) clearTimeout(vehicles_timer);
+		if(trams_xhr) trams_xhr.abort();
+		if(trams_timer) clearTimeout(trams_timer);
+		if(buses_xhr) buses_xhr.abort();
+		if(buses_timer) clearTimeout(buses_timer);
 		  
 		fail(lang.error_refresh);
 	}, 1800000);
