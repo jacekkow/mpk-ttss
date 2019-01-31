@@ -1,7 +1,10 @@
 // Special directions
 var special_directions = {
-	'Zajezdnia Nowa Huta' : 'NH',
-	'Zajezdnia Podgórze' : 'P',
+	'Zajezdnia Nowa Huta' : 'ZH',
+	'Zajezdnia Podgórze' : 'ZP',
+	'Zjazd do zajezdni' : 'Z',
+	'Wyjazd na linię' : 'W',
+	'Przejazd techniczny' : 'PT',
 };
 
 var script_version;
