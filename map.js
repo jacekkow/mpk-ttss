@@ -242,7 +242,7 @@ function updateBuses() {
 			var vehicle = data.vehicles[i];
 			
 			var vehicle_feature = buses_source.getFeatureById('b' + vehicle.id);
-			if(vehicle.isDeleted) {
+			if(vehicle.isDeleted || !vehicle.latitude || !vehicle.longitude) {
 				if(vehicle_feature) {
 					buses_source.removeFeature(vehicle_feature);
 					if(feature_clicked && feature_clicked.getId() === vehicle_feature.getId()) {
