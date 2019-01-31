@@ -506,7 +506,10 @@ function featureClicked(feature) {
 	switch(feature.getId().substr(0, 1)) {
 		case 't':
 		case 'b':
-			type = lang.type_vehicle;
+			type = lang.type_tram;
+			if(feature.getId().startsWith('b')) {
+				type = lang.type_bus;
+			}
 			
 			var span = displayVehicle(feature.get('vehicle_type'));
 			
@@ -524,7 +527,10 @@ function featureClicked(feature) {
 			vehicleTable(feature.get('tripId'), tbody, feature.getId());
 		break;
 		case 's':
-			type = lang.type_stop;
+			type = lang.type_stop_tram;
+			if(feature.getId().startsWith('sb')) {
+				type = lang.type_stop_bus;
+			}
 			
 			addElementWithText(thead, 'th', lang.header_line);
 			addElementWithText(thead, 'th', lang.header_direction);
@@ -534,7 +540,10 @@ function featureClicked(feature) {
 			stopTable('stop', feature.get('shortName'), tbody, feature.getId());
 		break;
 		case 'p':
-			type = lang.type_stoppoint;
+			type = lang.type_stoppoint_tram;
+			if(feature.getId().startsWith('pb')) {
+				type = lang.type_stoppoint_bus;
+			}
 			
 			additional = document.createElement('p');
 			additional.className = 'small';
@@ -542,7 +551,7 @@ function featureClicked(feature) {
 				'click',
 				function() {
 					featureClicked(stops_source.forEachFeature(function(stop_feature) {
-						if(stop_feature.get('shortName') == feature.get('shortName')) {
+						if(stop_feature.get('shortName') == feature.get('shortName') && stop_feature.getId().substr(1,1) == feature.getId().substr(1,1)) {
 							return stop_feature;
 						}
 					}));
@@ -773,16 +782,25 @@ function init() {
 				switch(feature.getId().substr(0, 1)) {
 					case 't':
 					case 'b':
-						type = lang.type_vehicle;
+						type = lang.type_tram;
+						if(feature.getId().startsWith('b')) {
+							type = lang.type_bus;
+						}
 						if(feature.get('vehicle_type').num) {
 							type += ' ' + feature.get('vehicle_type').num;
 						}
 					break;
 					case 's':
-						type = lang.type_stop;
+						type = lang.type_stop_tram;
+						if(feature.getId().startsWith('sb')) {
+							type = lang.type_stop_bus;
+						}
 					break;
 					case 'p':
-						type = lang.type_stoppoint;
+						type = lang.type_stoppoint_tram;
+						if(feature.getId().startsWith('pb')) {
+							type = lang.type_stoppoint_bus;
+						}
 					break;
 				}
 				

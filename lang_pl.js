@@ -19,6 +19,8 @@ var lang = {
 	header_line: 'Linia',
 	header_direction: 'Kierunek',
 	header_vehicle: 'Pojazd',
+	header_bus: 'Autobus',
+	header_tram: 'Tramwaj',
 	header_time: 'Odjazd',
 	header_delay: 'Opóźn.',
 	header_lines: 'Linie',
@@ -40,11 +42,17 @@ var lang = {
 	time_minutes_ago_suffix: ' min temu',
 	
 	type_vehicle: 'Pojazd',
+	type_bus: 'Autobus',
+	type_tram: 'Tramwaj',
 	type_stop: 'Przystanek',
-	type_stoppoint: 'Punkt przystankowy',
+	type_stop_bus: 'Przystanek autobusowy',
+	type_stop_tram: 'Przystanek tramwajowy',
+	type_stoppoint: 'Peron',
+	type_stoppoint_bus: 'Peron autobusowy',
+	type_stoppoint_tram: 'Peron tramwajowy',
 	
 	select_feature: 'W tym miejscu znajduje się więcej niż jeden element. Wybierz właściwy z listy:',
-	departures_for_stop: 'Kliknij, by zobaczyć odjazdy dla całego przystanku (a nie tylko punktu przystankowego).',
+	departures_for_stop: 'Kliknij, by zobaczyć odjazdy dla całego przystanku (a nie tylko peronu).',
 	
 	tram_type_pattern: '$num $type ($floor)',
 	high_floor: 'wysokopodłogowy',

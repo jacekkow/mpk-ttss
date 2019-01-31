@@ -40,8 +40,14 @@ var lang = {
 	time_minutes_ago_suffix: ' min ago',
 	
 	type_vehicle: 'Vehicle',
+	type_bus: 'Bus',
+	type_tram: 'Tram',
 	type_stop: 'Stop',
+	type_stop_bus: 'Bus stop',
+	type_stop_tram: 'Tram stop',
 	type_stoppoint: 'Stop point',
+	type_stoppoint_bus: 'Bus stop point',
+	type_stoppoint_tram: 'Tram stop point',
 	
 	select_feature: 'There is more than one feature here. Select the proper one:',
 	departures_for_stop: 'Click for stop departures (and not only this stop point).',
