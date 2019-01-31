@@ -232,7 +232,7 @@ function updateBuses() {
 	
 	buses_xhr = $.get(
 		ttss_buses_base + '/geoserviceDispatcher/services/vehicleinfo/vehicles'
-			+ '?positionType=' + ttss_position_type
+			+ '?positionType=RAW'
 			+ '&colorType=ROUTE_BASED'
 			+ '&lastUpdate=' + encodeURIComponent(buses_last_update)
 	).done(function(data) {
