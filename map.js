@@ -78,11 +78,11 @@ function styleVehicle(vehicle, selected) {
 	var color_type = 'black';
 	if(vehicle.get('vehicle_type')) {
 		switch(vehicle.get('vehicle_type').low) {
-			case '0':
+			case 0:
 				color_type = 'orange';
 			break;
-			case '1':
-			case '2':
+			case 1:
+			case 2:
 				color_type = 'green';
 			break;
 		}

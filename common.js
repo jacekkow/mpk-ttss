@@ -122,13 +122,13 @@ function displayVehicle(vehicleInfo) {
 	span.className = 'vehicleInfo';
 	
 	var floor_type = '';
-	if(vehicleInfo.low == '0') {
+	if(vehicleInfo.low == 0) {
 		setText(span, lang.high_floor_sign);
 		floor_type = lang.high_floor;
-	} else if(vehicleInfo.low == '1') {
+	} else if(vehicleInfo.low == 1) {
 		setText(span, lang.partially_low_floor_sign);
 		floor_type = lang.partially_low_floor;
-	} else if(vehicleInfo.low == '2') {
+	} else if(vehicleInfo.low == 2) {
 		setText(span, lang.low_floor_sign);
 		floor_type = lang.low_floor;
 	}
