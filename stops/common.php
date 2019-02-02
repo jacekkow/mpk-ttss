@@ -13,5 +13,5 @@ function split_stop_name($string) {
 	}
 	unset($word);
 	
-	return $words;
+	return array_values($words);
 }

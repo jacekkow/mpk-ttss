@@ -8,6 +8,8 @@ var lang = {
 	jquery_not_loaded: 'Required JavaScript jQuery library failed to load. You may try refreshing the page.',
 	enter_stop_name_to_begin: 'Enter the stop name to begin.',
 	select_stop_click_go: 'Select the stop and click "Go".',
+	select_stop_tram: '$stop (tram)',
+	select_stop_bus: '$stop (bus)',
 	stop_name_placeholder: 'Stop name',
 	go_button: 'Go',
 	refresh_button: '\u27f3 Refresh',

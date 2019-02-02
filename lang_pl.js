@@ -8,6 +8,8 @@ var lang = {
 	jquery_not_loaded: 'Wymagana biblioteka jQuery nie została poprawnie załadowana. Spróbuj odświeżyć stronę.',
 	enter_stop_name_to_begin: 'Zacznij wpisywać nazwę przystanku.',
 	select_stop_click_go: 'Wyierz przystanek i kliknij "Dalej".',
+	select_stop_tram: '$stop (tramwaj)',
+	select_stop_bus: '$stop (autobus)',
 	stop_name_placeholder: 'Nazwa przystanku',
 	go_button: 'Dalej',
 	refresh_button: '\u27f3 Odśwież',

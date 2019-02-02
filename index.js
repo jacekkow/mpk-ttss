@@ -1,5 +1,3 @@
-//var ttss_base = 'http://www.ttss.krakow.pl/internetservice';
-var ttss_base = '/proxy.php';
 var ttss_refresh = 20000; // 20 seconds
 
 var page_title = document.getElementsByTagName('title')[0];
@@ -85,16 +83,27 @@ function loadTimes(stopId) {
 	if(times_xhr) times_xhr.abort();
 	
 	console.log('loadTimes(' + stopId + ')');
+	
+	loading_start();
+	
+	var url = ttss_trams_base;
+	var stop = stopId.substr(1);
+	var prefix = 't';
+	if(stopId.startsWith('b')) {
+		url = ttss_buses_base;
+		stop = stopId.substr(1);
+		prefix = 'b';
+	}
+	
 	stop_id = stopId;
 	
 	ignore_hashchange = true;
 	window.location.hash = '#!' + language + stopId;
 	refresh_button.removeAttribute('disabled');
 	
-	loading_start();
 	times_xhr = $.get(
-		ttss_base + '/services/passageInfo/stopPassages/stop'
-			+ '?stop=' + encodeURIComponent(stopId)
+		url + '/services/passageInfo/stopPassages/stop'
+			+ '?stop=' + encodeURIComponent(stop)
 			+ '&mode=departure'
 	).done(function(data) {
 		setText(times_stop_name, data.stopName);
@@ -111,7 +120,7 @@ function loadTimes(stopId) {
 			var tr = document.createElement('tr');
 			addCellWithText(tr, data.old[i].patternText);
 			var dir_cell = addCellWithText(tr, data.old[i].direction);
-			var vehicle = parseVehicle(data.old[i].vehicleId);
+			var vehicle = parseVehicle(prefix + data.old[i].vehicleId);
 			dir_cell.appendChild(displayVehicle(vehicle));
 			addCellWithText(tr, (vehicle ? vehicle.num : '')).className = 'vehicleData';
 			var status = parseStatus(data.old[i]);
@@ -121,7 +130,7 @@ function loadTimes(stopId) {
 			tr.className = 'active';
 			tr.addEventListener('click', function(tripId, vehicleInfo) {
 				return function(){ loadRoute(tripId, vehicleInfo); }
-			}(data.old[i].tripId, vehicle));
+			}(prefix + data.old[i].tripId, vehicle));
 			times_table.appendChild(tr);
 		}
 		
@@ -129,7 +138,7 @@ function loadTimes(stopId) {
 			var tr = document.createElement('tr');
 			addCellWithText(tr, data.actual[i].patternText);
 			var dir_cell = addCellWithText(tr, data.actual[i].direction);
-			var vehicle = parseVehicle(data.actual[i].vehicleId);
+			var vehicle = parseVehicle(prefix + data.actual[i].vehicleId);
 			dir_cell.appendChild(displayVehicle(vehicle));
 			addCellWithText(tr, (vehicle ? vehicle.num : '')).className = 'vehicleData';
 			var status = parseStatus(data.actual[i]);
@@ -151,7 +160,7 @@ function loadTimes(stopId) {
 			
 			tr.addEventListener('click', function(tripId, vehicleInfo) {
 				return function(){ loadRoute(tripId, vehicleInfo); }
-			}(data.actual[i].tripId, vehicle));
+			}(prefix + data.actual[i].tripId, vehicle));
 			times_table.appendChild(tr);
 		}
 		
@@ -179,13 +188,23 @@ function loadRoute(tripId, vehicleInfo) {
 	if(vehicleInfo === undefined) vehicleInfo = route_vehicle_info;
 	
 	console.log('loadRoute(' + tripId + ')');
+	
+	var url = ttss_trams_base;
+	var trip = tripId.substr(1);
+	var prefix = 't';
+	if(tripId.startsWith('b')) {
+		url = ttss_buses_base;
+		trip = tripId.substr(1);
+		prefix = 'b';
+	}
+	
 	route_id = tripId;
 	route_vehicle_info = vehicleInfo;
 	
 	if(route_xhr) route_xhr.abort();
 	route_xhr = $.get(
-		ttss_base + '/services/tripInfo/tripPassages'
-			+ '?tripId=' + encodeURIComponent(tripId)
+		url + '/services/tripInfo/tripPassages'
+			+ '?tripId=' + encodeURIComponent(trip)
 			+ '&mode=departure'
 	).done(function(data) {
 		if(!data.routeName || !data.directionText || data.old.length + data.actual.length == 0) {
@@ -212,7 +231,7 @@ function loadRoute(tripId, vehicleInfo) {
 			addCellWithText(tr, data.old[i].stop_seq_num + '. ' + data.old[i].stop.name);
 			
 			tr.className = 'active';
-			tr.addEventListener('click', function(stopId){ return function(){ loadTimes(stopId); } }(data.old[i].stop.shortName) );
+			tr.addEventListener('click', function(stopId){ return function(){ loadTimes(stopId); } }(prefix + data.old[i].stop.shortName) );
 			route_table.appendChild(tr);
 		}
 		
@@ -224,7 +243,7 @@ function loadRoute(tripId, vehicleInfo) {
 			if(data.actual[i].status == 'STOPPING') {
 				tr.className = 'success';
 			}
-			tr.addEventListener('click', function(stopId){ return function(){ loadTimes(stopId); } }(data.actual[i].stop.shortName) );
+			tr.addEventListener('click', function(stopId){ return function(){ loadTimes(stopId); } }(prefix + data.actual[i].stop.shortName) );
 			route_table.appendChild(tr);
 		}
 	}).fail(fail_ajax);
@@ -326,13 +345,22 @@ function hash() {
 	}
 	
 	if(window.location.hash.match(/^#![0-9]+$/)) {
-		loadTimes(parseInt(window.location.hash.substr(2)));
+		loadTimes('t' + window.location.hash.substr(2));
+	} else if(window.location.hash.match(/^#![bt][0-9]+$/)) {
+		loadTimes(window.location.hash.substr(2));
 	} else if(window.location.hash.match(/^#![a-z]{2}[0-9]*$/)) {
-		var stop = parseInt(window.location.hash.substr(4));
+		var stop = 't' + window.location.hash.substr(4);
 		if(stop) stop_id = stop;
 		
 		if(!change_language(window.location.hash.substr(2, 2))) {
-			loadTimes(parseInt(window.location.hash.substr(2)));
+			loadTimes(stop);
+		}
+	} else if(window.location.hash.match(/^#![a-z]{2}[bt][0-9]*$/)) {
+		var stop = window.location.hash.substr(4);
+		if(stop) stop_id = stop;
+		
+		if(!change_language(window.location.hash.substr(2, 2))) {
+			loadTimes(stop);
 		}
 	}
 }
@@ -341,15 +369,13 @@ function stop_autocomplete() {
 	if(stop_name_autocomplete_xhr) stop_name_autocomplete_xhr.abort();
 	
 	stop_name_autocomplete_xhr = $.get(
-		'stops.php?query=' + encodeURIComponent(stop_name.value)
+		'stops/?query=' + encodeURIComponent(stop_name.value)
 	).done(function(data) {
 		deleteChildren(stop_name_autocomplete);
 		for(var i = 0, il = data.length; i < il; i++) {
-			if(data[i].type != 'stop') continue;
-			if(data[i].id > 6000) continue;
 			var opt = document.createElement('option');
 			opt.value = data[i].id;
-			setText(opt, data[i].name);
+			setText(opt, data[i].id.substr(0,1) == 'b' ? lang.select_stop_bus.replace('$stop', data[i].name) : lang.select_stop_tram.replace('$stop', data[i].name));
 			stop_name_autocomplete.appendChild(opt);
 		}
 		

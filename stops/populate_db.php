@@ -9,17 +9,21 @@ $pdo = new PDO('sqlite:stops_temp.db');
 $pdo->query('DROP TABLE IF EXISTS stop_search');
 $pdo->query('CREATE TABLE stop_search (
 	word VARCHAR(60),
-	id INT
+	id VARCHAR(255)
 )');
+
+function processStops($st, $stops) {
+	foreach($stops as $id => $name) {
+		foreach(split_stop_name($name) as $word) {
+			$st->execute([$word, $id]);
+			$st->closeCursor();
+		}
+	}
+}
 
 $pdo->beginTransaction();
 $st = $pdo->prepare('INSERT INTO stop_search (word, id) VALUES (?, ?)');
-foreach($stops as $id => $name) {
-	foreach(split_stop_name($name) as $word) {
-		$st->execute(array($word, $id));
-		$st->closeCursor();
-	}
-}
+processStops($st, $stops);
 $pdo->commit();
 
 $pdo->query('CREATE INDEX stop_search_word ON stop_search (word COLLATE NOCASE)');

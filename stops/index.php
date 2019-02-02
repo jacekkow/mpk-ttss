@@ -1,6 +1,6 @@
 <?php
-include(__DIR__.'/stops/common.php');
-include(__DIR__.'/stops/stops.php');
+include('common.php');
+include('stops.php');
 
 try {
 	// Reject invalid input
@@ -8,14 +8,15 @@ try {
 	if(empty($_GET['query'])) throw new UnexpectedValueException();
 	if(strlen($_GET['query']) > 50) throw new UnexpectedValueException();
 	
-	// Initialize a DB connection an a query
-	$pdo = new PDO('sqlite:stops/stops.db', NULL, NULL, array(
-		PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-	));
-	$st = $pdo->prepare('SELECT DISTINCT id FROM stop_search WHERE word LIKE ? AND id LIKE \'t%\'');
-	
 	// Split stop name into words
 	$words = split_stop_name($_GET['query']);
+	$find_ondemand = in_array('nz', $words);
+	
+	// Initialize a DB connection and a query
+	$pdo = new PDO('sqlite:stops.db', NULL, NULL, array(
+		PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+	));
+	$st = $pdo->prepare('SELECT DISTINCT id FROM stop_search WHERE word LIKE ?'.($find_ondemand ? '' : ' AND word != \'nz\'').' ORDER BY id DESC');
 	
 	// Find matching stops (their IDs)
 	$ids = NULL;
@@ -49,14 +50,20 @@ try {
 	$stop_list = [];
 	$query_lower = mb_strtolower($_GET['query'], 'UTF-8');
 	foreach($ids as $id) {
+		similar_text(
+			$query_lower,
+			mb_strtolower($stops[$id], 'UTF-8'),
+			$percent
+		);
+		// -5 due to UTF-8
+		if(substr($stops[$id], -5) == '(nż)' && !$find_ondemand) {
+			$percent /= 2;
+		}
 		$stop_list[] = [
 			'id' => $id,
 			'name' => $stops[$id],
 			'type' => 'stop',
-			'relevance' => similar_text(
-				$query_lower,
-				mb_strtolower($stops[$id], 'UTF-8')
-			)
+			'relevance' => $percent,
 		];
 	}
 	
@@ -68,8 +75,10 @@ try {
 	});
 	
 	// Return JSON
+	header('Content-Type: application/json');
 	echo json_encode($stop_list);
 } catch(UnexpectedValueException $e) {
+	header('Content-Type: application/json');
 	echo '[]';
 } catch(Exception $e) {
 	header('HTTP/1.1 503 Service Unavailable');
