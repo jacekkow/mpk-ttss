@@ -1,3 +1,5 @@
+"use strict";
+
 //var ttss_trams_base = 'http://www.ttss.krakow.pl/internetservice';
 var ttss_trams_base = 'proxy_tram.php';
 //var ttss_buses_base = 'http://91.223.13.70/internetservice';
@@ -112,10 +114,18 @@ function updateVehicleInfo() {
 	});
 }
 
-function tramIdToVehicleId(tramId) {
-	for(var prop in vehicles_info) {
-		if(vehicles_info[prop]['num'].substr(2) == tramId) {
-			return prop;
+function depotIdToVehicleId(depotId, typeHelper) {
+	if(typeHelper) {
+		for(var prop in vehicles_info) {
+			if(prop.substr(0,1) == type && vehicles_info[prop]['num'].substr(2) == depotId) {
+				return prop;
+			}
+		}
+	} else {
+		for(var prop in vehicles_info) {
+			if(vehicles_info[prop]['num'] == depotId) {
+				return prop;
+			}
 		}
 	}
 }

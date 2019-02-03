@@ -1,3 +1,5 @@
+"use strict";
+
 var ttss_refresh = 20000; // 20 seconds
 
 var page_title = document.getElementsByTagName('title')[0];
