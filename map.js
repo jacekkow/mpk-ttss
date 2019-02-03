@@ -783,6 +783,8 @@ function init() {
 		}),
 	});
 	
+	ol.style.IconImageCache.shared.setSize(512);
+	
 	map = new ol.Map({
 		target: 'map',
 		layers: [
