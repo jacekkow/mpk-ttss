@@ -551,6 +551,10 @@ function featureClicked(feature) {
 			addElementWithText(additional, 'a', lang.departures_for_stop).addEventListener(
 				'click',
 				function() {
+					var stops_source = stops_trams_source;
+					if(feature.getId().startsWith('pb')) {
+						stops_source = stops_buses_source;
+					}
 					featureClicked(stops_source.forEachFeature(function(stop_feature) {
 						if(stop_feature.get('shortName') == feature.get('shortName') && stop_feature.getId().substr(1,1) == feature.getId().substr(1,1)) {
 							return stop_feature;
