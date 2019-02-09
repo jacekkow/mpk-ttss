@@ -46,20 +46,85 @@ var route_source = null;
 var route_layer = null;
 
 var map = null;
-var popup_element = document.getElementById('popup');
-var popup_close_callback;
+
+var panel = null;
+
 var fail_element = document.getElementById('fail');
 var fail_text = document.querySelector('#fail span');
 
 var ignore_hashchange = false;
 
+
+function Panel(element) {
+	this._element = element;
+	this._element.classList.add('panel');
+	
+	this._hide = addParaWithText(this._element, '▶');
+	this._hide.title = lang.action_collapse;
+	this._hide.className = 'hide';
+	this._hide.addEventListener('click', this.toggleExpanded.bind(this));
+	
+	this._close = addParaWithText(this._element, '×');
+	this._close.title = lang.action_close;
+	this._close.className = 'close';
+	this._close.addEventListener('click', this.close.bind(this));
+	
+	this._content = document.createElement('div');
+	this._element.appendChild(this._content);
+};
+Panel.prototype = {
+	_element: null,
+	_hide: null,
+	_close: null,
+	_content: null,
+	
+	_closeCallback: null,
+	_runCallback: function() {
+		var callback = this.closeCallback;
+		this.closeCallback = null;
+		if(callback) callback();
+	},
+	
+	expand: function() {
+		this._element.classList.add('expanded');
+		setText(this._hide, '▶');
+		this._hide.title = lang.action_collapse;
+	},
+	collapse: function() {
+		this._element.classList.remove('expanded');
+		setText(this._hide, '◀');
+		this._hide.title = lang.action_expand;
+	},
+	toggleExpanded: function() {
+		if(this._element.classList.contains('expanded')) {
+			this.collapse();
+		} else {
+			this.expand();
+		}
+	},
+	fail: function(message) {
+		addParaWithText(this._content, message).className = 'error';
+	},
+	show: function(contents, closeCallback) {
+		this._runCallback();
+		this.closeCallback = closeCallback;
+		
+		deleteChildren(this._content);
+		
+		this._content.appendChild(contents);
+		this._element.classList.add('enabled');
+		setTimeout(this.expand.bind(this), 1);
+	},
+	close: function() {
+		this._runCallback();
+		this._element.classList.remove('expanded');
+		this._element.classList.remove('enabled');
+	},
+};
+
 function fail(msg) {
 	setText(fail_text, msg);
 	fail_element.style.top = '0.5em';
-}
-
-function fail_popup(msg) {
-	addElementWithText(popup_element, 'p', msg).className = 'error';
 }
 
 function fail_ajax_generic(data, fnc) {
@@ -80,7 +145,7 @@ function fail_ajax(data) {
 }
 
 function fail_ajax_popup(data) {
-	fail_ajax_generic(data, fail_popup);
+	fail_ajax_generic(data, panel.fail.bind(panel));
 }
 
 function getGeometry(object) {
@@ -462,38 +527,13 @@ function stopTable(stopType, stopId, table, featureId) {
 	}).fail(fail_ajax_popup);
 }
 
-function showPanel(contents, closeCallback) {
-	var old_callback = popup_close_callback;
-	popup_close_callback = null;
-	if(old_callback) old_callback();
-	popup_close_callback = closeCallback;
-	
-	deleteChildren(popup_element);
-	
-	var close = addParaWithText(popup_element, '×');
-	close.className = 'close';
-	close.addEventListener('click', function() { hidePanel(); });
-	
-	popup_element.appendChild(contents);
-	
-	$(popup_element).addClass('show');
-}
-
-function hidePanel() {
-	var old_callback = popup_close_callback;
-	popup_close_callback = null;
-	if(old_callback) old_callback();
-	
-	$(popup_element).removeClass('show');
-}
-
 function featureClicked(feature) {
 	if(feature && !feature.getId()) return;
 	
 	unstyleSelectedFeatures();
 	
 	if(!feature) {
-		hidePanel();
+		panel.close();
 		return;
 	}
 	
@@ -611,13 +651,13 @@ function featureClicked(feature) {
 	}) }, 10);
 	
 	
-	showPanel(div, function() {
+	panel.show(div, function() {
 		if(!ignore_hashchange) {
 			ignore_hashchange = true;
 			window.location.hash = '';
 			
-			feature_clicked = null;
 			unstyleSelectedFeatures();
+			feature_clicked = null;
 			
 			if(feature_xhr) feature_xhr.abort();
 			if(feature_timer) clearTimeout(feature_timer);
@@ -689,7 +729,7 @@ function mapClicked(e) {
 			div.appendChild(p);
 		}
 		
-		showPanel(div);
+		panel.show(div);
 		
 		return;
 	}
@@ -724,14 +764,14 @@ function mapClicked(e) {
 }
 
 function trackingStop() {
-	geolocation_button.className = "";
+	geolocation_button.classList.remove('clicked');
 	geolocation.setTracking(false);
 	
 	geolocation_source.clear();
 }
 function trackingStart() {
 	geolocation_set = 0;
-	geolocation_button.className = "clicked";
+	geolocation_button.classList.add('clicked');
 	geolocation_feature.setGeometry(new ol.geom.Point(map.getView().getCenter()));
 	geolocation_accuracy.setGeometry(new ol.geom.Circle(map.getView().getCenter(), 100000));
 	
@@ -827,6 +867,8 @@ function init() {
 		dataType: 'json',
 		timeout: 10000,
 	});
+	
+	panel = new Panel(document.getElementById('panel'));
 	
 	stops_buses_source = new ol.source.Vector({
 		features: [],
@@ -944,7 +986,7 @@ function init() {
 	});
 	geolocation_button = document.querySelector('#track button');
 	if(!navigator.geolocation) {
-		geolocation_button.className = 'hidden';
+		geolocation_button.classList.add('hidden');
 	}
 	
 	geolocation = new ol.Geolocation({projection: 'EPSG:3857'});
@@ -969,7 +1011,7 @@ function init() {
 	geolocation.on('error', function(error) {
 		fail(lang.error_location + ' ' + error.message);
 		trackingStop();
-		geolocation_button.className = 'hidden';
+		geolocation_button.classList.add('hidden');
 	});
 	geolocation_button.addEventListener('click', trackingToggle);
 	

@@ -17,42 +17,68 @@ html, body, #map {
 	right: auto;
 }
 
-#popup {
+.panel {
+	opacity: .85;
 	color: black;
 	background: white;
 	padding: 5px;
 	border-left: 1px solid black;
 	font-size: 14px;
+	overflow-y: auto;
+	
+	transition: right .4s, width .4s;
 	
 	position: absolute;
 	width: 350px;
 	right: -365px;
 	top: 0;
 	bottom: 0;
-	
-	transition: right .4s, width .4s;
-	
-	opacity: .85;
-	
-	overflow-y: auto;
 }
-
-#popup.show {
+.panel.expanded {
 	right: 0;
 }
 
+.panel .hide {
+	display: none;
+}
+.panel.enabled .hide {
+	display: block;
+	
+	position: fixed;
+	bottom: 20%;
+	right: 0;
+	
+	opacity: .85;
+	border: 1px solid black;
+	border-right: 0;
+	border-radius: 5px 0 0 5px;
+	background: white;
+	margin-right: 0px;
+	padding: 1em 0.2em;
+	padding-bottom: 1.2em;
+	
+	transition: right .4s, margin-right .4s;
+}
+.panel.expanded .hide {
+	right: 360px;
+}
+
 @media (max-width: 600px) {
-	#popup {
+	.panel {
 		width: 80%;
 		right: -100%;
 	}
-	
-	#popup.show {
+	.panel.expanded {
 		right: 0%;
+	}
+	
+	.panel.enabled .hide {
+		right: 80%;
+		margin-right: 10px;
 	}
 }
 
-.close {
+.close, .hide {
 	float: right;
 	cursor: pointer;
 	font-size: 20px;
@@ -62,50 +88,50 @@ html, body, #map {
 	font-size: inherit;
 	height: 1em;
 }
-#popup .type {
+.panel .type {
 	padding-bottom: 0;
 	color: #444;
 	font-size: 80%;
 }
-#popup p {
+.panel p {
 	margin: 0;
 	padding: 5px;
 }
-#popup .name {
+.panel .name {
 	font-weight: bold;
 }
-#popup .vehicleInfo {
+.panel .vehicleInfo {
 	font-size: 21px;
 	margin: -4px 0 -5px;
 }
-#popup table {
+.panel table {
 	margin-top: 3px;
 	border-top: 1px solid gray;
 	width: 100%;
 	border-collapse: collapse;
 }
-#popup table th {
+.panel table th {
 	text-align: left;
 	border-bottom: 1px solid #999;
 	padding-top: 5px;
 }
-#popup table td {
+.panel table td {
 	vertical-align: top;
 }
-#popup .active {
+.panel .active {
 	background: #f5f5f5;
 	color: gray;
 }
-#popup .success {
+.panel .success {
 	background: #dff0d8;
 }
-#popup .warning {
+.panel .warning {
 	background: #fcf8e3;
 }
-#popup .danger {
+.panel .danger {
 	background: #f2dede;
 }
-#popup table .vehicleInfo {
+.panel table .vehicleInfo {
 	float: right;
 }
 
@@ -117,7 +143,7 @@ html, body, #map {
 	background-color: rgba(255,255,255,.6);
 }
 
-#fail, #popup .error {
+#fail, .panel .error {
 	background: red;
 	color: white;
 	font-weight: bold;
