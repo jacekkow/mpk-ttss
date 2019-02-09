@@ -3,6 +3,14 @@
 var ttss_refresh = 10000; // 10 seconds
 var ttss_position_type = 'CORRECTED';
 
+var geolocation = null;
+var geolocation_set = 0;
+var geolocation_button = null;
+var geolocation_feature = null;
+var geolocation_accuracy = null;
+var geolocation_source = null;
+var geolocation_layer = null;
+
 var trams_xhr = null;
 var trams_timer = null;
 var trams_last_update = 0;
@@ -41,11 +49,12 @@ var map = null;
 var popup_element = document.getElementById('popup');
 var popup_close_callback;
 var fail_element = document.getElementById('fail');
+var fail_text = document.querySelector('#fail span');
 
 var ignore_hashchange = false;
 
 function fail(msg) {
-	setText(fail_element, msg);
+	setText(fail_text, msg);
 	fail_element.style.top = '0.5em';
 }
 
@@ -501,7 +510,14 @@ function featureClicked(feature) {
 	table.appendChild(thead);
 	table.appendChild(tbody);
 	
+	var tabular_data = true;
+	
 	switch(feature.getId().substr(0, 1)) {
+		case 'l':
+			tabular_data = false;
+			type = '';
+			name = lang.type_location;
+		break;
 		case 't':
 		case 'b':
 			type = lang.type_tram;
@@ -584,14 +600,16 @@ function featureClicked(feature) {
 		div.appendChild(additional);
 	}
 	
-	div.appendChild(table);
+	if(tabular_data) {
+		div.appendChild(table);
+		ignore_hashchange = true;
+		window.location.hash = '#!' + feature.getId();
+	}
 	
 	setTimeout(function () {map.getView().animate({
 		center: feature.getGeometry().getCoordinates(),
 	}) }, 10);
 	
-	ignore_hashchange = true;
-	window.location.hash = '#!' + feature.getId();
 	
 	showPanel(div, function() {
 		if(!ignore_hashchange) {
@@ -607,6 +625,127 @@ function featureClicked(feature) {
 	});
 	
 	feature_clicked = feature;
+}
+
+function mapClicked(e) {
+	var point = e.coordinate;
+	var features = [];
+	map.forEachFeatureAtPixel(e.pixel, function(feature, layer) {
+		if(layer == stop_selected_layer) return;
+		if(feature.getId()) features.push(feature);
+	});
+	
+	if(features.length > 1) {
+		featureClicked();
+		
+		var div = document.createElement('div');
+		
+		addParaWithText(div, lang.select_feature);
+		
+		for(var i = 0; i < features.length; i++) {
+			var feature = features[i];
+			
+			var p = document.createElement('p');
+			var a = document.createElement('a');
+			p.appendChild(a);
+			a.addEventListener('click', function(feature) { return function() {
+				featureClicked(feature);
+			}}(feature));
+			
+			var type = '';
+			switch(feature.getId().substr(0, 1)) {
+				case 'l':
+					type = '';
+					name = lang.type_location;
+				break;
+				case 't':
+				case 'b':
+					type = lang.type_tram;
+					if(feature.getId().startsWith('b')) {
+						type = lang.type_bus;
+					}
+					if(feature.get('vehicle_type').num) {
+						type += ' ' + feature.get('vehicle_type').num;
+					}
+				break;
+				case 's':
+					type = lang.type_stop_tram;
+					if(feature.getId().startsWith('sb')) {
+						type = lang.type_stop_bus;
+					}
+				break;
+				case 'p':
+					type = lang.type_stoppoint_tram;
+					if(feature.getId().startsWith('pb')) {
+						type = lang.type_stoppoint_bus;
+					}
+				break;
+			}
+			
+			addElementWithText(a, 'span', type).className = 'small';
+			a.appendChild(document.createTextNode(' '));
+			addElementWithText(a, 'span', feature.get('name'));
+			
+			div.appendChild(p);
+		}
+		
+		showPanel(div);
+		
+		return;
+	}
+	
+	var feature = features[0];
+	if(!feature) {
+		if(stops_buses_layer.getVisible()) {
+			feature = returnClosest(point, feature, stops_buses_source.getClosestFeatureToCoordinate(point));
+		}
+		if(stops_trams_layer.getVisible()) {
+			feature = returnClosest(point, feature, stops_trams_source.getClosestFeatureToCoordinate(point));
+		}
+		if(stop_points_buses_layer.getVisible()) {
+			feature = returnClosest(point, feature, stop_points_buses_source.getClosestFeatureToCoordinate(point));
+		}
+		if(stop_points_trams_layer.getVisible()) {
+			feature = returnClosest(point, feature, stop_points_trams_source.getClosestFeatureToCoordinate(point));
+		}
+		if(trams_layer.getVisible()) {
+			feature = returnClosest(point, feature, trams_source.getClosestFeatureToCoordinate(point));
+		}
+		if(buses_layer.getVisible()) {
+			feature = returnClosest(point, feature, buses_source.getClosestFeatureToCoordinate(point));
+		}
+		
+		if(getDistance(point, feature) > map.getView().getResolution() * 20) {
+			feature = null;
+		}
+	}
+	
+	featureClicked(feature);
+}
+
+function trackingStop() {
+	geolocation_button.className = "";
+	geolocation.setTracking(false);
+	
+	geolocation_source.clear();
+}
+function trackingStart() {
+	geolocation_set = 0;
+	geolocation_button.className = "clicked";
+	geolocation_feature.setGeometry(new ol.geom.Point(map.getView().getCenter()));
+	geolocation_accuracy.setGeometry(new ol.geom.Circle(map.getView().getCenter(), 100000));
+	
+	geolocation_source.addFeature(geolocation_feature);
+	geolocation_source.addFeature(geolocation_accuracy);
+	
+	geolocation.setTracking(true);
+}
+function trackingToggle() {
+	if(geolocation.getTracking()) {
+		trackingStop();
+	} else {
+		trackingStart();
+	}
 }
 
 function hash() {
@@ -785,6 +924,55 @@ function init() {
 	
 	ol.style.IconImageCache.shared.setSize(512);
 	
+	geolocation_feature = new ol.Feature({
+		name: '',
+		style: new ol.style.Style({
+			image: new ol.style.Circle({
+				fill: new ol.style.Fill({color: '#39C'}),
+				stroke: new ol.style.Stroke({color: '#FFF', width: 2}),
+				radius: 5,
+			}),
+		}),
+	});
+	geolocation_feature.setId('location_point');
+	geolocation_accuracy = new ol.Feature();
+	geolocation_source = new ol.source.Vector({
+		features: [],
+	});
+	geolocation_layer = new ol.layer.Vector({
+		source: geolocation_source,
+	});
+	geolocation_button = document.querySelector('#track button');
+	if(!navigator.geolocation) {
+		geolocation_button.className = 'hidden';
+	}
+	
+	geolocation = new ol.Geolocation();
+	geolocation.on('change:position', function() {
+		var coordinates = geolocation.getPosition();
+		geolocation_feature.setGeometry(coordinates ? new ol.geom.Point(coordinates) : null);
+		if(geolocation_set < 1) {
+			geolocation_set = 1;
+			map.getView().animate({
+				center: coordinates,
+			})
+		}
+	});
+	geolocation.on('change:accuracyGeometry', function() {
+		var accuracy = geolocation.getAccuracyGeometry();
+		geolocation_accuracy.setGeometry(accuracy);
+		if(geolocation_set < 2) {
+			geolocation_set = 2;
+			map.getView().fit(accuracy);
+		}
+	});
+	geolocation.on('error', function(error) {
+		fail(lang.error_location + ' ' + error.message);
+		trackingStop();
+		geolocation_button.className = 'hidden';
+	});
+	geolocation_button.addEventListener('click', trackingToggle);
+	
 	map = new ol.Map({
 		target: 'map',
 		layers: [
@@ -792,6 +980,7 @@ function init() {
 				source: new ol.source.OSM()
 			}),
 			route_layer,
+			geolocation_layer,
 			stops_buses_layer,
 			stops_trams_layer,
 			stop_points_buses_layer,
@@ -802,7 +991,8 @@ function init() {
 		],
 		view: new ol.View({
 			center: ol.proj.fromLonLat([19.94, 50.06]),
-			zoom: 14
+			zoom: 14,
+			maxZoom: 19,
 		}),
 		controls: ol.control.defaults({
 			attributionOptions: ({
@@ -814,103 +1004,16 @@ function init() {
 			}),
 			new ol.control.Control({
 				element: fail_element,
-			})
+			}),
+			new ol.control.Control({
+				element: document.getElementById('track'),
+			}),
 		]),
 		loadTilesWhileAnimating: false,
 	});
 	
 	// Display popup on click
-	map.on('singleclick', function(e) {
-		var point = e.coordinate;
-		var features = [];
-		map.forEachFeatureAtPixel(e.pixel, function(feature, layer) {
-			if(layer == stop_selected_layer) return;
-			if(feature.getId()) features.push(feature);
-		});
-		
-		if(features.length > 1) {
-			featureClicked();
-			
-			var div = document.createElement('div');
-			
-			addParaWithText(div, lang.select_feature);
-			
-			for(var i = 0; i < features.length; i++) {
-				var feature = features[i];
-				
-				var p = document.createElement('p');
-				var a = document.createElement('a');
-				p.appendChild(a);
-				a.addEventListener('click', function(feature) { return function() {
-					featureClicked(feature);
-				}}(feature));
-				
-				var type = '';
-				switch(feature.getId().substr(0, 1)) {
-					case 't':
-					case 'b':
-						type = lang.type_tram;
-						if(feature.getId().startsWith('b')) {
-							type = lang.type_bus;
-						}
-						if(feature.get('vehicle_type').num) {
-							type += ' ' + feature.get('vehicle_type').num;
-						}
-					break;
-					case 's':
-						type = lang.type_stop_tram;
-						if(feature.getId().startsWith('sb')) {
-							type = lang.type_stop_bus;
-						}
-					break;
-					case 'p':
-						type = lang.type_stoppoint_tram;
-						if(feature.getId().startsWith('pb')) {
-							type = lang.type_stoppoint_bus;
-						}
-					break;
-				}
-				
-				addElementWithText(a, 'span', type).className = 'small';
-				a.appendChild(document.createTextNode(' '));
-				addElementWithText(a, 'span', feature.get('name'));
-				
-				div.appendChild(p);
-			}
-			
-			showPanel(div);
-			
-			return;
-		}
-		
-		var feature = features[0];
-		if(!feature) {
-			if(stops_buses_layer.getVisible()) {
-				feature = returnClosest(point, feature, stops_buses_source.getClosestFeatureToCoordinate(point));
-			}
-			if(stops_trams_layer.getVisible()) {
-				feature = returnClosest(point, feature, stops_trams_source.getClosestFeatureToCoordinate(point));
-			}
-			if(stop_points_buses_layer.getVisible()) {
-				feature = returnClosest(point, feature, stop_points_buses_source.getClosestFeatureToCoordinate(point));
-			}
-			if(stop_points_trams_layer.getVisible()) {
-				feature = returnClosest(point, feature, stop_points_trams_source.getClosestFeatureToCoordinate(point));
-			}
-			if(trams_layer.getVisible()) {
-				feature = returnClosest(point, feature, trams_source.getClosestFeatureToCoordinate(point));
-			}
-			if(buses_layer.getVisible()) {
-				feature = returnClosest(point, feature, buses_source.getClosestFeatureToCoordinate(point));
-			}
-			
-			if(getDistance(point, feature) > map.getView().getResolution() * 20) {
-				feature = null;
-			}
-		}
-		
-		featureClicked(feature);
-	});
+	map.on('singleclick', mapClicked);
 	
 	fail_element.addEventListener('click', function() {
 		fail_element.style.top = '-10em';

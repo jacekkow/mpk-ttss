@@ -5,19 +5,27 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v5.3.0/css/ol.css" integrity="sha384-C7SzZySesoxngSK5V0BaD1DUap0LPZGWZpnXQGoIwvBXFc8G21y4s1QYvyr84FNa" crossorigin="anonymous">
-<link rel="stylesheet" href="map.css" type="text/css" />
+<link rel="stylesheet" href="map.css?v2" type="text/css" />
 </head>
 <body>
 <div id="map">
 <div id="title" class="ol-unselectable ol-control"><a href="/">TTSS Kraków</a></div>
-<div id="fail" class="ol-unselectable ol-control"></div>
+<div id="track" class="ol-unselectable ol-control"><button type="button" title="GPS"><svg width="100%" height="100%">
+<circle cx="50%" cy="50%" r="25%"></circle>
+<circle cx="50%" cy="50%" r="10%" class="fill"></circle>
+<line x1="50%" y1="25%" x2="50%" y2="10%"></line>
+<line x1="75%" y1="50%" x2="90%" y2="50%"></line>
+<line x1="50%" y1="75%" x2="50%" y2="90%"></line>
+<line x1="25%" y1="50%" x2="10%" y2="50%"></line>
+</svg></button></div>
+<div id="fail" class="ol-unselectable ol-control"><span></span> <span class="close">×</p></div>
 </div>
 <div id="popup"></div>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT" crossorigin="anonymous"></script>
 <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList"></script>
 <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v5.3.0/build/ol.js" integrity="sha384-iQkGyyH4ioz3m+maM3s9MX1Oq67mACa4B9Z3ovUv3Sv37LJ96fx3WnZfLoiC3Wfl" crossorigin="anonymous"></script>
-<script tyle="text/javascript" src="lang_pl.js?v3" id="lang_script"></script>
+<script tyle="text/javascript" src="lang_pl.js?v4" id="lang_script"></script>
 <script tyle="text/javascript" src="common.js?v6"></script>
-<script tyle="text/javascript" src="map.js?v9"></script>
+<script tyle="text/javascript" src="map.js?v10"></script>
 </body>
 </html>

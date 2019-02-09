@@ -52,10 +52,15 @@ html, body, #map {
 	}
 }
 
-#popup .close {
+.close {
 	float: right;
 	cursor: pointer;
 	font-size: 20px;
+	padding: 0px 10px;
+}
+#fail .close {
+	font-size: inherit;
+	height: 1em;
 }
 #popup .type {
 	padding-bottom: 0;
@@ -124,6 +129,31 @@ html, body, #map {
 }
 .ol-zoom {
 	top: 2.2em;
+}
+#track {
+	top: 6em;
+	left: 0.5em;
+}
+.ol-touch #track {
+	top: 7em;
+}
+
+.ol-control button svg * {
+	stroke: white;
+	stroke-width: 5%;
+	fill: none;
+}
+.ol-control button svg .fill {
+	fill: white;
+}
+.ol-control button.clicked {
+	background-color: black;
+}
+.ol-control button.clicked:hover, .ol-control button.clicked:active {
+	background-color: rgba(0,0,0,.5);
+}
+.ol-control button.hidden {
+	display: none;
 }
 
 a {

@@ -52,6 +52,7 @@ var lang = {
 	type_stoppoint: 'Peron',
 	type_stoppoint_bus: 'Peron autobusowy',
 	type_stoppoint_tram: 'Peron tramwajowy',
+	type_location: 'Twoja lokalizacja',
 	
 	select_feature: 'W tym miejscu znajduje się więcej niż jeden element. Wybierz właściwy z listy:',
 	departures_for_stop: 'Kliknij, by zobaczyć odjazdy dla całego przystanku (a nie tylko peronu).',
@@ -86,4 +87,5 @@ var lang = {
 	error_request_failed_connectivity: 'Wykonanie żądania internetowego nie udało się - sprawdź połączenie z siecią.',
 	error_new_version: 'Strona została zaktualizowana, przeładowuję...',
 	error_refresh: 'Błąd! Odśwież stronę, by zaktualizować dane.',
+	error_location: 'Lokalizacja nieudana.',
 };

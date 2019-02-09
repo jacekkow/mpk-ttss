@@ -50,6 +50,7 @@ var lang = {
 	type_stoppoint: 'Stop point',
 	type_stoppoint_bus: 'Bus stop point',
 	type_stoppoint_tram: 'Tram stop point',
+	type_location: 'Your location',
 	
 	select_feature: 'There is more than one feature here. Select the proper one:',
 	departures_for_stop: 'Click for stop departures (and not only this stop point).',
@@ -84,4 +85,5 @@ var lang = {
 	error_request_failed_connectivity: 'Request failed - please check your network connectivity.',
 	error_new_version: 'Website has been updated, reloading...',
 	error_refresh: 'Error! Refresh the page to update information.',
+	error_location: 'Location failed.',
 };
