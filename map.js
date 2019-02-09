@@ -947,7 +947,7 @@ function init() {
 		geolocation_button.className = 'hidden';
 	}
 	
-	geolocation = new ol.Geolocation();
+	geolocation = new ol.Geolocation({projection: 'EPSG:3857'});
 	geolocation.on('change:position', function() {
 		var coordinates = geolocation.getPosition();
 		geolocation_feature.setGeometry(coordinates ? new ol.geom.Point(coordinates) : null);
