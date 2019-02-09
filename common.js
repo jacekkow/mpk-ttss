@@ -117,7 +117,7 @@ function updateVehicleInfo() {
 function depotIdToVehicleId(depotId, typeHelper) {
 	if(typeHelper) {
 		for(var prop in vehicles_info) {
-			if(prop.substr(0,1) == type && vehicles_info[prop]['num'].substr(2) == depotId) {
+			if(prop.substr(0,1) == typeHelper && vehicles_info[prop]['num'].substr(2) == depotId) {
 				return prop;
 			}
 		}
