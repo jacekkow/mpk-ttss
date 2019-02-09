@@ -68,11 +68,11 @@ html, body, #map {
 		width: 80%;
 		right: -100%;
 	}
-	.panel.expanded {
+	.panel.expanded, .panel.enabled .hide {
 		right: 0%;
 	}
 	
-	.panel.enabled .hide {
+	.panel.enabled.expanded .hide {
 		right: 80%;
 		margin-right: 10px;
 	}
