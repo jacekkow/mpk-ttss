@@ -26,6 +26,7 @@ var buses_layer = null;
 var vehicles_info = {};
 
 var stops_xhr = null;
+var stops_ignored = ['131'];
 var stops_buses_source = null;
 var stops_buses_layer = null;
 var stops_trams_source = null;
@@ -359,6 +360,7 @@ function updateStopSource(stops, prefix, source) {
 		var stop = stops[i];
 		
 		if(stop.category == 'other') continue;
+		if(stops_ignored.indexOf(stop.shortName) >= 0) continue;
 		
 		stop.geometry = getGeometry(stop);
 		var stop_feature = new ol.Feature(stop);
