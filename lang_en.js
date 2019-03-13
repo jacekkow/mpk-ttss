@@ -58,6 +58,8 @@ var lang = {
 	
 	select_feature: 'There is more than one feature here. Select the proper one:',
 	departures_for_stop: 'Click for stop departures (and not only this stop point).',
+	departures_for_trams: 'Switch to tram departures.',
+	departures_for_buses: 'Switch to bus departures.',
 	
 	tram_type_pattern: '$num $type ($floor)',
 	high_floor: 'high floor',

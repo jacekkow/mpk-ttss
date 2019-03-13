@@ -60,6 +60,8 @@ var lang = {
 	
 	select_feature: 'W tym miejscu znajduje się więcej niż jeden element. Wybierz właściwy z listy:',
 	departures_for_stop: 'Kliknij, by zobaczyć odjazdy dla całego przystanku (a nie tylko peronu).',
+	departures_for_trams: 'Przełącz na odjazdy tramwajów.',
+	departures_for_buses: 'Przełącz na odjazdy autobusów.',
 	
 	tram_type_pattern: '$num $type ($floor)',
 	high_floor: 'wysokopodłogowy',

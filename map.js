@@ -58,6 +58,7 @@ var stops_style = {
 	}),
 };
 var stops_type = ['st', 'sb', 'pt', 'pb'];
+var stops_mapping = {};
 var stops_source = {};
 var stops_layer = {};
 
@@ -369,6 +370,7 @@ function updateBuses() {
 
 function updateStopSource(stops, prefix) {
 	var source = stops_source[prefix];
+	var mapping = stops_mapping[prefix];
 	for(var i = 0; i < stops.length; i++) {
 		var stop = stops[i];
 		
@@ -377,6 +379,12 @@ function updateStopSource(stops, prefix) {
 		
 		stop.geometry = getGeometry(stop);
 		var stop_feature = new ol.Feature(stop);
+		
+		if(prefix.startsWith('p')) {
+			mapping[stop.stopPoint] = stop_feature;
+		} else {
+			mapping[stop.shortName] = stop_feature;
+		}
 		
 		stop_feature.setId(prefix + stop.id);
 		
@@ -599,8 +607,23 @@ function featureClicked(feature) {
 		break;
 		case 's':
 			type = lang.type_stop_tram;
+			var second_type = lang.departures_for_buses;
+			var mapping = stops_mapping['sb'];
 			if(feature.getId().startsWith('sb')) {
 				type = lang.type_stop_bus;
+				second_type = lang.departures_for_trams;
+				mapping = stops_mapping['st'];
+			}
+			
+			if(mapping[feature.get('shortName')]) {
+				additional = document.createElement('p');
+				additional.className = 'small';
+				addElementWithText(additional, 'a', second_type).addEventListener(
+					'click',
+					function() {
+						featureClicked(mapping[feature.get('shortName')]);
+					}
+				);
 			}
 			
 			addElementWithText(thead, 'th', lang.header_line);
@@ -622,12 +645,8 @@ function featureClicked(feature) {
 			addElementWithText(additional, 'a', lang.departures_for_stop).addEventListener(
 				'click',
 				function() {
-					var source = stops_source['s' + feature.getId().substr(1,1)];
-					featureClicked(source.forEachFeature(function(stop_feature) {
-						if(stop_feature.get('shortName') == feature.get('shortName')) {
-							return stop_feature;
-						}
-					}));
+					var mapping = stops_mapping['s' + feature.getId().substr(1,1)];
+					featureClicked(mapping[feature.get('shortName')]);
 				}
 			);
 			
@@ -851,7 +870,7 @@ function returnClosest(point, f1, f2) {
 	if(!f1) return f2;
 	if(!f2) return f1;
 	
-	return (getDistance(point, f1) < getDistance(point, f2)) ? f1 : f2;
+	return (getDistance(point, f1) <= getDistance(point, f2)) ? f1 : f2;
 }
 
 function init() {
@@ -876,6 +895,7 @@ function init() {
 			renderMode: 'image',
 			style: stops_style[type],
 		});
+		stops_mapping[type] = {};
 	});
 	
 	stop_selected_source = new ol.source.Vector({
