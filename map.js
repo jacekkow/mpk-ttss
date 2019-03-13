@@ -301,6 +301,7 @@ function updateTrams() {
 			} else {
 				vehicle_feature.setProperties(vehicle);
 				vehicle_feature.getStyle().getImage().setRotation(Math.PI * parseFloat(vehicle.heading ? vehicle.heading : 0) / 180.0);
+				vehicle_feature.getStyle().getText().setText(vehicle.line);
 			}
 		}
 		
