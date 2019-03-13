@@ -88,14 +88,9 @@ function loadTimes(stopId) {
 	
 	loading_start();
 	
-	var url = ttss_trams_base;
+	var prefix = stopId.substr(0, 1);
 	var stop = stopId.substr(1);
-	var prefix = 't';
-	if(stopId.startsWith('b')) {
-		url = ttss_buses_base;
-		stop = stopId.substr(1);
-		prefix = 'b';
-	}
+	var url = ttss_urls[prefix];
 	
 	stop_id = stopId;
 	
@@ -191,14 +186,9 @@ function loadRoute(tripId, vehicleInfo) {
 	
 	console.log('loadRoute(' + tripId + ')');
 	
-	var url = ttss_trams_base;
+	var prefix = tripId.substr(0, 1);
 	var trip = tripId.substr(1);
-	var prefix = 't';
-	if(tripId.startsWith('b')) {
-		url = ttss_buses_base;
-		trip = tripId.substr(1);
-		prefix = 'b';
-	}
+	var url = ttss_urls[prefix];
 	
 	route_id = tripId;
 	route_vehicle_info = vehicleInfo;

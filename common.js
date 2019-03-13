@@ -1,9 +1,12 @@
 "use strict";
 
-//var ttss_trams_base = 'http://www.ttss.krakow.pl/internetservice';
-var ttss_trams_base = 'proxy_tram.php';
-//var ttss_buses_base = 'http://91.223.13.70/internetservice';
-var ttss_buses_base = 'proxy_bus.php';
+var ttss_urls = {
+	t: 'proxy_tram.php',
+	// t: 'http://www.ttss.krakow.pl/internetservice',
+	b: 'proxy_bus.php',
+	// b: 'http://91.223.13.70/internetservice',
+};
+var ttss_types = ['t', 'b'];
 
 // Special directions
 var special_directions = {

@@ -1,7 +1,7 @@
 "use strict";
 
 var ttss_refresh = 10000; // 10 seconds
-var ttss_position_type = 'CORRECTED';
+var ttss_position_type = 'RAW';
 
 var geolocation = null;
 var geolocation_set = 0;
@@ -11,17 +11,11 @@ var geolocation_accuracy = null;
 var geolocation_source = null;
 var geolocation_layer = null;
 
-var trams_xhr = null;
-var trams_timer = null;
-var trams_last_update = 0;
-var trams_source = null;
-var trams_layer = null;
-
-var buses_xhr = null;
-var buses_timer = null;
-var buses_last_update = 0;
-var buses_source = null;
-var buses_layer = null;
+var vehicles_xhr = {};
+var vehicles_timer = {};
+var vehicles_last_update = {};
+var vehicles_source = {};
+var vehicles_layer = {};
 
 var vehicles_info = {};
 
@@ -217,10 +211,10 @@ function styleVehicle(vehicle, selected) {
 	}));
 }
 
-function markStops(stops, type, routeStyle) {
+function markStops(stops, ttss_type, routeStyle) {
 	stop_selected_source.clear();
 	
-	var style = stops_layer['s'+type].getStyle().clone();
+	var style = stops_layer['s' + ttss_type].getStyle().clone();
 	
 	if(routeStyle) {
 		style.getImage().setRadius(5);
@@ -253,29 +247,29 @@ function markStops(stops, type, routeStyle) {
 function unstyleSelectedFeatures() {
 	stop_selected_source.clear();
 	route_source.clear();
-	if(feature_clicked && (feature_clicked.getId().startsWith('t') || feature_clicked.getId().startsWith('b'))) {
+	if(feature_clicked && ttss_types.indexOf(feature_clicked.getId().substr(0, 1)) >= 0) {
 		styleVehicle(feature_clicked);
 	}
 }
 
-function updateTrams() {
-	if(trams_timer) clearTimeout(trams_timer);
-	if(trams_xhr) trams_xhr.abort();
-	trams_xhr = $.get(
-		ttss_trams_base + '/geoserviceDispatcher/services/vehicleinfo/vehicles'
+function updateVehicles(prefix) {
+	if(vehicles_timer[prefix]) clearTimeout(vehicles_timer[prefix]);
+	if(vehicles_xhr[prefix]) vehicles_xhr[prefix].abort();
+	vehicles_xhr[prefix] = $.get(
+		ttss_urls[prefix] + '/geoserviceDispatcher/services/vehicleinfo/vehicles'
 			+ '?positionType=' + ttss_position_type
 			+ '&colorType=ROUTE_BASED'
-			+ '&lastUpdate=' + encodeURIComponent(trams_last_update)
+			+ '&lastUpdate=' + encodeURIComponent(vehicles_last_update[prefix])
 	).done(function(data) {
-		trams_last_update = data.lastUpdate;
+		vehicles_last_update[prefix] = data.lastUpdate;
 		
 		for(var i = 0; i < data.vehicles.length; i++) {
 			var vehicle = data.vehicles[i];
 			
-			var vehicle_feature = trams_source.getFeatureById('t' + vehicle.id);
-			if(vehicle.isDeleted) {
+			var vehicle_feature = vehicles_source[prefix].getFeatureById(prefix + vehicle.id);
+			if(vehicle.isDeleted || !vehicle.latitude || !vehicle.longitude) {
 				if(vehicle_feature) {
-					trams_source.removeFeature(vehicle_feature);
+					vehicles_source[prefix].removeFeature(vehicle_feature);
 					if(feature_clicked && feature_clicked.getId() === vehicle_feature.getId()) {
 						featureClicked();
 					}
@@ -291,14 +285,14 @@ function updateTrams() {
 			}
 			
 			vehicle.geometry = getGeometry(vehicle);
-			vehicle.vehicle_type = parseVehicle('t' + vehicle.id);
+			vehicle.vehicle_type = parseVehicle(prefix + vehicle.id);
 			
 			if(!vehicle_feature) {
 				vehicle_feature = new ol.Feature(vehicle);
-				vehicle_feature.setId('t' + vehicle.id);
+				vehicle_feature.setId(prefix + vehicle.id);
 				
 				styleVehicle(vehicle_feature);
-				trams_source.addFeature(vehicle_feature);
+				vehicles_source[prefix].addFeature(vehicle_feature);
 			} else {
 				vehicle_feature.setProperties(vehicle);
 				vehicle_feature.getStyle().getImage().setRotation(Math.PI * parseFloat(vehicle.heading ? vehicle.heading : 0) / 180.0);
@@ -306,68 +300,12 @@ function updateTrams() {
 			}
 		}
 		
-		trams_timer = setTimeout(function() {
-			updateTrams();
+		vehicles_timer[prefix] = setTimeout(function() {
+			updateVehicles(prefix);
 		}, ttss_refresh);
 	}).fail(fail_ajax);
 	
-	return trams_xhr;
-}
-
-function updateBuses() {
-	if(buses_timer) clearTimeout(buses_timer);
-	if(buses_xhr) buses_xhr.abort();
-	
-	buses_xhr = $.get(
-		ttss_buses_base + '/geoserviceDispatcher/services/vehicleinfo/vehicles'
-			+ '?positionType=RAW'
-			+ '&colorType=ROUTE_BASED'
-			+ '&lastUpdate=' + encodeURIComponent(buses_last_update)
-	).done(function(data) {
-		buses_last_update = data.lastUpdate;
-		
-		for(var i = 0; i < data.vehicles.length; i++) {
-			var vehicle = data.vehicles[i];
-			
-			var vehicle_feature = buses_source.getFeatureById('b' + vehicle.id);
-			if(vehicle.isDeleted || !vehicle.latitude || !vehicle.longitude) {
-				if(vehicle_feature) {
-					buses_source.removeFeature(vehicle_feature);
-					if(feature_clicked && feature_clicked.getId() === vehicle_feature.getId()) {
-						featureClicked();
-					}
-				}
-				continue;
-			}
-			
-			var vehicle_name_space = vehicle.name.indexOf(' ');
-			vehicle.line = vehicle.name.substr(0, vehicle_name_space);
-			vehicle.direction = vehicle.name.substr(vehicle_name_space+1);
-			if(special_directions[vehicle.direction]) {
-				vehicle.line = special_directions[vehicle.direction];
-			}
-			
-			vehicle.geometry = getGeometry(vehicle);
-			vehicle.vehicle_type = parseVehicle('b' + vehicle.id);
-			
-			if(!vehicle_feature) {
-				vehicle_feature = new ol.Feature(vehicle);
-				vehicle_feature.setId('b' + vehicle.id);
-				
-				styleVehicle(vehicle_feature);
-				buses_source.addFeature(vehicle_feature);
-			} else {
-				vehicle_feature.setProperties(vehicle);
-				vehicle_feature.getStyle().getImage().setRotation(Math.PI * parseFloat(vehicle.heading) / 180.0);
-			}
-		}
-		
-		buses_timer = setTimeout(function() {
-			updateBuses();
-		}, ttss_refresh);
-	}).fail(fail_ajax);
-	
-	return buses_xhr;
+	return vehicles_xhr[prefix];
 }
 
 function updateStopSource(stops, prefix) {
@@ -394,27 +332,19 @@ function updateStopSource(stops, prefix) {
 	}
 }
 
-function updateStops(base, suffix) {
+function updateStops(stop_type, ttss_type) {
+	var methods = {
+		's': 'stops',
+		'p': 'stopPoints',
+	};
 	return $.get(
-		base + '/geoserviceDispatcher/services/stopinfo/stops'
+		ttss_urls[ttss_type] + '/geoserviceDispatcher/services/stopinfo/' + methods[stop_type]
 			+ '?left=-648000000'
 			+ '&bottom=-324000000'
 			+ '&right=648000000'
 			+ '&top=324000000'
 	).done(function(data) {
-		updateStopSource(data.stops, 's' + suffix);
-	}).fail(fail_ajax);
-}
-
-function updateStopPoints(base, suffix) {
-	return $.get(
-		base + '/geoserviceDispatcher/services/stopinfo/stopPoints'
-			+ '?left=-648000000'
-			+ '&bottom=-324000000'
-			+ '&right=648000000'
-			+ '&top=324000000'
-	).done(function(data) {
-		updateStopSource(data.stopPoints, 'p' + suffix);
+		updateStopSource(data[methods[stop_type]], stop_type + ttss_type);
 	}).fail(fail_ajax);
 }
 
@@ -422,16 +352,11 @@ function vehiclePath(feature, tripId) {
 	if(path_xhr) path_xhr.abort();
 	
 	var featureId = feature.getId();
-	var vehicleId = featureId.substr(1);
-	
-	var url = ttss_trams_base;
-	if(featureId.startsWith('b')) {
-		url = ttss_buses_base;
-	}
+	var ttss_type = featureId.substr(0, 1);
 	
 	path_xhr = $.get(
-		url + '/geoserviceDispatcher/services/pathinfo/vehicle'
-			+ '?id=' + encodeURIComponent(vehicleId)
+		ttss_urls[ttss_type] + '/geoserviceDispatcher/services/pathinfo/vehicle'
+			+ '?id=' + encodeURIComponent(featureId.substr(1))
 	).done(function(data) {
 		if(!data || !data.paths || !data.paths[0] || !data.paths[0].wayPoints) return;
 		
@@ -457,14 +382,10 @@ function vehicleTable(feature, table) {
 	if(feature_timer) clearTimeout(feature_timer);
 	
 	var featureId = feature.getId();
-	
-	var url = ttss_trams_base;
-	if(featureId.startsWith('b')) {
-		url = ttss_buses_base;
-	}
+	var ttss_type = featureId.substr(0, 1);
 	
 	feature_xhr = $.get(
-		url + '/services/tripInfo/tripPassages'
+		ttss_urls[ttss_type] + '/services/tripInfo/tripPassages'
 			+ '?tripId=' + encodeURIComponent(feature.get('tripId'))
 			+ '&mode=departure'
 	).done(function(data) {
@@ -490,7 +411,7 @@ function vehicleTable(feature, table) {
 			addCellWithText(tr, data.actual[i].actualTime || data.actual[i].plannedTime);
 			addCellWithText(tr, data.actual[i].stop_seq_num + '. ' + data.actual[i].stop.name);
 			
-			stopsToMark.push('s' + featureId.substr(0,1) + data.actual[i].stop.id);
+			stopsToMark.push('s' + ttss_type + data.actual[i].stop.id);
 			
 			if(data.actual[i].status == 'STOPPING') {
 				tr.className = 'success';
@@ -498,7 +419,7 @@ function vehicleTable(feature, table) {
 			table.appendChild(tr);
 		}
 		
-		markStops(stopsToMark, featureId.substr(0,1), true);
+		markStops(stopsToMark, ttss_type, true);
 		
 		feature_timer = setTimeout(function() { vehicleTable(feature, table); }, ttss_refresh);
 	}).fail(fail_ajax_popup);
@@ -508,13 +429,10 @@ function stopTable(stopType, stopId, table, featureId) {
 	if(feature_xhr) feature_xhr.abort();
 	if(feature_timer) clearTimeout(feature_timer);
 	
-	var url = ttss_trams_base;
-	if(featureId.substr(1,1) == 'b') {
-		url = ttss_buses_base;
-	}
+	var ttss_type = featureId.substr(1, 1);
 	
 	feature_xhr = $.get(
-		url + '/services/passageInfo/stopPassages/' + stopType
+		ttss_urls[ttss_type] + '/services/passageInfo/stopPassages/' + stopType
 			+ '?' + stopType + '=' + encodeURIComponent(stopId)
 			+ '&mode=departure'
 	).done(function(data) {
@@ -576,7 +494,7 @@ function featureClicked(feature) {
 	
 	var div = document.createElement('div');
 	
-	var type;
+	var typeName;
 	var name = feature.get('name');
 	var additional;
 	var table = document.createElement('table');
@@ -587,43 +505,47 @@ function featureClicked(feature) {
 	
 	var tabular_data = true;
 	
-	switch(feature.getId().substr(0, 1)) {
-		case 'l':
-			tabular_data = false;
-			type = '';
-			name = lang.type_location;
-		break;
-		case 't':
-		case 'b':
-			type = lang.type_tram;
-			if(feature.getId().startsWith('b')) {
-				type = lang.type_bus;
-			}
-			
-			var span = displayVehicle(feature.get('vehicle_type'));
-			
-			additional = document.createElement('p');
-			if(span.title) {
-				setText(additional, span.title);
-			} else {
-				setText(additional, feature.getId());
-			}
-			additional.insertBefore(span, additional.firstChild);
-			
-			addElementWithText(thead, 'th', lang.header_time);
-			addElementWithText(thead, 'th', lang.header_stop);
-			
-			vehicleTable(feature, tbody);
-			vehiclePath(feature);
-			
-			styleVehicle(feature, true);
-		break;
-		case 's':
-			type = lang.type_stop_tram;
+	var type = feature.getId().substr(0, 1);
+	// Location
+	if(type == 'l') {
+		tabular_data = false;
+		typeName = '';
+		name = lang.type_location;
+	}
+	// Vehicle
+	else if(ttss_types.indexOf(type) >= 0) {
+		typeName = lang.type_bus;
+		if(type == 't') {
+			typeName = lang.type_tram;
+		}
+		
+		var span = displayVehicle(feature.get('vehicle_type'));
+		
+		additional = document.createElement('p');
+		if(span.title) {
+			setText(additional, span.title);
+		} else {
+			setText(additional, feature.getId());
+		}
+		additional.insertBefore(span, additional.firstChild);
+		
+		addElementWithText(thead, 'th', lang.header_time);
+		addElementWithText(thead, 'th', lang.header_stop);
+		
+		vehicleTable(feature, tbody);
+		vehiclePath(feature);
+		
+		styleVehicle(feature, true);
+	}
+	// Stop or stop point
+	else if(['s', 'p'].indexOf(type) >= 0) {
+		if(type == 's') {
+			typeName = lang.type_stop_tram;
 			var second_type = lang.departures_for_buses;
 			var mapping = stops_mapping['sb'];
+			
 			if(feature.getId().startsWith('sb')) {
-				type = lang.type_stop_bus;
+				typeName = lang.type_stop_bus;
 				second_type = lang.departures_for_trams;
 				mapping = stops_mapping['st'];
 			}
@@ -638,19 +560,11 @@ function featureClicked(feature) {
 					}
 				);
 			}
+		} else {
+			typeName = lang.type_stoppoint_tram;
 			
-			addElementWithText(thead, 'th', lang.header_line);
-			addElementWithText(thead, 'th', lang.header_direction);
-			addElementWithText(thead, 'th', lang.header_time);
-			addElementWithText(thead, 'th', lang.header_delay);
-			
-			stopTable('stop', feature.get('shortName'), tbody, feature.getId());
-			markStops([feature], feature.getId().substr(1,1));
-		break;
-		case 'p':
-			type = lang.type_stoppoint_tram;
 			if(feature.getId().startsWith('pb')) {
-				type = lang.type_stoppoint_bus;
+				typeName = lang.type_stoppoint_bus;
 			}
 			
 			additional = document.createElement('p');
@@ -662,22 +576,25 @@ function featureClicked(feature) {
 					featureClicked(mapping[feature.get('shortName')]);
 				}
 			);
-			
-			addElementWithText(thead, 'th', lang.header_line);
-			addElementWithText(thead, 'th', lang.header_direction);
-			addElementWithText(thead, 'th', lang.header_time);
-			addElementWithText(thead, 'th', lang.header_delay);
-			
-			stopTable('stopPoint', feature.get('stopPoint'), tbody, feature.getId());
-			markStops([feature], feature.getId().substr(1,1));
-		break;
+		}
+		
+		addElementWithText(thead, 'th', lang.header_line);
+		addElementWithText(thead, 'th', lang.header_direction);
+		addElementWithText(thead, 'th', lang.header_time);
+		addElementWithText(thead, 'th', lang.header_delay);
+		
+		stopTable('stop', feature.get('shortName'), tbody, feature.getId());
+		markStops([feature], feature.getId().substr(1,1));
+	} else {
+		panel.close();
+		return;
 	}
 	
 	var loader = addElementWithText(tbody, 'td', lang.loading);
 	loader.className = 'active';
 	loader.colSpan = thead.childNodes.length;
 	
-	addParaWithText(div, type).className = 'type';
+	addParaWithText(div, typeName).className = 'type';
 	addParaWithText(div, name).className = 'name';
 	
 	if(additional) {
@@ -737,37 +654,34 @@ function mapClicked(e) {
 				featureClicked(feature);
 			}}(feature));
 			
-			var type = '';
-			switch(feature.getId().substr(0, 1)) {
-				case 'l':
-					type = '';
-					name = lang.type_location;
-				break;
-				case 't':
-				case 'b':
-					type = lang.type_tram;
-					if(feature.getId().startsWith('b')) {
-						type = lang.type_bus;
-					}
-					if(feature.get('vehicle_type').num) {
-						type += ' ' + feature.get('vehicle_type').num;
-					}
-				break;
-				case 's':
-					type = lang.type_stop_tram;
-					if(feature.getId().startsWith('sb')) {
-						type = lang.type_stop_bus;
-					}
-				break;
-				case 'p':
-					type = lang.type_stoppoint_tram;
-					if(feature.getId().startsWith('pb')) {
-						type = lang.type_stoppoint_bus;
-					}
-				break;
+			var type = feature.getId().substr(0, 1);
+			var typeName = '';
+			if(type == 'l') {
+				typeName = '';
+				name = lang.type_location;
+			} else if(ttss_types.indexOf(type) >= 0) {
+				typeName = lang.type_bus;
+				if(type == 't') {
+					typeName = lang.type_tram;
+				}
+				if(feature.get('vehicle_type').num) {
+					typeName += ' ' + feature.get('vehicle_type').num;
+				}
+			} else if(type == 's') {
+				typeName = lang.type_stop_tram;
+				if(feature.getId().startsWith('sb')) {
+					typeName = lang.type_stop_bus;
+				}
+			} else if (type == 'p') {
+				typeName = lang.type_stoppoint_tram;
+				if(feature.getId().startsWith('pb')) {
+					typeName = lang.type_stoppoint_bus;
+				}
+			} else {
+				continue;
 			}
 			
-			addElementWithText(a, 'span', type).className = 'small';
+			addElementWithText(a, 'span', typeName).className = 'small';
 			a.appendChild(document.createTextNode(' '));
 			addElementWithText(a, 'span', feature.get('name'));
 			
@@ -786,12 +700,11 @@ function mapClicked(e) {
 				feature = returnClosest(point, feature, stops_source[type].getClosestFeatureToCoordinate(point));
 			}
 		});
-		if(trams_layer.getVisible()) {
-			feature = returnClosest(point, feature, trams_source.getClosestFeatureToCoordinate(point));
-		}
-		if(buses_layer.getVisible()) {
-			feature = returnClosest(point, feature, buses_source.getClosestFeatureToCoordinate(point));
-		}
+		ttss_types.forEach(function(type) {
+			if(vehicles_layer[type].getVisible()) {
+				feature = returnClosest(point, feature, vehicles_source[type].getClosestFeatureToCoordinate(point));
+			}
+		});
 		
 		if(getDistance(point, feature) > map.getView().getResolution() * 20) {
 			feature = null;
@@ -850,16 +763,10 @@ function hash() {
 		stopId = window.location.hash.substr(2,1) + 't' + window.location.hash.substr(3);
 	} else if(window.location.hash.match(/^#![sp][tb]-?[0-9]+$/)) {
 		stopId = window.location.hash.substr(2);
-	} else if(window.location.hash == '#!RAW') {
-		ttss_position_type = 'RAW';
 	}
 	
 	if(vehicleId) {
-		if(vehicleId.startsWith('b')) {
-			feature = buses_source.getFeatureById(vehicleId);
-		} else {
-			feature = trams_source.getFeatureById(vehicleId);
-		}
+		feature = vehicles_source[vehicleId.substr(0, 1)].getFeatureById(vehicleId);
 	} else if(stopId) {
 		feature = stops_source[stopId.substr(0,2)].getFeatureById(stopId);
 	}
@@ -900,6 +807,16 @@ function init() {
 	
 	panel = new Panel(document.getElementById('panel'));
 	
+	route_source = new ol.source.Vector({
+		features: [],
+	});
+	route_layer = new ol.layer.Vector({
+		source: route_source,
+		style: new ol.style.Style({
+			stroke: new ol.style.Stroke({ color: [255, 153, 0, .8], width: 5 })
+		}),
+	});
+	
 	stops_type.forEach(function(type) {
 		stops_source[type] = new ol.source.Vector({
 			features: [],
@@ -920,28 +837,14 @@ function init() {
 		visible: false,
 	});
 	
-	trams_source = new ol.source.Vector({
-		features: [],
-	});
-	trams_layer = new ol.layer.Vector({
-		source: trams_source,
-	});
-	
-	buses_source = new ol.source.Vector({
-		features: [],
-	});
-	buses_layer = new ol.layer.Vector({
-		source: buses_source,
-	});
-	
-	route_source = new ol.source.Vector({
-		features: [],
-	});
-	route_layer = new ol.layer.Vector({
-		source: route_source,
-		style: new ol.style.Style({
-			stroke: new ol.style.Stroke({ color: [255, 153, 0, .8], width: 5 })
-		}),
+	ttss_types.forEach(function(type) {
+		vehicles_source[type] = new ol.source.Vector({
+			features: [],
+		});
+		vehicles_layer[type] = new ol.layer.Vector({
+			source: vehicles_source[type],
+		});
+		vehicles_last_update[type] = 0;
 	});
 	
 	ol.style.IconImageCache.shared.setSize(512);
@@ -995,22 +898,23 @@ function init() {
 	});
 	geolocation_button.addEventListener('click', trackingToggle);
 	
+	var layers = [
+		new ol.layer.Tile({
+			source: new ol.source.OSM(),
+		}),
+		route_layer,
+		geolocation_layer,
+	];
+	stops_type.forEach(function(type) {
+		layers.push(stops_layer[type]);
+	});
+	layers.push(stop_selected_layer);
+	ttss_types.forEach(function(type) {
+		layers.push(vehicles_layer[type]);
+	});
 	map = new ol.Map({
 		target: 'map',
-		layers: [
-			new ol.layer.Tile({
-				source: new ol.source.OSM(),
-			}),
-			route_layer,
-			geolocation_layer,
-			stops_layer['st'],
-			stops_layer['sb'],
-			stops_layer['pt'],
-			stops_layer['pb'],
-			stop_selected_layer,
-			buses_layer,
-			trams_layer,
-		],
+		layers: layers,
 		view: new ol.View({
 			center: ol.proj.fromLonLat([19.94, 50.06]),
 			zoom: 14,
@@ -1060,17 +964,16 @@ function init() {
 	map.getView().on('change:resolution', change_resolution);
 	change_resolution();
 	
-	$.when(
+	var future_requests = [
 		updateVehicleInfo(),
-		updateTrams(),
-		updateBuses(),
-		updateStops(ttss_trams_base, 't'),
-		updateStops(ttss_buses_base, 'b'),
-		updateStopPoints(ttss_trams_base, 't'),
-		updateStopPoints(ttss_buses_base, 'b'),
-	).done(function() {
-		hash();
+	];
+	ttss_types.forEach(function(type) {
+		future_requests.push(updateVehicles(type));
 	});
+	stops_type.forEach(function(type) {
+		future_requests.push(updateStops(type.substr(0,1), type.substr(1,1)));
+	});
+	$.when(future_requests).done(hash);
 	
 	window.addEventListener('hashchange', hash);
 	
