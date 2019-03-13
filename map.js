@@ -68,6 +68,7 @@ var stop_selected_layer = null;
 var feature_clicked = null;
 var feature_xhr = null;
 var feature_timer = null;
+var path_xhr = null;
 
 var route_source = null;
 var route_layer = null;
@@ -417,20 +418,54 @@ function updateStopPoints(base, suffix) {
 	}).fail(fail_ajax);
 }
 
-function vehicleTable(tripId, table, featureId) {
-	if(feature_xhr) feature_xhr.abort();
-	if(feature_timer) clearTimeout(feature_timer);
+function vehiclePath(feature, tripId) {
+	if(path_xhr) path_xhr.abort();
+	
+	var featureId = feature.getId();
+	var vehicleId = featureId.substr(1);
 	
 	var url = ttss_trams_base;
 	if(featureId.startsWith('b')) {
 		url = ttss_buses_base;
 	}
 	
-	var vehicleId = featureId.substr(1);
+	path_xhr = $.get(
+		url + '/geoserviceDispatcher/services/pathinfo/vehicle'
+			+ '?id=' + encodeURIComponent(vehicleId)
+	).done(function(data) {
+		if(!data || !data.paths || !data.paths[0] || !data.paths[0].wayPoints) return;
+		
+		var point = null;
+		var points = [];
+		for(var i = 0; i < data.paths[0].wayPoints.length; i++) {
+			point = data.paths[0].wayPoints[i];
+			points.push(ol.proj.fromLonLat([
+				point.lon / 3600000.0,
+				point.lat / 3600000.0,
+			]));
+		}
+		
+		route_source.addFeature(new ol.Feature({
+			geometry: new ol.geom.LineString(points)
+		}));
+		route_layer.setVisible(true);
+	});
+}
+
+function vehicleTable(feature, table) {
+	if(feature_xhr) feature_xhr.abort();
+	if(feature_timer) clearTimeout(feature_timer);
+	
+	var featureId = feature.getId();
+	
+	var url = ttss_trams_base;
+	if(featureId.startsWith('b')) {
+		url = ttss_buses_base;
+	}
 	
 	feature_xhr = $.get(
 		url + '/services/tripInfo/tripPassages'
-			+ '?tripId=' + encodeURIComponent(tripId)
+			+ '?tripId=' + encodeURIComponent(feature.get('tripId'))
 			+ '&mode=departure'
 	).done(function(data) {
 		if(!data.routeName || !data.directionText) {
@@ -465,31 +500,7 @@ function vehicleTable(tripId, table, featureId) {
 		
 		markStops(stopsToMark, featureId.substr(0,1), true);
 		
-		feature_timer = setTimeout(function() { vehicleTable(tripId, table, featureId); }, ttss_refresh);
-		
-		if(!vehicleId) return;
-	       
-		feature_xhr = $.get(
-			url + '/geoserviceDispatcher/services/pathinfo/vehicle'
-				+ '?id=' + encodeURIComponent(vehicleId)
-		).done(function(data) {
-			if(!data || !data.paths || !data.paths[0] || !data.paths[0].wayPoints) return;
-			
-			var point = null;
-			var points = [];
-			for(var i = 0; i < data.paths[0].wayPoints.length; i++) {
-				point = data.paths[0].wayPoints[i];
-				points.push(ol.proj.fromLonLat([
-					point.lon / 3600000.0,
-					point.lat / 3600000.0,
-				]));
-			}
-			
-			route_source.addFeature(new ol.Feature({
-				geometry: new ol.geom.LineString(points)
-			}));
-			route_layer.setVisible(true);
-		});
+		feature_timer = setTimeout(function() { vehicleTable(feature, table); }, ttss_refresh);
 	}).fail(fail_ajax_popup);
 }
 
@@ -602,7 +613,8 @@ function featureClicked(feature) {
 			addElementWithText(thead, 'th', lang.header_time);
 			addElementWithText(thead, 'th', lang.header_stop);
 			
-			vehicleTable(feature.get('tripId'), tbody, feature.getId());
+			vehicleTable(feature, tbody);
+			vehiclePath(feature);
 			
 			styleVehicle(feature, true);
 		break;
@@ -691,6 +703,7 @@ function featureClicked(feature) {
 			unstyleSelectedFeatures();
 			feature_clicked = null;
 			
+			if(path_xhr) path_xhr.abort();
 			if(feature_xhr) feature_xhr.abort();
 			if(feature_timer) clearTimeout(feature_timer);
 		}
