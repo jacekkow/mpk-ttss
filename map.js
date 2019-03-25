@@ -425,11 +425,9 @@ function vehicleTable(feature, table) {
 	}).fail(fail_ajax_popup);
 }
 
-function stopTable(stopType, stopId, table, featureId) {
+function stopTable(stopType, stopId, table, ttss_type) {
 	if(feature_xhr) feature_xhr.abort();
 	if(feature_timer) clearTimeout(feature_timer);
-	
-	var ttss_type = featureId.substr(1, 1);
 	
 	feature_xhr = $.get(
 		ttss_urls[ttss_type] + '/services/passageInfo/stopPassages/' + stopType
@@ -476,7 +474,7 @@ function stopTable(stopType, stopId, table, featureId) {
 			table.appendChild(tr);
 		}
 		
-		feature_timer = setTimeout(function() { stopTable(stopType, stopId, table, featureId); }, ttss_refresh);
+		feature_timer = setTimeout(function() { stopTable(stopType, stopId, table, ttss_type); }, ttss_refresh);
 	}).fail(fail_ajax_popup);
 }
 
@@ -539,16 +537,19 @@ function featureClicked(feature) {
 	}
 	// Stop or stop point
 	else if(['s', 'p'].indexOf(type) >= 0) {
+		var ttss_type = feature.getId().substr(1, 1);
 		if(type == 's') {
 			typeName = lang.type_stop_tram;
 			var second_type = lang.departures_for_buses;
 			var mapping = stops_mapping['sb'];
 			
-			if(feature.getId().startsWith('sb')) {
+			if(ttss_type == 'b') {
 				typeName = lang.type_stop_bus;
 				second_type = lang.departures_for_trams;
 				mapping = stops_mapping['st'];
 			}
+			
+			stopTable('stop', feature.get('shortName'), tbody, ttss_type);
 			
 			if(mapping[feature.get('shortName')]) {
 				additional = document.createElement('p');
@@ -563,16 +564,18 @@ function featureClicked(feature) {
 		} else {
 			typeName = lang.type_stoppoint_tram;
 			
-			if(feature.getId().startsWith('pb')) {
+			if(ttss_type == 'b') {
 				typeName = lang.type_stoppoint_bus;
 			}
+			
+			stopTable('stopPoint', feature.get('stopPoint'), tbody, ttss_type);
 			
 			additional = document.createElement('p');
 			additional.className = 'small';
 			addElementWithText(additional, 'a', lang.departures_for_stop).addEventListener(
 				'click',
 				function() {
-					var mapping = stops_mapping['s' + feature.getId().substr(1,1)];
+					var mapping = stops_mapping['s' + ttss_type];
 					featureClicked(mapping[feature.get('shortName')]);
 				}
 			);
@@ -583,7 +586,6 @@ function featureClicked(feature) {
 		addElementWithText(thead, 'th', lang.header_time);
 		addElementWithText(thead, 'th', lang.header_delay);
 		
-		stopTable('stop', feature.get('shortName'), tbody, feature.getId());
 		markStops([feature], feature.getId().substr(1,1));
 	} else {
 		panel.close();
