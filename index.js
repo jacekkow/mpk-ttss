@@ -315,13 +315,15 @@ function change_language(lang) {
 	}
 	language = lang;
 	
+	var old_script = document.getElementById('lang_script');
+	var old_version = old_script.src.match(/\?v[0-9]+/)[0];
 	var script = document.createElement('script');
 	script.type = 'text/javascript';
-	script.src = 'lang_' + lang + '.js';
+	script.src = 'lang_' + lang + '.js' + (old_version ? old_version : '');
 	script.id = 'lang_script';
 	script.onload = translate;
 	
-	document.body.removeChild(document.getElementById('lang_script'));
+	document.body.removeChild(old_script);
 	document.body.appendChild(script);
 	
 	ignore_hashchange = true;
