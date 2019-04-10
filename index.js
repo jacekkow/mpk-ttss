@@ -282,7 +282,7 @@ function translate() {
 	var text_name;
 	for(var i = 0; i < elements.length; i++) {
 		text_name = elements[i].dataset.translate;
-		if(lang[text_name] == undefined) {
+		if(typeof lang[text_name] === 'undefined') {
 			console.log('Missing translation: ' + text_name);
 			continue;
 		}
