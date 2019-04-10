@@ -369,7 +369,7 @@ function stop_autocomplete() {
 		for(var i = 0, il = data.length; i < il; i++) {
 			var opt = document.createElement('option');
 			opt.value = data[i].id;
-			setText(opt, data[i].id.substr(0,1) == 'b' ? lang.select_stop_bus.replace('$stop', data[i].name) : lang.select_stop_tram.replace('$stop', data[i].name));
+			setText(opt, lang.select_stop_type[data[i].id.substr(0,1)].replace('$stop', data[i].name));
 			stop_name_autocomplete.appendChild(opt);
 		}
 		

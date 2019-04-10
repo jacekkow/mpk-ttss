@@ -504,19 +504,20 @@ function featureClicked(feature) {
 	var tabular_data = true;
 	
 	var type = feature.getId().substr(0, 1);
+	var full_type = feature.getId().match(/^[a-z]+/)[0];
+	var typeName = lang.types[full_type];
+	if(typeof typeName === 'undefined') {
+		typeName = '';
+	}
+	
 	// Location
 	if(type == 'l') {
 		tabular_data = false;
+		name = typeName;
 		typeName = '';
-		name = lang.type_location;
 	}
 	// Vehicle
 	else if(ttss_types.indexOf(type) >= 0) {
-		typeName = lang.type_bus;
-		if(type == 't') {
-			typeName = lang.type_tram;
-		}
-		
 		var span = displayVehicle(feature.get('vehicle_type'));
 		
 		additional = document.createElement('p');
@@ -539,12 +540,10 @@ function featureClicked(feature) {
 	else if(['s', 'p'].indexOf(type) >= 0) {
 		var ttss_type = feature.getId().substr(1, 1);
 		if(type == 's') {
-			typeName = lang.type_stop_tram;
 			var second_type = lang.departures_for_buses;
 			var mapping = stops_mapping['sb'];
 			
 			if(ttss_type == 'b') {
-				typeName = lang.type_stop_bus;
 				second_type = lang.departures_for_trams;
 				mapping = stops_mapping['st'];
 			}
@@ -562,11 +561,6 @@ function featureClicked(feature) {
 				);
 			}
 		} else {
-			typeName = lang.type_stoppoint_tram;
-			
-			if(ttss_type == 'b') {
-				typeName = lang.type_stoppoint_bus;
-			}
 			
 			stopTable('stopPoint', feature.get('stopPoint'), tbody, ttss_type);
 			
@@ -656,31 +650,10 @@ function mapClicked(e) {
 				featureClicked(feature);
 			}}(feature));
 			
-			var type = feature.getId().substr(0, 1);
-			var typeName = '';
-			if(type == 'l') {
+			var full_type = feature.getId().match(/^[a-z]+/)[0];
+			var typeName = lang.types[full_type];
+			if(typeof typeName === 'undefined') {
 				typeName = '';
-				name = lang.type_location;
-			} else if(ttss_types.indexOf(type) >= 0) {
-				typeName = lang.type_bus;
-				if(type == 't') {
-					typeName = lang.type_tram;
-				}
-				if(feature.get('vehicle_type').num) {
-					typeName += ' ' + feature.get('vehicle_type').num;
-				}
-			} else if(type == 's') {
-				typeName = lang.type_stop_tram;
-				if(feature.getId().startsWith('sb')) {
-					typeName = lang.type_stop_bus;
-				}
-			} else if (type == 'p') {
-				typeName = lang.type_stoppoint_tram;
-				if(feature.getId().startsWith('pb')) {
-					typeName = lang.type_stoppoint_bus;
-				}
-			} else {
-				continue;
 			}
 			
 			addElementWithText(a, 'span', typeName).className = 'small';
