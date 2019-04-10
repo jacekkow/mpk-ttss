@@ -9,7 +9,6 @@ var lang = {
 	action_expand: 'Rozwiń',
 	action_collapse: 'Zwiń',
 	
-	jquery_not_loaded: 'Wymagana biblioteka jQuery nie została poprawnie załadowana. Spróbuj odświeżyć stronę.',
 	enter_stop_name_to_begin: 'Zacznij wpisywać nazwę przystanku.',
 	select_stop_click_go: 'Wyierz przystanek i kliknij "Dalej".',
 	select_stop_type: {

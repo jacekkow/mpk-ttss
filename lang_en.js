@@ -9,7 +9,6 @@ var lang = {
 	action_expand: 'Expand',
 	action_collapse: 'Collapse',
 	
-	jquery_not_loaded: 'Required JavaScript jQuery library failed to load. You may try refreshing the page.',
 	enter_stop_name_to_begin: 'Enter the stop name to begin.',
 	select_stop_click_go: 'Select the stop and click "Go".',
 	select_stop_type: {

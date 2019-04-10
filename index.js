@@ -176,6 +176,7 @@ function loadTimes(stopId) {
 		
 		times_timer = setTimeout(function(){ loadTimes(); loadRoute(); }, ttss_refresh);
 	}).fail(fail_ajax).always(loading_end);
+	return times_xhr;
 }
 
 function loadRoute(tripId, vehicleInfo) {
@@ -239,6 +240,7 @@ function loadRoute(tripId, vehicleInfo) {
 			route_table.appendChild(tr);
 		}
 	}).fail(fail_ajax);
+	return route_xhr;
 }
 
 function startTimer(date) {
@@ -375,19 +377,10 @@ function stop_autocomplete() {
 		
 		if(!stop_id) setText(refresh_text, lang.select_stop_click_go);
 	}).fail(fail_ajax);
+	return stop_name_autocomplete_xhr;
 }
 
 function init() {
-	if(!window.jQuery) {
-		fail(lang.jquery_not_loaded);
-		return;
-	}
-	
-	$.ajaxSetup({
-		dataType: 'json',
-		timeout: 10000,
-	});
-	
 	lang_select.addEventListener('input', function(e) {
 		change_language(lang_select.value);
 	});

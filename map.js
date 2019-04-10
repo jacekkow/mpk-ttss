@@ -151,7 +151,7 @@ function fail(msg) {
 
 function fail_ajax_generic(data, fnc) {
 	// abort() is not a failure
-	if(data.readyState == 0 && data.statusText == 'abort') return;
+	if(data.readyState == 0) return;
 	
 	if(data.status == 0) {
 		fnc(lang.error_request_failed_connectivity, data);
@@ -247,7 +247,7 @@ function markStops(stops, ttss_type, routeStyle) {
 function unstyleSelectedFeatures() {
 	stop_selected_source.clear();
 	route_source.clear();
-	if(feature_clicked && ttss_types.indexOf(feature_clicked.getId().substr(0, 1)) >= 0) {
+	if(feature_clicked && ttss_types.includes(feature_clicked.getId().substr(0, 1))) {
 		styleVehicle(feature_clicked);
 	}
 }
@@ -315,7 +315,7 @@ function updateStopSource(stops, prefix) {
 		var stop = stops[i];
 		
 		if(stop.category == 'other') continue;
-		if(stops_ignored.indexOf(stop.shortName) >= 0) continue;
+		if(stops_ignored.includes(stop.shortName)) continue;
 		
 		stop.geometry = getGeometry(stop);
 		var stop_feature = new ol.Feature(stop);
@@ -375,6 +375,7 @@ function vehiclePath(feature, tripId) {
 		}));
 		route_layer.setVisible(true);
 	});
+	return path_xhr;
 }
 
 function vehicleTable(feature, table) {
@@ -423,6 +424,7 @@ function vehicleTable(feature, table) {
 		
 		feature_timer = setTimeout(function() { vehicleTable(feature, table); }, ttss_refresh);
 	}).fail(fail_ajax_popup);
+	return feature_xhr;
 }
 
 function stopTable(stopType, stopId, table, ttss_type) {
@@ -476,6 +478,7 @@ function stopTable(stopType, stopId, table, ttss_type) {
 		
 		feature_timer = setTimeout(function() { stopTable(stopType, stopId, table, ttss_type); }, ttss_refresh);
 	}).fail(fail_ajax_popup);
+	return feature_xhr;
 }
 
 function featureClicked(feature) {
@@ -517,7 +520,7 @@ function featureClicked(feature) {
 		typeName = '';
 	}
 	// Vehicle
-	else if(ttss_types.indexOf(type) >= 0) {
+	else if(ttss_types.includes(type)) {
 		var span = displayVehicle(feature.get('vehicle_type'));
 		
 		additional = document.createElement('p');
@@ -537,7 +540,7 @@ function featureClicked(feature) {
 		styleVehicle(feature, true);
 	}
 	// Stop or stop point
-	else if(['s', 'p'].indexOf(type) >= 0) {
+	else if(['s', 'p'].includes(type)) {
 		var ttss_type = feature.getId().substr(1, 1);
 		if(type == 's') {
 			var second_type = lang.departures_for_buses;
@@ -561,7 +564,6 @@ function featureClicked(feature) {
 				);
 			}
 		} else {
-			
 			stopTable('stopPoint', feature.get('stopPoint'), tbody, ttss_type);
 			
 			additional = document.createElement('p');
@@ -770,16 +772,6 @@ function returnClosest(point, f1, f2) {
 }
 
 function init() {
-	if(!window.jQuery) {
-		fail(lang.jquery_not_loaded);
-		return;
-	}
-	
-	$.ajaxSetup({
-		dataType: 'json',
-		timeout: 10000,
-	});
-	
 	panel = new Panel(document.getElementById('panel'));
 	
 	route_source = new ol.source.Vector({
@@ -948,7 +940,7 @@ function init() {
 	stops_type.forEach(function(type) {
 		future_requests.push(updateStops(type.substr(0,1), type.substr(1,1)));
 	});
-	$.when(future_requests).done(hash);
+	Deferred.all(future_requests).done(hash);
 	
 	window.addEventListener('hashchange', hash);
 	

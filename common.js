@@ -8,7 +8,6 @@ var ttss_urls = {
 };
 var ttss_types = ['t', 'b'];
 
-// Special directions
 var special_directions = {
 	'Zajezdnia Nowa Huta' : 'ZH',
 	'Zajezdnia Podgórze' : 'ZP',
@@ -17,12 +16,77 @@ var special_directions = {
 	'Przejazd techniczny' : 'PT',
 };
 
+
+/********
+ * AJAX *
+ ********/
+
+function Deferred(promise, request) {
+	return {
+		promise: promise,
+		request: request,
+		abort: function() {
+			request.abort.bind(request)
+			return Deferred(promise, request);
+		},
+		done: function(func) {
+			return Deferred(promise.then(func), request);
+		},
+		fail: function(func) {
+			return Deferred(promise.catch(func), request);
+		},
+		always: function(func) {
+			return Deferred(promise.finally(func), request);
+		},
+	};
+}
+
+Deferred.all = function(iterable) {
+	return Deferred(
+		Promise.all(
+			iterable.map(x => x.promise)
+		)
+	);
+};
+
+var $ = {
+	timeout: 10000,
+	dataType: 'json',
+	get: function(url) {
+		var self = this;
+		var request = new XMLHttpRequest();
+		var promise = new Promise(function(resolve, reject) {
+			request.timeout = self.timeout;
+			request.onreadystatechange = function() {
+				if(this.readyState == 4) {
+					if(this.status == 200) {
+						if(self.dataType == 'json') {
+							resolve(JSON.parse(this.responseText));
+						} else {
+							resolve(this.responseText);
+						}
+					} else {
+						reject(request);
+					}
+				}
+			};
+			request.open("GET", url, true);
+			request.send();
+		});
+		return Deferred(promise, request);
+	},
+};
+
+
+/***********
+ * VERSION *
+ ***********/
+
 var script_version;
 var script_version_xhr;
 
 var vehicles_info = {};
 
-// Check for website updates
 function checkVersion() {
 	if(script_version_xhr) script_version_xhr.abort();
 	
@@ -46,7 +110,11 @@ function checkVersionInit() {
 	setInterval(checkVersion, 3600000);
 }
 
-/* Parsing of received JSON parts */
+
+/***********
+ * PARSING *
+ ***********/
+
 function parseStatus(status) {
 	switch(status.status) {
 		case 'STOPPING':
@@ -91,7 +159,6 @@ function parseDelay(status) {
 	return lang.time_minutes_prefix + ((actual.getTime() - planned.getTime()) / 1000 / 60) + lang.time_minutes_suffix;
 }
 
-// Webservice-related functions
 function parseVehicle(vehicleId) {
 	if(!vehicleId) return false;
 	if(!vehicles_info || !vehicles_info[vehicleId]) {
@@ -159,7 +226,11 @@ function displayVehicle(vehicleInfo) {
 	return span;
 }
 
-// Element mangling
+
+/*******
+ * DOM *
+ *******/
+
 function deleteChildren(element) {
 	while(element.lastChild) element.removeChild(element.lastChild);
 }
