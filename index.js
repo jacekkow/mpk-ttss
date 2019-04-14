@@ -100,7 +100,7 @@ function loadTimes(stopId) {
 	refresh_button.removeAttribute('disabled');
 	
 	var alternative_stop = null;
-	var candidate = null;
+	var candidate;
 	for(var i = 0; i < stop_name_autocomplete.options.length; i++) {
 		candidate = stop_name_autocomplete.options[i].value;
 		if(candidate.substr(0, 1) != prefix && candidate.substr(1) == stop) {
@@ -132,23 +132,24 @@ function loadTimes(stopId) {
 			
 		}
 		
-		for(var i = 0, il = data.generalAlerts.length; i < il; i++) {
+		var i, il;
+		for(i = 0, il = data.generalAlerts.length; i < il; i++) {
 			addParaWithText(times_alerts, data.generalAlerts[i].title);
 		}
 		
 		var all_departures = data.old.concat(data.actual);
 		var tr, dir_cell, vehicle, status, status_cell, delay, delay_cell;
-		for(var i = 0, il = all_departures.length; i < il; i++) {
-			var tr = document.createElement('tr');
+		for(i = 0, il = all_departures.length; i < il; i++) {
+			tr = document.createElement('tr');
 			addCellWithText(tr, all_departures[i].patternText);
-			var dir_cell = addCellWithText(tr, all_departures[i].direction);
-			var vehicle = parseVehicle(prefix + all_departures[i].vehicleId);
+			dir_cell = addCellWithText(tr, all_departures[i].direction);
+			vehicle = parseVehicle(prefix + all_departures[i].vehicleId);
 			dir_cell.appendChild(displayVehicle(vehicle));
 			addCellWithText(tr, (vehicle ? vehicle.num : '')).className = 'vehicleData';
-			var status = parseStatus(all_departures[i]);
-			var status_cell = addCellWithText(tr, status);
-			var delay = parseDelay(all_departures[i]);
-			var delay_cell = addCellWithText(tr, delay);
+			status = parseStatus(all_departures[i]);
+			status_cell = addCellWithText(tr, status);
+			delay = parseDelay(all_departures[i]);
+			delay_cell = addCellWithText(tr, delay);
 			
 			if(i < data.old.length) {
 				tr.className = 'active';
