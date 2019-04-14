@@ -113,39 +113,25 @@ function loadTimes(stopId) {
 			addParaWithText(times_alerts, data.generalAlerts[i].title);
 		}
 		
-		for(var i = 0, il = data.old.length; i < il; i++) {
+		var all_departures = data.old.concat(data.actual);
+		var tr, dir_cell, vehicle, status, status_cell, delay, delay_cell;
+		for(var i = 0, il = all_departures.length; i < il; i++) {
 			var tr = document.createElement('tr');
-			addCellWithText(tr, data.old[i].patternText);
-			var dir_cell = addCellWithText(tr, data.old[i].direction);
-			var vehicle = parseVehicle(prefix + data.old[i].vehicleId);
+			addCellWithText(tr, all_departures[i].patternText);
+			var dir_cell = addCellWithText(tr, all_departures[i].direction);
+			var vehicle = parseVehicle(prefix + all_departures[i].vehicleId);
 			dir_cell.appendChild(displayVehicle(vehicle));
 			addCellWithText(tr, (vehicle ? vehicle.num : '')).className = 'vehicleData';
-			var status = parseStatus(data.old[i]);
-			addCellWithText(tr, status);
-			addCellWithText(tr, '');
-			
-			tr.className = 'active';
-			tr.addEventListener('click', function(tripId, vehicleInfo) {
-				return function(){ loadRoute(tripId, vehicleInfo); }
-			}(prefix + data.old[i].tripId, vehicle));
-			times_table.appendChild(tr);
-		}
-		
-		for(var i = 0, il = data.actual.length; i < il; i++) {
-			var tr = document.createElement('tr');
-			addCellWithText(tr, data.actual[i].patternText);
-			var dir_cell = addCellWithText(tr, data.actual[i].direction);
-			var vehicle = parseVehicle(prefix + data.actual[i].vehicleId);
-			dir_cell.appendChild(displayVehicle(vehicle));
-			addCellWithText(tr, (vehicle ? vehicle.num : '')).className = 'vehicleData';
-			var status = parseStatus(data.actual[i]);
+			var status = parseStatus(all_departures[i]);
 			var status_cell = addCellWithText(tr, status);
-			var delay = parseDelay(data.actual[i]);
+			var delay = parseDelay(all_departures[i]);
 			var delay_cell = addCellWithText(tr, delay);
 			
-			if(data.actual[i].status == 'STOPPING') {
+			if(i < data.old.length) {
+				tr.className = 'active';
+			} else if(all_departures[i].status === 'STOPPING') {
 				tr.className = 'success';
-				if (data.actual[i].actualRelativeTime <= 0) {
+				if (all_departures[i].actualRelativeTime <= 0) {
 					status_cell.className = 'status-boarding';
 				}
 			} else if(parseInt(delay) > 9) {
@@ -157,7 +143,7 @@ function loadTimes(stopId) {
 			
 			tr.addEventListener('click', function(tripId, vehicleInfo) {
 				return function(){ loadRoute(tripId, vehicleInfo); }
-			}(prefix + data.actual[i].tripId, vehicle));
+			}(prefix + all_departures[i].tripId, vehicle));
 			times_table.appendChild(tr);
 		}
 		
@@ -189,14 +175,13 @@ function loadRoute(tripId, vehicleInfo) {
 	
 	var prefix = tripId.substr(0, 1);
 	var trip = tripId.substr(1);
-	var url = ttss_urls[prefix];
 	
 	route_id = tripId;
 	route_vehicle_info = vehicleInfo;
 	
 	if(route_xhr) route_xhr.abort();
 	route_xhr = $.get(
-		url + '/services/tripInfo/tripPassages'
+		ttss_urls[prefix] + '/services/tripInfo/tripPassages'
 			+ '?tripId=' + encodeURIComponent(trip)
 			+ '&mode=departure'
 	).done(function(data) {
@@ -218,25 +203,19 @@ function loadRoute(tripId, vehicleInfo) {
 		
 		deleteChildren(route_table);
 		
-		for(var i = 0, il = data.old.length; i < il; i++) {
-			var tr = document.createElement('tr');
-			addCellWithText(tr, data.old[i].actualTime || data.old[i].plannedTime);
-			addCellWithText(tr, data.old[i].stop_seq_num + '. ' + data.old[i].stop.name);
+		var all_departures = data.old.concat(data.actual);
+		var tr;
+		for(var i = 0, il = all_departures.length; i < il; i++) {
+			tr = document.createElement('tr');
+			addCellWithText(tr, all_departures[i].actualTime || all_departures[i].plannedTime);
+			addCellWithText(tr, all_departures[i].stop_seq_num + '. ' + all_departures[i].stop.name);
 			
-			tr.className = 'active';
-			tr.addEventListener('click', function(stopId){ return function(){ loadTimes(stopId); } }(prefix + data.old[i].stop.shortName) );
-			route_table.appendChild(tr);
-		}
-		
-		for(var i = 0, il = data.actual.length; i < il; i++) {
-			var tr = document.createElement('tr');
-			addCellWithText(tr, data.actual[i].actualTime || data.actual[i].plannedTime);
-			addCellWithText(tr, data.actual[i].stop_seq_num + '. ' + data.actual[i].stop.name);
-			
-			if(data.actual[i].status == 'STOPPING') {
+			if(i < data.old.length) {
+				tr.className = 'active';
+			} else if(all_departures[i].status === 'STOPPING') {
 				tr.className = 'success';
 			}
-			tr.addEventListener('click', function(stopId){ return function(){ loadTimes(stopId); } }(prefix + data.actual[i].stop.shortName) );
+			tr.addEventListener('click', function(stopId){ return function(){ loadTimes(stopId); } }(prefix + all_departures[i].stop.shortName) );
 			route_table.appendChild(tr);
 		}
 	}).fail(fail_ajax);

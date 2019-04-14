@@ -395,27 +395,21 @@ function vehicleTable(feature, table) {
 		
 		deleteChildren(table);
 		
-		var i, il;
+		var all_departures = data.old.concat(data.actual);
 		var tr;
-		for(i = 0, il = data.old.length; i < il; i++) {
-			tr = document.createElement('tr');
-			addCellWithText(tr, data.old[i].actualTime || data.old[i].plannedTime);
-			addCellWithText(tr, data.old[i].stop_seq_num + '. ' + data.old[i].stop.name);
-			
-			tr.className = 'active';
-			table.appendChild(tr);
-		}
-		
 		var stopsToMark = [];
-		
-		for(i = 0, il = data.actual.length; i < il; i++) {
+		for(var i = 0, il = all_departures.length; i < il; i++) {
 			tr = document.createElement('tr');
-			addCellWithText(tr, data.actual[i].actualTime || data.actual[i].plannedTime);
-			addCellWithText(tr, data.actual[i].stop_seq_num + '. ' + data.actual[i].stop.name);
+			addCellWithText(tr, all_departures[i].actualTime || all_departures[i].plannedTime);
+			addCellWithText(tr, all_departures[i].stop_seq_num + '. ' + all_departures[i].stop.name);
 			
-			stopsToMark.push('s' + ttss_type + data.actual[i].stop.id);
+			if(i >= data.old.length) {
+				stopsToMark.push('s' + ttss_type + all_departures[i].stop.id);
+			}
 			
-			if(data.actual[i].status == 'STOPPING') {
+			if(i < data.old.length) {
+				tr.className = 'active';
+			} else if(all_departures[i].status === 'STOPPING') {
 				tr.className = 'success';
 			}
 			table.appendChild(tr);
@@ -439,36 +433,22 @@ function stopTable(stopType, stopId, table, ttss_type) {
 	).done(function(data) {
 		deleteChildren(table);
 		
-		var i, il;
+		var all_departures = data.old.concat(data.actual);
 		var tr, dir_cell, vehicle, status, status_cell, delay, delay_cell;
-		for(i = 0, il = data.old.length; i < il; i++) {
+		for(var i = 0, il = all_departures.length; i < il; i++) {
 			tr = document.createElement('tr');
-			addCellWithText(tr, data.old[i].patternText);
-			dir_cell = addCellWithText(tr, data.old[i].direction);
-			vehicle = parseVehicle(data.old[i].vehicleId);
+			addCellWithText(tr, all_departures[i].patternText);
+			dir_cell = addCellWithText(tr, all_departures[i].direction);
+			vehicle = parseVehicle(all_departures[i].vehicleId);
 			dir_cell.appendChild(displayVehicle(vehicle));
-			status = parseStatus(data.old[i]);
+			status = parseStatus(all_departures[i]);
 			status_cell = addCellWithText(tr, status);
-			delay_cell = addCellWithText(tr, '');
-			
-			tr.className = 'active';
-			table.appendChild(tr);
-		}
-		
-		for(i = 0, il = data.actual.length; i < il; i++) {
-			tr = document.createElement('tr');
-			addCellWithText(tr, data.actual[i].patternText);
-			dir_cell = addCellWithText(tr, data.actual[i].direction);
-			vehicle = parseVehicle(data.actual[i].vehicleId);
-			dir_cell.appendChild(displayVehicle(vehicle));
-			status = parseStatus(data.actual[i]);
-			status_cell = addCellWithText(tr, status);
-			delay = parseDelay(data.actual[i]);
+			delay = parseDelay(all_departures[i]);
 			delay_cell = addCellWithText(tr, delay);
 			
-			if(data.actual[i].status === 'DEPARTED') {
+			if(i < data.old.length) {
 				tr.className = 'active';
-			} else if(status == lang.boarding_sign) {
+			} else if(status === lang.boarding_sign) {
 				tr.className = 'success';
 				status_cell.className = 'status-boarding';
 			} else if(parseInt(delay) > 9) {
