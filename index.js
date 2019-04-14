@@ -99,6 +99,16 @@ function loadTimes(stopId) {
 	window.location.hash = '#!' + language + stopId;
 	refresh_button.removeAttribute('disabled');
 	
+	var alternative_stop = null;
+	var candidate = null;
+	for(var i = 0; i < stop_name_autocomplete.options.length; i++) {
+		candidate = stop_name_autocomplete.options[i].value;
+		if(candidate.substr(0, 1) != prefix && candidate.substr(1) == stop) {
+			alternative_stop = candidate;
+			break;
+		}
+	}
+	
 	times_xhr = $.get(
 		url + '/services/passageInfo/stopPassages/stop'
 			+ '?stop=' + encodeURIComponent(stop)
@@ -110,6 +120,17 @@ function loadTimes(stopId) {
 		deleteChildren(times_alerts);
 		deleteChildren(times_table);
 		//deleteChildren(times_lines);
+		
+		if(alternative_stop !== null) {
+			var a = addParaWithText(times_alerts, '');
+			a = addElementWithText(a, 'a', (prefix == 'b' ? lang.departures_for_trams : lang.departures_for_buses));
+			a.href = '';
+			a.onclick = function(e) {
+				e.preventDefault();
+				loadTimes(alternative_stop);
+			};
+			
+		}
 		
 		for(var i = 0, il = data.generalAlerts.length; i < il; i++) {
 			addParaWithText(times_alerts, data.generalAlerts[i].title);
