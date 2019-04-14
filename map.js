@@ -226,8 +226,7 @@ function markStops(stops, ttss_type, routeStyle) {
 	
 	stop_selected_layer.setStyle(style);
 	
-	var feature = null;
-	var prefix = null;
+	var feature, prefix;
 	for(var i = 0; i < stops.length; i++) {
 		feature = null;
 		if(stops[i].getId) {
@@ -360,7 +359,7 @@ function vehiclePath(feature, tripId) {
 	).done(function(data) {
 		if(!data || !data.paths || !data.paths[0] || !data.paths[0].wayPoints) return;
 		
-		var point = null;
+		var point;
 		var points = [];
 		for(var i = 0; i < data.paths[0].wayPoints.length; i++) {
 			point = data.paths[0].wayPoints[i];
@@ -396,8 +395,10 @@ function vehicleTable(feature, table) {
 		
 		deleteChildren(table);
 		
-		for(var i = 0, il = data.old.length; i < il; i++) {
-			var tr = document.createElement('tr');
+		var i, il;
+		var tr;
+		for(i = 0, il = data.old.length; i < il; i++) {
+			tr = document.createElement('tr');
 			addCellWithText(tr, data.old[i].actualTime || data.old[i].plannedTime);
 			addCellWithText(tr, data.old[i].stop_seq_num + '. ' + data.old[i].stop.name);
 			
@@ -407,8 +408,8 @@ function vehicleTable(feature, table) {
 		
 		var stopsToMark = [];
 		
-		for(var i = 0, il = data.actual.length; i < il; i++) {
-			var tr = document.createElement('tr');
+		for(i = 0, il = data.actual.length; i < il; i++) {
+			tr = document.createElement('tr');
 			addCellWithText(tr, data.actual[i].actualTime || data.actual[i].plannedTime);
 			addCellWithText(tr, data.actual[i].stop_seq_num + '. ' + data.actual[i].stop.name);
 			
@@ -438,32 +439,36 @@ function stopTable(stopType, stopId, table, ttss_type) {
 	).done(function(data) {
 		deleteChildren(table);
 		
-		for(var i = 0, il = data.old.length; i < il; i++) {
-			var tr = document.createElement('tr');
+		var i, il;
+		var tr, dir_cell, vehicle, status, status_cell, delay, delay_cell;
+		for(i = 0, il = data.old.length; i < il; i++) {
+			tr = document.createElement('tr');
 			addCellWithText(tr, data.old[i].patternText);
-			var dir_cell = addCellWithText(tr, data.old[i].direction);
-			var vehicle = parseVehicle(data.old[i].vehicleId);
+			dir_cell = addCellWithText(tr, data.old[i].direction);
+			vehicle = parseVehicle(data.old[i].vehicleId);
 			dir_cell.appendChild(displayVehicle(vehicle));
-			var status = parseStatus(data.old[i]);
-			addCellWithText(tr, status);
-			addCellWithText(tr, '');
+			status = parseStatus(data.old[i]);
+			status_cell = addCellWithText(tr, status);
+			delay_cell = addCellWithText(tr, '');
 			
 			tr.className = 'active';
 			table.appendChild(tr);
 		}
 		
-		for(var i = 0, il = data.actual.length; i < il; i++) {
-			var tr = document.createElement('tr');
+		for(i = 0, il = data.actual.length; i < il; i++) {
+			tr = document.createElement('tr');
 			addCellWithText(tr, data.actual[i].patternText);
-			var dir_cell = addCellWithText(tr, data.actual[i].direction);
-			var vehicle = parseVehicle(data.actual[i].vehicleId);
+			dir_cell = addCellWithText(tr, data.actual[i].direction);
+			vehicle = parseVehicle(data.actual[i].vehicleId);
 			dir_cell.appendChild(displayVehicle(vehicle));
-			var status = parseStatus(data.actual[i]);
-			var status_cell = addCellWithText(tr, status);
-			var delay = parseDelay(data.actual[i]);
-			var delay_cell = addCellWithText(tr, delay);
+			status = parseStatus(data.actual[i]);
+			status_cell = addCellWithText(tr, status);
+			delay = parseDelay(data.actual[i]);
+			delay_cell = addCellWithText(tr, delay);
 			
-			if(status == lang.boarding_sign) {
+			if(data.actual[i].status === 'DEPARTED') {
+				tr.className = 'active';
+			} else if(status == lang.boarding_sign) {
 				tr.className = 'success';
 				status_cell.className = 'status-boarding';
 			} else if(parseInt(delay) > 9) {
@@ -642,18 +647,19 @@ function mapClicked(e) {
 		
 		addParaWithText(div, lang.select_feature);
 		
+		var feature, p, a, full_type, typeName;
 		for(var i = 0; i < features.length; i++) {
-			var feature = features[i];
+			feature = features[i];
 			
-			var p = document.createElement('p');
-			var a = document.createElement('a');
+			p = document.createElement('p');
+			a = document.createElement('a');
 			p.appendChild(a);
 			a.addEventListener('click', function(feature) { return function() {
 				featureClicked(feature);
 			}}(feature));
 			
-			var full_type = feature.getId().match(/^[a-z]+/)[0];
-			var typeName = lang.types[full_type];
+			full_type = feature.getId().match(/^[a-z]+/)[0];
+			typeName = lang.types[full_type];
 			if(typeof typeName === 'undefined') {
 				typeName = '';
 			}
