@@ -389,7 +389,7 @@ function vehicleTable(feature, table) {
 			+ '?tripId=' + encodeURIComponent(feature.get('tripId'))
 			+ '&mode=departure'
 	).done(function(data) {
-		if(!data.routeName || !data.directionText) {
+		if(typeof data.old === "undefined" || typeof data.actual === "undefined") {
 			return;
 		}
 		
@@ -413,6 +413,14 @@ function vehicleTable(feature, table) {
 				tr.className = 'success';
 			}
 			table.appendChild(tr);
+		}
+		
+		if(all_departures.length === 0) {
+			tr = document.createElement('tr');
+			table.appendChild(tr);
+			tr = addCellWithText(tr, lang.no_data);
+			tr.colSpan = '2';
+			tr.className = 'active';
 		}
 		
 		markStops(stopsToMark, ttss_type, true);

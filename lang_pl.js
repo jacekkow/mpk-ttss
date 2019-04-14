@@ -20,6 +20,7 @@ var lang = {
 	refresh_button: '\u27f3 Odśwież',
 	last_refreshed: 'Ostatnio odświeżone $time',
 	loading: 'Ładowanie...',
+	no_data: 'Brak danych',
 	
 	line_alert_pattern: 'Linia $line: $alert',
 	
