@@ -17,6 +17,7 @@ var stop_name_autocomplete_timer;
 
 var times_xhr;
 var times_timer;
+var times_stop_type = document.getElementById('times-stop-type');
 var times_stop_name = document.getElementById('times-stop-name');
 var times_alerts = document.getElementById('times-alerts');
 var times_table = document.getElementById('times-table');
@@ -103,6 +104,7 @@ function loadTimes(stopId) {
 			+ '?stop=' + encodeURIComponent(stop)
 			+ '&mode=departure'
 	).done(function(data) {
+		setText(times_stop_type, lang.types['s' + prefix]);
 		setText(times_stop_name, data.stopName);
 		setText(page_title, lang.page_title_stop_name.replace('$stop', data.stopName));
 		deleteChildren(times_alerts);
