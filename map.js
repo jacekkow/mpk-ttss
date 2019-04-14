@@ -151,9 +151,9 @@ function fail(msg) {
 
 function fail_ajax_generic(data, fnc) {
 	// abort() is not a failure
-	if(data.readyState == 0) return;
+	if(data.readyState === 0) return;
 	
-	if(data.status == 0) {
+	if(data.status === 0) {
 		fnc(lang.error_request_failed_connectivity, data);
 	} else if (data.statusText) {
 		fnc(lang.error_request_failed_status.replace('$status', data.statusText), data);

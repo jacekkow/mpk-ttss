@@ -54,9 +54,9 @@ function fail(message, more) {
 
 function fail_ajax(data) {
 	// abort() is not a failure
-	if(data.readyState == 0 && data.statusText == 'abort') return;
+	if(data.readyState === 0) return;
 	
-	if(data.status == 0) {
+	if(data.status === 0) {
 		fail(lang.error_request_failed_connectivity, data);
 	} else if (data.statusText) {
 		fail(lang.error_request_failed_status.replace('$status', data.statusText), data);
