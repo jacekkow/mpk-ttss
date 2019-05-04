@@ -115,8 +115,8 @@ function loadTimes(stopId) {
 			+ '&mode=departure'
 	).done(function(data) {
 		setText(times_stop_type, lang.types['s' + prefix]);
-		setText(times_stop_name, data.stopName);
-		setText(page_title, lang.page_title_stop_name.replace('$stop', data.stopName));
+		setText(times_stop_name, normalizeName(data.stopName));
+		setText(page_title, lang.page_title_stop_name.replace('$stop', normalizeName(data.stopName)));
 		deleteChildren(times_alerts);
 		deleteChildren(times_table);
 		//deleteChildren(times_lines);

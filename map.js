@@ -278,7 +278,7 @@ function updateVehicles(prefix) {
 			
 			var vehicle_name_space = vehicle.name.indexOf(' ');
 			vehicle.line = vehicle.name.substr(0, vehicle_name_space);
-			vehicle.direction = vehicle.name.substr(vehicle_name_space+1);
+			vehicle.direction = normalizeName(vehicle.name.substr(vehicle_name_space+1));
 			if(special_directions[vehicle.direction]) {
 				vehicle.line = special_directions[vehicle.direction];
 			}
@@ -401,7 +401,7 @@ function vehicleTable(feature, table) {
 		for(var i = 0, il = all_departures.length; i < il; i++) {
 			tr = document.createElement('tr');
 			addCellWithText(tr, all_departures[i].actualTime || all_departures[i].plannedTime);
-			addCellWithText(tr, all_departures[i].stop_seq_num + '. ' + all_departures[i].stop.name);
+			addCellWithText(tr, all_departures[i].stop_seq_num + '. ' + normalizeName(all_departures[i].stop.name));
 			
 			if(i >= data.old.length) {
 				stopsToMark.push('s' + ttss_type + all_departures[i].stop.id);
@@ -446,7 +446,7 @@ function stopTable(stopType, stopId, table, ttss_type) {
 		for(var i = 0, il = all_departures.length; i < il; i++) {
 			tr = document.createElement('tr');
 			addCellWithText(tr, all_departures[i].patternText);
-			dir_cell = addCellWithText(tr, all_departures[i].direction);
+			dir_cell = addCellWithText(tr, normalizeName(all_departures[i].direction));
 			vehicle = parseVehicle(all_departures[i].vehicleId);
 			dir_cell.appendChild(displayVehicle(vehicle));
 			status = parseStatus(all_departures[i]);
@@ -489,7 +489,7 @@ function featureClicked(feature) {
 	var div = document.createElement('div');
 	
 	var typeName;
-	var name = feature.get('name');
+	var name = normalizeName(feature.get('name'));
 	var additional;
 	var table = document.createElement('table');
 	var thead = document.createElement('thead');
@@ -654,7 +654,7 @@ function mapClicked(e) {
 			
 			addElementWithText(a, 'span', typeName).className = 'small';
 			a.appendChild(document.createTextNode(' '));
-			addElementWithText(a, 'span', feature.get('name'));
+			addElementWithText(a, 'span', normalizeName(feature.get('name')));
 			
 			div.appendChild(p);
 		}

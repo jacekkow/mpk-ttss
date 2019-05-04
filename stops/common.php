@@ -15,3 +15,11 @@ function split_stop_name($string) {
 	
 	return array_values($words);
 }
+
+function normalize_name($string) {
+	return strtr(strtr($string, ['.' => '. ']), ['  ' => ' ']);
+}
+
+function normalize_name_cmp($string) {
+	return normalize_name(mb_strtolower($string, 'UTF-8'));
+}

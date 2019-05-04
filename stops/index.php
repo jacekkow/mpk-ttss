@@ -48,11 +48,11 @@ try {
 	
 	// Build a structure for the UI
 	$stop_list = [];
-	$query_lower = mb_strtolower($_GET['query'], 'UTF-8');
+	$query_lower = normalize_name_cmp($_GET['query']);
 	foreach($ids as $id) {
 		similar_text(
 			$query_lower,
-			mb_strtolower($stops[$id], 'UTF-8'),
+			normalize_name_cmp($stops[$id]),
 			$percent
 		);
 		// -5 due to UTF-8
@@ -61,7 +61,7 @@ try {
 		}
 		$stop_list[] = [
 			'id' => $id,
-			'name' => $stops[$id],
+			'name' => normalize_name($stops[$id]),
 			'type' => 'stop',
 			'relevance' => $percent,
 		];

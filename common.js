@@ -115,6 +115,10 @@ function checkVersionInit() {
  * PARSING *
  ***********/
 
+function normalizeName(string) {
+	return string.replace('.', '. ').replace('  ', ' ');
+}
+
 function parseStatus(status) {
 	switch(status.status) {
 		case 'STOPPING':
