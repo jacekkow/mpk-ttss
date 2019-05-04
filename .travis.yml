@@ -6,10 +6,15 @@ php:
   - 7.0
   - nightly
 
+addons:
+  firefox: latest
+  chrome: stable
+
 before_script:
   - 'php -S 127.0.0.1:8080 &'
   - 'nvm install stable'
-  - 'npm install casperjs'
+  - 'npm install nightwatch selenium-server chromedriver geckodriver'
 
 script:
-  - 'node_modules/casperjs/bin/casperjs test tests.js'
+  - 'node_modules/.bin/nightwatch -e chrome-headless'
+  - 'node_modules/.bin/nightwatch -e firefox-headless'
