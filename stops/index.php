@@ -50,11 +50,12 @@ try {
 	$stop_list = [];
 	$query_lower = normalize_name_cmp($_GET['query']);
 	foreach($ids as $id) {
-		similar_text(
+		$letters = similar_text(
 			$query_lower,
 			normalize_name_cmp($stops[$id]),
 			$percent
 		);
+		$percent += $letters * 100;
 		// -5 due to UTF-8
 		if(substr($stops[$id], -5) == '(nż)' && !$find_ondemand) {
 			$percent /= 2;
