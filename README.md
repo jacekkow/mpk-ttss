@@ -7,6 +7,7 @@ Check https://mpk.jacekk.net/ for a live version.
 
 Contact and suggestions: mpk_AT_jacekk.info
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/530c81cbab3449a9b24327591361bec8)](https://app.codacy.com/app/jacekkow/mpk-ttss?utm_source=github.com&utm_medium=referral&utm_content=jacekkow/mpk-ttss&utm_campaign=Badge_Grade_Dashboard)
 [![Build Status](https://travis-ci.org/jacekkow/mpk-ttss.svg?branch=master)](https://travis-ci.org/jacekkow/mpk-ttss)
 
 ## Differences
