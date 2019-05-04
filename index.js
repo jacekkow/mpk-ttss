@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var ttss_refresh = 20000; // 20 seconds
 
@@ -76,6 +76,98 @@ function loading_start() {
 
 function loading_end() {
 	nav.className = nav.className.replace(' loading', '');
+}
+
+function startTimer(date) {
+	if(date) {
+		setText(refresh_text, lang.last_refreshed.replace('$time', lang.time_now));
+		refresh_time = date;
+	}
+	if(!refresh_time) return;
+	if(refresh_timer) clearInterval(refresh_timer);
+	
+	var now = new Date();
+	var ms = now.getTime() - refresh_time.getTime();
+	
+	var interval = 1000;
+	if(ms >= 120000) interval = 60000;
+	
+	refresh_timer = setInterval(function() {
+		var now = new Date();
+		var ms = now.getTime() - refresh_time.getTime();
+		
+		if(ms >= 120000) {
+			setText(refresh_text, lang.last_refreshed.replace(
+				'$time',
+				lang.time_minutes_ago_prefix + Math.floor(ms / 60000)
+					+ lang.time_minutes_ago_suffix
+			));
+			startTimer();
+		} else {
+			setText(refresh_text, lang.last_refreshed.replace(
+				'$time',
+				lang.time_seconds_ago_prefix + Math.floor(ms / 1000)
+					+ lang.time_seconds_ago_suffix
+			));
+		}
+	}, interval);
+}
+
+function loadRoute(tripId, vehicleInfo) {
+	if(!tripId) tripId = route_id;
+	if(!tripId) return;
+	
+	if(vehicleInfo === undefined) vehicleInfo = route_vehicle_info;
+	
+	console.log('loadRoute(' + tripId + ')');
+	
+	var prefix = tripId.substr(0, 1);
+	var trip = tripId.substr(1);
+	
+	route_id = tripId;
+	route_vehicle_info = vehicleInfo;
+	
+	if(route_xhr) route_xhr.abort();
+	route_xhr = $.get(
+		ttss_urls[prefix] + '/services/tripInfo/tripPassages'
+			+ '?tripId=' + encodeURIComponent(trip)
+			+ '&mode=departure'
+	).done(function(data) {
+		if(!data.routeName || !data.directionText || data.old.length + data.actual.length == 0) {
+			route_id = null;
+			return;
+		}
+		
+		setText(route_line, data.routeName + ' ' + data.directionText);
+		
+		deleteChildren(route_vehicle);
+		if(vehicleInfo) {
+			var span = displayVehicle(vehicleInfo);
+			if(span) {
+				setText(route_vehicle, span.title);
+			}
+			route_vehicle.insertBefore(span, route_vehicle.firstChild);
+		}
+		
+		deleteChildren(route_table);
+		
+		var all_departures = data.old.concat(data.actual);
+		var tr;
+		for(var i = 0, il = all_departures.length; i < il; i++) {
+			tr = document.createElement('tr');
+			addCellWithText(tr, all_departures[i].actualTime || all_departures[i].plannedTime);
+			addCellWithText(tr, all_departures[i].stop_seq_num + '. ' + all_departures[i].stop.name);
+			
+			if(i < data.old.length) {
+				tr.className = 'active';
+			} else if(all_departures[i].status === 'STOPPING') {
+				tr.className = 'success';
+			}
+			tr.addEventListener('click', function(stopId){ return function(){ loadTimes(stopId); } }(prefix + all_departures[i].stop.shortName) );
+			route_table.appendChild(tr);
+		}
+	}).fail(fail_ajax);
+	return route_xhr;
 }
 
 function loadTimes(stopId) {
@@ -189,98 +281,6 @@ function loadTimes(stopId) {
 	return times_xhr;
 }
 
-function loadRoute(tripId, vehicleInfo) {
-	if(!tripId) tripId = route_id;
-	if(!tripId) return;
-	
-	if(vehicleInfo === undefined) vehicleInfo = route_vehicle_info;
-	
-	console.log('loadRoute(' + tripId + ')');
-	
-	var prefix = tripId.substr(0, 1);
-	var trip = tripId.substr(1);
-	
-	route_id = tripId;
-	route_vehicle_info = vehicleInfo;
-	
-	if(route_xhr) route_xhr.abort();
-	route_xhr = $.get(
-		ttss_urls[prefix] + '/services/tripInfo/tripPassages'
-			+ '?tripId=' + encodeURIComponent(trip)
-			+ '&mode=departure'
-	).done(function(data) {
-		if(!data.routeName || !data.directionText || data.old.length + data.actual.length == 0) {
-			route_id = null;
-			return;
-		}
-		
-		setText(route_line, data.routeName + ' ' + data.directionText);
-		
-		deleteChildren(route_vehicle);
-		if(vehicleInfo) {
-			var span = displayVehicle(vehicleInfo);
-			if(span) {
-				setText(route_vehicle, span.title);
-			}
-			route_vehicle.insertBefore(span, route_vehicle.firstChild);
-		}
-		
-		deleteChildren(route_table);
-		
-		var all_departures = data.old.concat(data.actual);
-		var tr;
-		for(var i = 0, il = all_departures.length; i < il; i++) {
-			tr = document.createElement('tr');
-			addCellWithText(tr, all_departures[i].actualTime || all_departures[i].plannedTime);
-			addCellWithText(tr, all_departures[i].stop_seq_num + '. ' + all_departures[i].stop.name);
-			
-			if(i < data.old.length) {
-				tr.className = 'active';
-			} else if(all_departures[i].status === 'STOPPING') {
-				tr.className = 'success';
-			}
-			tr.addEventListener('click', function(stopId){ return function(){ loadTimes(stopId); } }(prefix + all_departures[i].stop.shortName) );
-			route_table.appendChild(tr);
-		}
-	}).fail(fail_ajax);
-	return route_xhr;
-}
-
-function startTimer(date) {
-	if(date) {
-		setText(refresh_text, lang.last_refreshed.replace('$time', lang.time_now));
-		refresh_time = date;
-	}
-	if(!refresh_time) return;
-	if(refresh_timer) clearInterval(refresh_timer);
-	
-	var now = new Date();
-	var ms = now.getTime() - refresh_time.getTime();
-	
-	var interval = 1000;
-	if(ms >= 120000) interval = 60000;
-	
-	refresh_timer = setInterval(function() {
-		var now = new Date();
-		var ms = now.getTime() - refresh_time.getTime();
-		
-		if(ms >= 120000) {
-			setText(refresh_text, lang.last_refreshed.replace(
-				'$time',
-				lang.time_minutes_ago_prefix + Math.floor(ms / 60000)
-					+ lang.time_minutes_ago_suffix
-			));
-			startTimer();
-		} else {
-			setText(refresh_text, lang.last_refreshed.replace(
-				'$time',
-				lang.time_seconds_ago_prefix + Math.floor(ms / 1000)
-					+ lang.time_seconds_ago_suffix
-			));
-		}
-	}, interval);
-}
-
 function translate() {
 	var elements = document.querySelectorAll('*[data-translate]');
 	
@@ -343,23 +343,24 @@ function hash() {
 		return;
 	}
 	
+	var stop;
 	if(window.location.hash.match(/^#![0-9]+$/)) {
 		loadTimes('t' + window.location.hash.substr(2));
 	} else if(window.location.hash.match(/^#![bt][0-9]+$/)) {
 		loadTimes(window.location.hash.substr(2));
 	} else if(window.location.hash.match(/^#![a-z]{2}[0-9]*$/)) {
-		var stop = 't' + window.location.hash.substr(4);
-		if(stop) stop_id = stop;
+		stop = window.location.hash.substr(4);
+		if(stop) stop_id = 't' + stop;
 		
 		if(!change_language(window.location.hash.substr(2, 2))) {
-			loadTimes(stop);
+			loadTimes();
 		}
 	} else if(window.location.hash.match(/^#![a-z]{2}[bt][0-9]*$/)) {
-		var stop = window.location.hash.substr(4);
+		stop = window.location.hash.substr(4);
 		if(stop) stop_id = stop;
 		
 		if(!change_language(window.location.hash.substr(2, 2))) {
-			loadTimes(stop);
+			loadTimes();
 		}
 	}
 }
@@ -384,11 +385,11 @@ function stop_autocomplete() {
 }
 
 function init() {
-	lang_select.addEventListener('input', function(e) {
+	lang_select.addEventListener('input', function() {
 		change_language(lang_select.value);
 	});
 	
-	stop_name.addEventListener('input', function(e) {
+	stop_name.addEventListener('input', function() {
 		if(!stop_name.value) return;
 		if(stop_name_autocomplete_timer) clearTimeout(stop_name_autocomplete_timer);
 		

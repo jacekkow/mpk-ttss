@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var ttss_refresh = 10000; // 10 seconds
 var ttss_position_type = 'RAW';
@@ -228,7 +228,6 @@ function markStops(stops, ttss_type, routeStyle) {
 	
 	var feature, prefix;
 	for(var i = 0; i < stops.length; i++) {
-		feature = null;
 		if(stops[i].getId) {
 			feature = stops[i];
 		} else {
@@ -310,8 +309,9 @@ function updateVehicles(prefix) {
 function updateStopSource(stops, prefix) {
 	var source = stops_source[prefix];
 	var mapping = stops_mapping[prefix];
+	var stop;
 	for(var i = 0; i < stops.length; i++) {
-		var stop = stops[i];
+		stop = stops[i];
 		
 		if(stop.category == 'other') continue;
 		if(stops_ignored.includes(stop.shortName)) continue;
@@ -347,7 +347,7 @@ function updateStops(stop_type, ttss_type) {
 	}).fail(fail_ajax);
 }
 
-function vehiclePath(feature, tripId) {
+function vehiclePath(feature) {
 	if(path_xhr) path_xhr.abort();
 	
 	var featureId = feature.getId();
@@ -484,11 +484,8 @@ function featureClicked(feature) {
 		return;
 	}
 	
-	var coordinates = feature.getGeometry().getCoordinates();
-	
 	var div = document.createElement('div');
 	
-	var typeName;
 	var name = normalizeName(feature.get('name'));
 	var additional;
 	var table = document.createElement('table');
@@ -628,6 +625,8 @@ function mapClicked(e) {
 		if(feature.getId()) features.push(feature);
 	});
 	
+	var feature = features[0];
+	
 	if(features.length > 1) {
 		featureClicked();
 		
@@ -635,7 +634,7 @@ function mapClicked(e) {
 		
 		addParaWithText(div, lang.select_feature);
 		
-		var feature, p, a, full_type, typeName;
+		var p, a, full_type, typeName;
 		for(var i = 0; i < features.length; i++) {
 			feature = features[i];
 			
@@ -664,7 +663,6 @@ function mapClicked(e) {
 		return;
 	}
 	
-	var feature = features[0];
 	if(!feature) {
 		stops_type.forEach(function(type) {
 			if(stops_layer[type].getVisible()) {
@@ -914,7 +912,7 @@ function init() {
 	});
 	
 	// Change layer visibility on zoom
-	var change_resolution = function(e) {
+	var change_resolution = function() {
 		stops_type.forEach(function(type) {
 			if(type.startsWith('p')) {
 				stops_layer[type].setVisible(map.getView().getZoom() >= 16);

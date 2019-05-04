@@ -8,6 +8,7 @@ Check https://mpk.jacekk.net/ for a live version.
 Contact and suggestions: mpk_AT_jacekk.info
 
 [![Build Status](https://travis-ci.org/jacekkow/mpk-ttss.svg?branch=master)](https://travis-ci.org/jacekkow/mpk-ttss)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/530c81cbab3449a9b24327591361bec8)](https://www.codacy.com/app/jacekkow/mpk-ttss)
 
 ## Differences
 

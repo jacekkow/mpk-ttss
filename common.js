@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var ttss_urls = {
 	t: 'proxy_tram.php',
@@ -26,7 +26,7 @@ function Deferred(promise, request) {
 		promise: promise,
 		request: request,
 		abort: function() {
-			request.abort.bind(request)
+			request.abort.bind(request);
 			return Deferred(promise, request);
 		},
 		done: function(func) {
@@ -70,7 +70,7 @@ var $ = {
 					}
 				}
 			};
-			request.open("GET", url, true);
+			request.open('GET', url, true);
 			request.send();
 		});
 		return Deferred(promise, request);
@@ -108,6 +108,35 @@ function checkVersion() {
 function checkVersionInit() {
 	checkVersion();
 	setInterval(checkVersion, 3600000);
+}
+
+
+/*******
+ * DOM *
+ *******/
+
+function deleteChildren(element) {
+	while(element.lastChild) element.removeChild(element.lastChild);
+}
+
+function addElementWithText(parent, element, text) {
+	var elem = document.createElement(element);
+	elem.appendChild(document.createTextNode(text));
+	parent.appendChild(elem);
+	return elem;
+}
+
+function addCellWithText(parent, text) {
+	return addElementWithText(parent, 'td', text);
+}
+
+function addParaWithText(parent, text) {
+	return addElementWithText(parent, 'p', text);
+}
+
+function setText(element, text) {
+	deleteChildren(element);
+	element.appendChild(document.createTextNode(text));
 }
 
 
@@ -189,14 +218,15 @@ function updateVehicleInfo() {
 }
 
 function depotIdToVehicleId(depotId, typeHelper) {
+	var prop;
 	if(typeHelper) {
-		for(var prop in vehicles_info) {
+		for(prop in vehicles_info) {
 			if(prop.substr(0,1) == typeHelper && vehicles_info[prop]['num'].substr(2) == depotId) {
 				return prop;
 			}
 		}
 	} else {
-		for(var prop in vehicles_info) {
+		for(prop in vehicles_info) {
 			if(vehicles_info[prop]['num'] == depotId) {
 				return prop;
 			}
@@ -228,33 +258,4 @@ function displayVehicle(vehicleInfo) {
 		.replace('$floor', floor_type);
 	
 	return span;
-}
-
-
-/*******
- * DOM *
- *******/
-
-function deleteChildren(element) {
-	while(element.lastChild) element.removeChild(element.lastChild);
-}
-
-function addElementWithText(parent, element, text) {
-	var elem = document.createElement(element);
-	elem.appendChild(document.createTextNode(text));
-	parent.appendChild(elem);
-	return elem;
-}
-
-function addCellWithText(parent, text) {
-	return addElementWithText(parent, 'td', text);
-}
-
-function addParaWithText(parent, text) {
-	return addElementWithText(parent, 'p', text);
-}
-
-function setText(element, text) {
-	deleteChildren(element);
-	element.appendChild(document.createTextNode(text));
 }
