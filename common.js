@@ -4,7 +4,7 @@ var ttss_urls = {
 	t: 'proxy_tram.php',
 	// t: 'http://www.ttss.krakow.pl/internetservice',
 	b: 'proxy_bus.php',
-	// b: 'http://91.223.13.70/internetservice',
+	// b: 'http://ttss.mpk.krakow.pl/internetservice',
 };
 var ttss_types = ['t', 'b'];
 

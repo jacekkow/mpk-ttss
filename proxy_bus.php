@@ -12,7 +12,7 @@ function is_number($str) {
 		);
 }
 
-$base_proxy = 'http://91.223.13.70/internetservice';
+$base_proxy = 'http://ttss.mpk.krakow.pl/internetservice';
 $method = [
 	'/services/lookup/autocomplete/json' => [
 		'query' => function() { return TRUE; },
