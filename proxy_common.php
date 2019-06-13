@@ -1,4 +1,9 @@
 <?php
+if(!isset($base_proxy)) {
+	echo 'This script is for inclusion only.';
+	die();
+}
+
 function is_number($str) {
 	$str = (string)$str;
 
@@ -12,7 +17,6 @@ function is_number($str) {
 		);
 }
 
-$base_proxy = 'http://www.ttss.krakow.pl/internetservice';
 $method = [
 	'/services/lookup/autocomplete/json' => [
 		'query' => function() { return TRUE; },
@@ -65,7 +69,7 @@ $method = [
 	],
 	'/geoserviceDispatcher/services/vehicleinfo/vehicles' => [
 		'lastUpdate' => 'ctype_digit',
-		'positionType' => function($type) { return in_array($type, ['RAW', 'CORRECTED']); },
+		'positionType' => function($type) { return in_array($type, ['CORRECTED', 'RAW']); },
 		'colorType' => function($type) { return in_array($type, ['ROUTE_BASED']); },
 	],
 ];
