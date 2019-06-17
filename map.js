@@ -193,7 +193,7 @@ function styleVehicle(vehicle, selected) {
 		fill = '#05B';
 	}
 	if(selected) {
-		fill = '#292';
+		fill = '#922';
 	}
 	
 	var image = '<svg xmlns="http://www.w3.org/2000/svg" height="30" width="20"><polygon points="10,0 20,23 0,23" style="fill:'+fill+';stroke:'+color_type+';stroke-width:3" /></svg>';
@@ -583,7 +583,19 @@ function featureClicked(feature) {
 	loader.colSpan = thead.childNodes.length;
 	
 	addParaWithText(div, typeName).className = 'type';
-	addParaWithText(div, name).className = 'name';
+	
+	var nameElement = addParaWithText(div, name + ' ');
+	nameElement.className = 'name';
+	
+	var showOnMapElement = addElementWithText(nameElement, 'a', lang.show_on_map);
+	var showOnMapFunction = function() {
+		setTimeout(function () {map.getView().animate({
+			center: feature.getGeometry().getCoordinates(),
+		})}, 10);
+	};
+	showOnMapElement.addEventListener('click', showOnMapFunction);
+	showOnMapElement.className = 'icon-zoom pad-left-icon';
+	showOnMapElement.title = lang.show_on_map;
 	
 	if(additional) {
 		div.appendChild(additional);
@@ -595,10 +607,7 @@ function featureClicked(feature) {
 		window.location.hash = '#!' + feature.getId();
 	}
 	
-	setTimeout(function () {map.getView().animate({
-		center: feature.getGeometry().getCoordinates(),
-	}) }, 10);
-	
+	showOnMapFunction();
 	
 	panel.show(div, function() {
 		if(!ignore_hashchange) {
@@ -937,11 +946,15 @@ function init() {
 	window.addEventListener('hashchange', hash);
 	
 	setTimeout(function() {
-		if(trams_xhr) trams_xhr.abort();
-		if(trams_timer) clearTimeout(trams_timer);
-		if(buses_xhr) buses_xhr.abort();
-		if(buses_timer) clearTimeout(buses_timer);
-		  
+		ttss_types.forEach(function(type) {
+			if(vehicles_xhr[type]) {
+				vehicles_xhr[type].abort();
+			}
+			if(vehicles_timer[type]) {
+				clearTimeout(vehicles_timer[type]);
+			}
+		});
+		
 		fail(lang.error_refresh);
 	}, 1800000);
 }

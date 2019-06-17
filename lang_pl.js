@@ -60,6 +60,7 @@ var lang = {
 		'l': 'Twoja lokalizacja',
 	},
 	
+	show_on_map: 'Pokaż na mapie',
 	select_feature: 'W tym miejscu znajduje się więcej niż jeden element. Wybierz właściwy z listy:',
 	departures_for_stop: 'Kliknij, by zobaczyć odjazdy dla całego przystanku (a nie tylko peronu).',
 	departures_for_trams: 'Przełącz na odjazdy tramwajów.',

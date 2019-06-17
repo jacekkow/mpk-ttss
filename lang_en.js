@@ -60,6 +60,7 @@ var lang = {
 		l: 'Your location',
 	},
 	
+	show_on_map: 'Show on map',
 	select_feature: 'There is more than one feature here. Select the proper one:',
 	departures_for_stop: 'Click for stop departures (and not only this stop point).',
 	departures_for_trams: 'Switch to tram departures.',
