@@ -659,6 +659,9 @@ function mapClicked(e) {
 			if(typeof typeName === 'undefined') {
 				typeName = '';
 			}
+			if(feature.get('vehicle_type')) {
+				typeName += ' ' + feature.get('vehicle_type').num;
+			}
 			
 			addElementWithText(a, 'span', typeName).className = 'small';
 			a.appendChild(document.createTextNode(' '));
