@@ -20,7 +20,7 @@ var vehicles_layer = {};
 var vehicles_info = {};
 
 var stops_xhr = null;
-var stops_ignored = ['131', '744', '1263'];
+var stops_ignored = ['131', '744', '1263', '3039'];
 var stops_style = {
 	'sb': new ol.style.Style({
 		image: new ol.style.Circle({
