@@ -165,10 +165,9 @@ function parseStatus(status) {
 }
 
 function parseTime(date, time) {
-	var result = new Date(date.getFullYear(), date.getMonth(), date.getDay());
+	var result = new Date(date.getTime());
 	var time_split = time.split(':');
-	result.setHours(time_split[0]);
-	result.setMinutes(time_split[1]);
+	result.setHours(time_split[0], time_split[1], 0);
 	
 	if(result.getTime() - date.getTime() > 72000000) {
 		result.setTime(result.getTime() - 86400000);
