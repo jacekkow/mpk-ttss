@@ -814,6 +814,7 @@ function init() {
 		});
 		vehicles_layer[type] = new ol.layer.Vector({
 			source: vehicles_source[type],
+			renderMode: 'image',
 		});
 		vehicles_last_update[type] = 0;
 	});
