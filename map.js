@@ -70,6 +70,7 @@ var route_layer = null;
 var map = null;
 
 var panel = null;
+var find = null;
 
 var fail_element = document.getElementById('fail');
 var fail_text = document.querySelector('#fail span');
@@ -143,6 +144,80 @@ Panel.prototype = {
 		this._element.classList.remove('enabled');
 	},
 };
+
+
+function Find() {
+	this.div = document.createElement('div');
+	
+	this.form = document.createElement('form');
+	this.div.appendChild(this.form);
+	
+	var para = addParaWithText(this.form, lang.enter_query);
+	para.appendChild(document.createElement('br'));
+	this.input = document.createElement('input');
+	this.input.type = 'text';
+	this.input.style.width = '80%';
+	para.appendChild(this.input);
+	para.appendChild(document.createElement('hr'));
+	
+	this.results = document.createElement('div');
+	this.div.appendChild(this.results);
+	
+	this.input.addEventListener('keyup', this.findDelay.bind(this));
+	this.form.addEventListener('submit', this.findDelay.bind(this));
+}
+Find.prototype = {
+	query: '',
+	timeout: null,
+	
+	div: null,
+	form: null,
+	input: null,
+	results: null,
+	
+	find: function() {
+		var query = this.input.value.toUpperCase();
+		if(query === this.query) return;
+		this.query = query;
+		
+		var features = [];
+		stops_type.forEach(function(stop_type) {
+			if(stop_type.substr(0,1) === 'p') return;
+			stops_source[stop_type].forEachFeature(function(feature) {
+				if(feature.get('name').toUpperCase().indexOf(query) > -1) {
+					features.push(feature);
+				}
+			});
+		});
+		
+		ttss_types.forEach(function(ttss_type) {
+			vehicles_source[ttss_type].forEachFeature(function(feature) {
+				if(feature.get('vehicle_type') && feature.get('vehicle_type').num.indexOf(query) > -1) {
+					features.push(feature);
+				}
+			});
+		});
+		
+		deleteChildren(this.results);
+		this.results.appendChild(listFeatures(features));
+	},
+	findDelay: function(e) {
+		e.preventDefault();
+		if(this.timeout) clearTimeout(this.timeout);
+		this.timeout = setTimeout(this.find.bind(this), 100);
+	},
+	open: function(panel) {
+		ignore_hashchange = true;
+		window.location.hash = '#!f';
+		
+		panel.show(this.div, this.close.bind(this));
+		this.input.focus();
+	},
+	close: function() {
+		if(this.timeout) clearTimeout(this.timeout);
+	},
+};
+
 
 function fail(msg) {
 	setText(fail_text, msg);
@@ -626,6 +701,41 @@ function featureClicked(feature) {
 	feature_clicked = feature;
 }
 
+function listFeatures(features) {
+	var div = document.createElement('div');
+	
+	addParaWithText(div, lang.select_feature);
+	
+	var feature, p, a, full_type, typeName;
+	for(var i = 0; i < features.length; i++) {
+		feature = features[i];
+		
+		p = document.createElement('p');
+		a = document.createElement('a');
+		p.appendChild(a);
+		a.addEventListener('click', function(feature) { return function() {
+			featureClicked(feature);
+		}}(feature));
+		
+		full_type = feature.getId().match(/^[a-z]+/)[0];
+		typeName = lang.types[full_type];
+		if(typeof typeName === 'undefined') {
+			typeName = '';
+		}
+		if(feature.get('vehicle_type')) {
+			typeName += ' ' + feature.get('vehicle_type').num;
+		}
+		
+		addElementWithText(a, 'span', typeName).className = 'small';
+		a.appendChild(document.createTextNode(' '));
+		addElementWithText(a, 'span', normalizeName(feature.get('name')));
+		
+		div.appendChild(p);
+	}
+	
+	return div;
+}
+
 function mapClicked(e) {
 	var point = e.coordinate;
 	var features = [];
@@ -638,40 +748,7 @@ function mapClicked(e) {
 	
 	if(features.length > 1) {
 		featureClicked();
-		
-		var div = document.createElement('div');
-		
-		addParaWithText(div, lang.select_feature);
-		
-		var p, a, full_type, typeName;
-		for(var i = 0; i < features.length; i++) {
-			feature = features[i];
-			
-			p = document.createElement('p');
-			a = document.createElement('a');
-			p.appendChild(a);
-			a.addEventListener('click', function(feature) { return function() {
-				featureClicked(feature);
-			}}(feature));
-			
-			full_type = feature.getId().match(/^[a-z]+/)[0];
-			typeName = lang.types[full_type];
-			if(typeof typeName === 'undefined') {
-				typeName = '';
-			}
-			if(feature.get('vehicle_type')) {
-				typeName += ' ' + feature.get('vehicle_type').num;
-			}
-			
-			addElementWithText(a, 'span', typeName).className = 'small';
-			a.appendChild(document.createTextNode(' '));
-			addElementWithText(a, 'span', normalizeName(feature.get('name')));
-			
-			div.appendChild(p);
-		}
-		
-		panel.show(div);
-		
+		panel.show(listFeatures(features));
 		return;
 	}
 	
@@ -720,6 +797,7 @@ function trackingToggle() {
 	}
 }
 
+
 function hash() {
 	if(ignore_hashchange) {
 		ignore_hashchange = false;
@@ -744,6 +822,9 @@ function hash() {
 		stopId = window.location.hash.substr(2,1) + 't' + window.location.hash.substr(3);
 	} else if(window.location.hash.match(/^#![sp][tb]-?[0-9]+$/)) {
 		stopId = window.location.hash.substr(2);
+	} else if(window.location.hash.match(/^#!f$/)) {
+		find.open(panel);
+		return;
 	}
 	
 	if(vehicleId) {
@@ -777,6 +858,7 @@ function returnClosest(point, f1, f2) {
 
 function init() {
 	panel = new Panel(document.getElementById('panel'));
+	find = new Find();
 	
 	route_source = new ol.source.Vector({
 		features: [],
@@ -869,6 +951,8 @@ function init() {
 		geolocation_button.remove();
 	});
 	geolocation_button.addEventListener('click', trackingToggle);
+	
+	document.getElementById('find').addEventListener('click', find.open.bind(find, panel));
 	
 	var layers = [
 		new ol.layer.Tile({

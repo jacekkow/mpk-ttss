@@ -9,6 +9,7 @@ var lang = {
 	action_expand: 'Rozwiń',
 	action_collapse: 'Zwiń',
 	
+	enter_query: 'Wpisz nazwę przystanku lub numer pojazdu:',
 	enter_stop_name_to_begin: 'Zacznij wpisywać nazwę przystanku.',
 	select_stop_click_go: 'Wyierz przystanek i kliknij "Dalej".',
 	select_stop_type: {
@@ -61,7 +62,8 @@ var lang = {
 	},
 	
 	show_on_map: 'Pokaż na mapie',
-	select_feature: 'W tym miejscu znajduje się więcej niż jeden element. Wybierz właściwy z listy:',
+	select_feature: 'Znaleziono więcej niż jeden element. Wybierz właściwy z listy:',
+	no_results: 'Nie udało się znaleźć pasujących elementów.',
 	departures_for_stop: 'Kliknij, by zobaczyć odjazdy dla całego przystanku (a nie tylko peronu).',
 	departures_for_trams: 'Przełącz na odjazdy tramwajów.',
 	departures_for_buses: 'Przełącz na odjazdy autobusów.',

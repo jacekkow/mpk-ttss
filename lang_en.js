@@ -9,6 +9,7 @@ var lang = {
 	action_expand: 'Expand',
 	action_collapse: 'Collapse',
 	
+	enter_query: 'Enter stop name or vehicle number:',
 	enter_stop_name_to_begin: 'Enter the stop name to begin.',
 	select_stop_click_go: 'Select the stop and click "Go".',
 	select_stop_type: {
@@ -61,7 +62,8 @@ var lang = {
 	},
 	
 	show_on_map: 'Show on map',
-	select_feature: 'There is more than one feature here. Select the proper one:',
+	select_feature: 'More than one feature was found. Select the proper one:',
+	no_results: 'Nothing was found.',
 	departures_for_stop: 'Click for stop departures (and not only this stop point).',
 	departures_for_trams: 'Switch to tram departures.',
 	departures_for_buses: 'Switch to bus departures.',
