@@ -344,7 +344,7 @@ function updateVehicles(prefix) {
 				if(vehicle_feature) {
 					vehicles_source[prefix].removeFeature(vehicle_feature);
 					if(feature_clicked && feature_clicked.getId() === vehicle_feature.getId()) {
-						featureClicked();
+						panel.close();
 					}
 				}
 				continue;
@@ -747,7 +747,6 @@ function mapClicked(e) {
 	var feature = features[0];
 	
 	if(features.length > 1) {
-		featureClicked();
 		panel.show(listFeatures(features));
 		return;
 	}
