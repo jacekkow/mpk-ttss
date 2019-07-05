@@ -135,25 +135,44 @@ html, body, #map {
 	float: right;
 }
 
-.pad-left-icon {
+.addon-icon {
 	margin-left: 0.2rem;
 }
-.icon-zoom {
+.normal-icon, .addon-icon {
+	font-size: 1rem;
+}
+.icon, .icon-loc, .icon-pin, .icon-zoom {
 	display: inline-block;
-	height: 1rem;
-	width: 1rem;
+	height: 1em;
+	width: 1em;
 	text-indent: 1rem;
 	overflow: hidden;
-	background-image: url(zoom.svg);
-	background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OTAiIGhlaWdodD0iNDkwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMzYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgZD0ibTI4MCwyNzhhMTUzLDE1MyAwIDEsMC0yLDJsMTcwLDE3MG0tOTEtMTE3IDExMCwxMTAtMjYsMjYtMTEwLTExMCIvPjwvc3ZnPgo=);
 	background-size: contain;
 	background-repeat: no-repeat;
+}
+.reverse {
+	filter: invert(100%);
+}
+.icon-loc {
+	background-image: url(icons/loc.svg);
+	background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCI+PHN0eWxlPip7c3Ryb2tlOmJsYWNrO3N0cm9rZS13aWR0aDo1O2ZpbGw6bm9uZX08L3N0eWxlPjxjaXJjbGUgY3g9IjQwIiBjeT0iNDAiIHI9IjI1Ij48L2NpcmNsZT48Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSIxMCIgc3R5bGU9ImZpbGw6YmxhY2s7Ij48L2NpcmNsZT48bGluZSB4MT0iNDAiIHkxPSIxNSIgeDI9IjQwIiB5Mj0iMCI+PC9saW5lPjxsaW5lIHgxPSI2NSIgeTE9IjQwIiB4Mj0iODAiIHkyPSI0MCI+PC9saW5lPjxsaW5lIHgxPSI0MCIgeTE9IjY1IiB4Mj0iNDAiIHkyPSI4MCI+PC9saW5lPjxsaW5lIHgxPSIxNSIgeTE9IjQwIiB4Mj0iMCIgeTI9IjQwIj48L2xpbmU+PC9zdmc+);
+}
+.icon-pin {
+	background-image: url(icons/pin.svg);
+	background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PHBhdGggZD0iTTMyLDY0TDE0LjE4NTUsMjkuMDkwOUEyMCwyMCAwIDEgMSA0OS44MTQ1LDI5LjA5MDlaTTQyLDIwQTEwLDEwIDAgMCAwIDIyLDIwQTEwLDEwIDAgMCAwIDQyLDIwIi8+PC9zdmc+);
+}
+.icon-zoom {
+	background-image: url(icons/zoom.svg);
+	background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OTAiIGhlaWdodD0iNDkwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMzYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgZD0ibTI4MCwyNzhhMTUzLDE1MyAwIDEsMC0yLDJsMTcwLDE3MG0tOTEtMTE3IDExMCwxMTAtMjYsMjYtMTEwLTExMCIvPjwvc3ZnPgo=);
 }
 
 #title {
 	top: .5em;
 	left: .5em;
-	padding: 2px .5em;
+	padding: 0 .5em;
+	font-size: 1.14em;
+	line-height: 1.4em;
+	height: 1.375em;
 	font-weight: bold;
 	background-color: rgba(255,255,255,.6);
 }
@@ -169,24 +188,27 @@ html, body, #map {
 	right: 0.5em;
 }
 .ol-zoom {
-	top: 2.2em;
+	top: 2.3em;
 }
-#track {
+#menu {
 	top: 6em;
 	left: 0.5em;
 }
-.ol-touch #track {
+.ol-touch #menu {
 	top: 7em;
 }
+#menu button {
+	border-radius: 0;
+}
+#menu button:first-child {
+	border-top-left-radius: 2px;
+	border-top-right-radius: 2px;
+}
+#menu button:last-child {
+	border-bottom-left-radius: 2px;
+	border-bottom-right-radius: 2px;
+}
 
-.ol-control button svg * {
-	stroke: white;
-	stroke-width: 5%;
-	fill: none;
-}
-.ol-control button svg .fill {
-	fill: white;
-}
 .ol-control button.clicked {
 	background-color: black;
 }

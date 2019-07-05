@@ -5,27 +5,22 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v5.3.0/css/ol.css" integrity="sha384-C7SzZySesoxngSK5V0BaD1DUap0LPZGWZpnXQGoIwvBXFc8G21y4s1QYvyr84FNa" crossorigin="anonymous">
-<link rel="stylesheet" href="map.css?v4" type="text/css" />
+<link rel="stylesheet" href="map.css?v5" type="text/css" />
 <link rel="manifest" href="map.manifest" />
 </head>
 <body>
 <div id="map">
 <div id="title" class="ol-unselectable ol-control"><a href="/">TTSS Kraków</a></div>
-<div id="track" class="ol-unselectable ol-control"><button type="button" title="GPS"><svg width="100%" height="100%">
-<circle cx="50%" cy="50%" r="25%"></circle>
-<circle cx="50%" cy="50%" r="10%" class="fill"></circle>
-<line x1="50%" y1="25%" x2="50%" y2="10%"></line>
-<line x1="75%" y1="50%" x2="90%" y2="50%"></line>
-<line x1="50%" y1="75%" x2="50%" y2="90%"></line>
-<line x1="25%" y1="50%" x2="10%" y2="50%"></line>
-</svg></button></div>
 <div id="fail" class="ol-unselectable ol-control"><span></span> <span class="close">×</p></div>
+<div id="menu" class="ol-unselectable ol-control">
+<button id="track" type="button" title="GPS"><span class="icon-loc reverse"></span></button>
+</div>
 </div>
 <div id="panel"></div>
 <script src="https://polyfill.io/v3/polyfill.min.js?features=Array.prototype.forEach,Array.prototype.includes,Array.prototype.map,Element.prototype.classList,Promise,String.prototype.startsWith,XMLHttpRequest,requestAnimationFrame"></script>
 <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v5.3.0/build/ol.js" integrity="sha384-iQkGyyH4ioz3m+maM3s9MX1Oq67mACa4B9Z3ovUv3Sv37LJ96fx3WnZfLoiC3Wfl" crossorigin="anonymous"></script>
 <script tyle="text/javascript" src="lang_pl.js?v9" id="lang_script"></script>
 <script tyle="text/javascript" src="common.js?v10"></script>
-<script tyle="text/javascript" src="map.js?v23"></script>
+<script tyle="text/javascript" src="map.js?v24"></script>
 </body>
 </html>

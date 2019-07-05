@@ -594,7 +594,7 @@ function featureClicked(feature) {
 		})}, 10);
 	};
 	showOnMapElement.addEventListener('click', showOnMapFunction);
-	showOnMapElement.className = 'icon-zoom pad-left-icon';
+	showOnMapElement.className = 'icon-pin addon-icon';
 	showOnMapElement.title = lang.show_on_map;
 	
 	if(additional) {
@@ -839,9 +839,9 @@ function init() {
 	geolocation_layer = new ol.layer.Vector({
 		source: geolocation_source,
 	});
-	geolocation_button = document.querySelector('#track button');
+	geolocation_button = document.querySelector('#track');
 	if(!navigator.geolocation) {
-		geolocation_button.classList.add('hidden');
+		geolocation_button.remove();
 	}
 	
 	geolocation = new ol.Geolocation({projection: 'EPSG:3857'});
@@ -866,7 +866,7 @@ function init() {
 	geolocation.on('error', function(error) {
 		fail(lang.error_location + ' ' + error.message);
 		trackingStop();
-		geolocation_button.classList.add('hidden');
+		geolocation_button.remove();
 	});
 	geolocation_button.addEventListener('click', trackingToggle);
 	
@@ -904,7 +904,7 @@ function init() {
 				element: fail_element,
 			}),
 			new ol.control.Control({
-				element: document.getElementById('track'),
+				element: document.getElementById('menu'),
 			}),
 		]),
 		loadTilesWhileAnimating: false,
