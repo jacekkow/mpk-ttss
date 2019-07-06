@@ -964,7 +964,9 @@ function init() {
 	
 	var layers = [
 		new ol.layer.Tile({
-			source: new ol.source.OSM(),
+			source: new ol.source.OSM({
+				url: 'https://tiles.ttss.pl/{z}/{x}/{y}.png',
+			}),
 		}),
 		route_layer,
 		geolocation_layer,
