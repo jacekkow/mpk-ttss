@@ -45,7 +45,9 @@ Deferred.prototype = {
 Deferred.all = function(iterable) {
 	return new Deferred(
 		Promise.all(
-			iterable.map(x => x.promise)
+			iterable.map(function(x) {
+				return x.promise;
+			})
 		)
 	);
 };
