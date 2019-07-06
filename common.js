@@ -59,6 +59,7 @@ var $ = {
 		var self = this;
 		var request = new XMLHttpRequest();
 		var promise = new Promise(function(resolve, reject) {
+			request.open('GET', url, true);
 			request.timeout = self.timeout;
 			request.onreadystatechange = function() {
 				if(this.readyState == 4) {
@@ -73,7 +74,6 @@ var $ = {
 					}
 				}
 			};
-			request.open('GET', url, true);
 			request.send();
 		});
 		return new Deferred(promise, request);
