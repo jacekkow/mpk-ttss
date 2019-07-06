@@ -5,7 +5,7 @@ html, body, #map {
 }
 
 #map {
-	position: absolute;
+	position: fixed;
 	top: 0;
 	left: 0;
 	right: 0;
@@ -28,7 +28,7 @@ html, body, #map {
 	
 	transition: right .4s, width .4s;
 	
-	position: absolute;
+	position: fixed;
 	width: 350px;
 	right: -365px;
 	top: 0;
