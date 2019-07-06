@@ -94,7 +94,7 @@ function Panel(element) {
 	
 	this._content = document.createElement('div');
 	this._element.appendChild(this._content);
-};
+}
 Panel.prototype = {
 	_element: null,
 	_hide: null,
@@ -591,6 +591,8 @@ function featureClicked(feature) {
 	}
 	// Vehicle
 	else if(ttss_types.includes(type)) {
+		styleVehicle(feature, true);
+		
 		var span = displayVehicle(feature.get('vehicle_type'));
 		
 		additional = document.createElement('p');
@@ -606,8 +608,6 @@ function featureClicked(feature) {
 		
 		vehicleTable(feature, tbody);
 		vehiclePath(feature);
-		
-		styleVehicle(feature, true);
 	}
 	// Stop or stop point
 	else if(['s', 'p'].includes(type)) {
@@ -709,7 +709,7 @@ function featureClicked(feature) {
 function listFeatures(features) {
 	var div = document.createElement('div');
 	
-	if(features.length == 0) {
+	if(features.length === 0) {
 		addParaWithText(div, lang.no_results);
 		return div;
 	}
