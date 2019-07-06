@@ -22,27 +22,28 @@ var special_directions = {
  ********/
 
 function Deferred(promise, request) {
-	return {
-		promise: promise,
-		request: request,
-		abort: function() {
-			request.abort.bind(request);
-			return Deferred(promise, request);
-		},
-		done: function(func) {
-			return Deferred(promise.then(func), request);
-		},
-		fail: function(func) {
-			return Deferred(promise.catch(func), request);
-		},
-		always: function(func) {
-			return Deferred(promise.finally(func), request);
-		},
-	};
+	this.promise = promise;
+	this.request = request;
 }
-
+Deferred.prototype = {
+	promise: null,
+	request: null,
+	abort: function() {
+		this.request.abort.bind(this.request);
+		return new Deferred(this.promise, this.request);
+	},
+	done: function(func) {
+		return new Deferred(this.promise.then(func), this.request);
+	},
+	fail: function(func) {
+		return new Deferred(this.promise.catch(func), this.request);
+	},
+	always: function(func) {
+		return new Deferred(this.promise.finally(func), this.request);
+	},
+};
 Deferred.all = function(iterable) {
-	return Deferred(
+	return new Deferred(
 		Promise.all(
 			iterable.map(x => x.promise)
 		)
@@ -73,7 +74,7 @@ var $ = {
 			request.open('GET', url, true);
 			request.send();
 		});
-		return Deferred(promise, request);
+		return new Deferred(promise, request);
 	},
 };
 
