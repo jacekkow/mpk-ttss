@@ -276,11 +276,12 @@ function styleVehicle(vehicle, selected) {
 		fill = '#922';
 	}
 	
-	var image = '<svg xmlns="http://www.w3.org/2000/svg" height="30" width="20"><polygon points="10,0 20,23 0,23" style="fill:'+fill+';stroke:'+color_type+';stroke-width:3" /></svg>';
+	var image = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="30"><polygon points="10,0 20,23 0,23" style="fill:'+fill+';stroke:'+color_type+';stroke-width:3"/></svg>';
 	
 	vehicle.setStyle(new ol.style.Style({
 		image: new ol.style.Icon({
 			src: 'data:image/svg+xml;base64,' + btoa(image),
+			imgSize: [20,30],
 			rotation: Math.PI * parseFloat(vehicle.get('heading') ? vehicle.get('heading') : 0) / 180.0,
 		}),
 		text: new ol.style.Text({
