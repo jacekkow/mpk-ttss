@@ -911,8 +911,6 @@ function init() {
 		vehicles_last_update[type] = 0;
 	});
 	
-	ol.style.IconImageCache.shared.setSize(512);
-	
 	geolocation_feature = new ol.Feature({
 		name: '',
 		style: new ol.style.Style({
