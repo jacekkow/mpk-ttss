@@ -180,6 +180,11 @@ Find.prototype = {
 		if(query === this.query) return;
 		this.query = query;
 		
+		if(query === '') {
+			deleteChildren(this.results);
+			return;
+		}
+		
 		var features = [];
 		stops_type.forEach(function(stop_type) {
 			if(stop_type.substr(0,1) === 'p') return;
@@ -703,6 +708,11 @@ function featureClicked(feature) {
 
 function listFeatures(features) {
 	var div = document.createElement('div');
+	
+	if(features.length == 0) {
+		addParaWithText(div, lang.no_results);
+		return div;
+	}
 	
 	addParaWithText(div, lang.select_feature);
 	
