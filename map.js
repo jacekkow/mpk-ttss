@@ -82,12 +82,12 @@ function Panel(element) {
 	this._element = element;
 	this._element.classList.add('panel');
 	
-	this._hide = addParaWithText(this._element, '▶');
+	this._hide = addElementWithText(this._element, 'a', '▶');
 	this._hide.title = lang.action_collapse;
 	this._hide.className = 'hide';
 	this._hide.addEventListener('click', this.toggleExpanded.bind(this));
 	
-	this._close = addParaWithText(this._element, '×');
+	this._close = addElementWithText(this._element, 'a', '×');
 	this._close.title = lang.action_close;
 	this._close.className = 'close';
 	this._close.addEventListener('click', this.close.bind(this));

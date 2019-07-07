@@ -17,6 +17,19 @@ html, body, #map {
 	right: auto;
 }
 
+.close, .hide {
+	float: right;
+	cursor: pointer;
+	font-size: 1.5em;
+	padding-left: 1em;
+	color: black;
+}
+#fail .close {
+	font-size: inherit;
+	height: 1em;
+	color: black;
+}
+
 .panel {
 	opacity: .85;
 	color: black;
@@ -37,9 +50,9 @@ html, body, #map {
 .panel.expanded {
 	right: 0;
 }
-
 .panel .hide {
 	display: none;
+	padding: 0px 1em;
 }
 .panel.enabled .hide {
 	display: block;
@@ -76,17 +89,6 @@ html, body, #map {
 		right: 80%;
 		margin-right: 10px;
 	}
-}
-
-.close, .hide {
-	float: right;
-	cursor: pointer;
-	font-size: 20px;
-	padding: 0px 10px;
-}
-#fail .close {
-	font-size: inherit;
-	height: 1em;
 }
 .panel .type {
 	padding-bottom: 0;
@@ -220,7 +222,7 @@ html, body, #map {
 	display: none;
 }
 
-a {
+a, .close:hover, .hide:hover {
 	color: #337ab7;
 	text-decoration: none;
 	cursor: pointer;
