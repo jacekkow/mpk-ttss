@@ -99,6 +99,13 @@ html, body, #map {
 }
 .panel .name {
 	font-weight: bold;
+	padding-bottom: 0;
+}
+.panel .name .icon {
+	margin: -5px 0.2rem 0;
+	text-indent: 2rem;
+	font-size: 1.4rem;
+	vertical-align: top;
 }
 .panel .vehicleInfo {
 	font-size: 21px;
@@ -135,17 +142,11 @@ html, body, #map {
 	float: right;
 }
 
-.addon-icon {
-	margin-left: 0.2rem;
-}
-.normal-icon, .addon-icon {
-	font-size: 1rem;
-}
 .icon, .icon-loc, .icon-pin, .icon-zoom {
 	display: inline-block;
 	height: 1em;
 	width: 1em;
-	text-indent: 1rem;
+	text-indent: 1.5em;
 	overflow: hidden;
 	background-size: contain;
 	background-repeat: no-repeat;

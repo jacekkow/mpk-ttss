@@ -675,7 +675,7 @@ function featureClicked(feature) {
 		})}, 10);
 	};
 	showOnMapElement.addEventListener('click', showOnMapFunction);
-	showOnMapElement.className = 'icon-pin addon-icon';
+	showOnMapElement.className = 'icon icon-pin';
 	showOnMapElement.title = lang.show_on_map;
 	
 	if(additional) {
