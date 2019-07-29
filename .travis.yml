@@ -16,5 +16,5 @@ before_script:
   - 'npm install nightwatch selenium-server chromedriver geckodriver'
 
 script:
-  - 'node_modules/.bin/nightwatch -e chrome-headless'
+# - 'node_modules/.bin/nightwatch -e chrome-headless'
   - 'node_modules/.bin/nightwatch -e firefox-headless'
