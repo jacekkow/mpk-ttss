@@ -12,7 +12,7 @@ module.exports = {
       'webdriver.chrome.driver': chromedriver.path,
       'webdriver.gecko.driver': geckodriver.path,
     },
-    check_process_delay: 1000,
+    check_process_delay: 5000,
   },
   test_settings: {
     'chrome': {
