@@ -91,10 +91,13 @@ var lang = {
 	help_hover_for_more: 'Hover the icon for more details.',
 	help_source: 'Source',
 	help_license: 'License',
+	help_data_attribution: 'Data: <a href="copyrights.html">ZTP w Krakowie</a>',
+	help_website_attribution: 'Strona: <a href="copyrights.html">Jacek Kowalski</a>',
 	
 	error_title: 'Error occured!',
 	error_request_failed: 'Internet request failed.',
 	error_request_failed_status: 'Internet request failed with error: $status.',
+	error_request_failed_no_data: 'No data on the server.',
 	error_request_failed_connectivity: 'Request failed - please check your network connectivity.',
 	error_new_version: 'Website has been updated, reloading...',
 	error_refresh: 'Error! Refresh the page to update information.',

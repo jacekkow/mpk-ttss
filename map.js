@@ -1,7 +1,7 @@
 'use strict';
 
-var ttss_refresh = 10000; // 10 seconds
-var ttss_position_type = 'RAW';
+var api_refresh = 10000; // 10 seconds
+var api_poll_url = 'http://127.0.0.1/sub';
 
 var geolocation = null;
 var geolocation_set = 0;
@@ -11,15 +11,9 @@ var geolocation_accuracy = null;
 var geolocation_source = null;
 var geolocation_layer = null;
 
-var vehicles_xhr = {};
-var vehicles_timer = {};
-var vehicles_last_update = {};
-var vehicles_source = {};
-var vehicles_layer = {};
+var vehicles = {};
+var hash = null;
 
-var vehicles_info = {};
-
-var stops_xhr = null;
 var stops_ignored = ['131', '744', '1263', '3039'];
 var stops_style = {
 	'sb': new ol.style.Style({
@@ -74,8 +68,6 @@ var find = null;
 
 var fail_element = document.getElementById('fail');
 var fail_text = document.querySelector('#fail span');
-
-var ignore_hashchange = false;
 
 
 function Panel(element) {
@@ -212,8 +204,7 @@ Find.prototype = {
 		this.timeout = setTimeout(this.find.bind(this), 100);
 	},
 	open: function(panel) {
-		ignore_hashchange = true;
-		window.location.hash = '#!f';
+		setHash('f');
 		
 		panel.show(this.div, this.close.bind(this));
 		this.input.focus();
@@ -223,6 +214,227 @@ Find.prototype = {
 	},
 };
 
+function Vehicles(prefix) {
+	this.prefix = prefix;
+	this.source = new ol.source.Vector({
+		features: [],
+	});
+	this.layer = new ol.layer.Vector({
+		source: this.source,
+	});
+}
+Vehicles.prototype = {
+	prefix: '',
+	
+	layer: null,
+	source: null,
+	
+	lastUpdate: 0,
+	xhr: null,
+	es: null,
+	
+	selectedFeatureId: null,
+	deselectCallback: null,
+	
+	style: function(feature, clicked) {
+		var color_type = 'black';
+		
+		var vehicleType = vehicles_info.getParsed(feature.getId());
+		if(vehicleType) {
+			switch(vehicleType.low) {
+				case 0:
+					color_type = 'orange';
+				break;
+				case 1:
+				case 2:
+					color_type = 'green';
+				break;
+			}
+		}
+		
+		var fill = '#B70';
+		if(this.prefix === 'b') {
+			fill = '#05B';
+		}
+		if(clicked) {
+			fill = '#922';
+		}
+		
+		var image = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="30"><polygon points="10,0 20,23 0,23" style="fill:'+fill+';stroke:'+color_type+';stroke-width:3"/></svg>';
+		
+		feature.setStyle(new ol.style.Style({
+			image: new ol.style.Icon({
+				src: 'data:image/svg+xml;base64,' + btoa(image),
+				imgSize: [20,30],
+				rotation: Math.PI * feature.get('angle') / 180.0,
+			}),
+			text: new ol.style.Text({
+				font: 'bold 10px sans-serif',
+				// TODO: special directions
+				// vehicle.line = vehicle.name.substr(0, vehicle_name_space);
+				// vehicle.direction = normalizeName(vehicle.name.substr(vehicle_name_space+1));
+				// if(special_directions[vehicle.direction]) {
+				// 	vehicle.line = special_directions[vehicle.direction];
+				// }
+				text: feature.get('name').substr(0, feature.get('name').indexOf(' ')),
+				fill: new ol.style.Fill({color: 'white'}),
+			}),
+		}));
+	},
+	select: function(feature, callback) {
+		if(feature instanceof ol.Feature) {
+			feature = feature.getId();
+		}
+		feature = this.source.getFeatureById(feature);
+		if(!feature) {
+			this.deselect();
+			return;
+		}
+		this.style(feature, true);
+		
+		this.selectedFeatureId = feature.getId();
+		this.deselectCallback = callback;
+	},
+	deselect: function() {
+		if(!this.selectedFeatureId) return false;
+		var feature = this.source.getFeatureById(this.selectedFeatureId);
+		this.style(feature);
+		
+		this._internalDeselect();
+	},
+	_internalDeselect: function() {
+		var callback = this.deselectCallback;
+		this.deselectCallback = null;
+		this.selectedFeatureId = null;
+		if(callback) callback();
+	},
+
+	typesUpdated: function() {
+		this.source.forEachFeature(function (feature) {
+			this.style(feature);
+		}.bind(this));
+	},
+
+	_newFeature: function(id, data) {
+		var feature = new ol.Feature();
+		feature.setId(this.prefix + id);
+		feature.setProperties(data);
+		feature.setGeometry(getGeometryPair(feature.get('pos')));
+		this.style(feature);
+		return feature;
+	},
+	loadFullData: function(data) {
+		var features = [];
+		for(var id in data) {
+			features.push(this._newFeature(id, data[id]));
+		}
+		this.source.clear();
+		this.source.addFeatures(features);
+		
+		if(this.selectedFeatureId) {
+			this.select(this.selectedFeatureId);
+		}
+	},
+	loadDiffData: function(data) {
+		for(var id in data) {
+			var feature = this.source.getFeatureById(this.prefix + id);
+			var vehicle = data[id];
+			
+			// TODO: handle vehicleInfo updates
+			
+			if(vehicle === null) {
+				if(feature) {
+					this.source.removeFeature(feature);
+					if (this.selectedFeatureId === feature.getId()) {
+						this._internalDeselect();
+					}
+				}
+			} else if(feature) {
+				var isPosModified = false;
+				Object.keys(vehicle).forEach(function (key) {
+					feature.set(key, deepMerge(feature.get(key), vehicle[key]));
+					if(key === 'pos') {
+						feature.setGeometry(getGeometryPair(feature.get('pos')));
+					} else if (key === 'angle') {
+						feature.getStyle().getImage().setRotation(Math.PI * parseFloat(vehicle.angle ? vehicle.angle : 0) / 180.0);
+					} else if (key === 'name') {
+						// TODO: Special directions
+						feature.getStyle().getText().setText(vehicle.name.substr(0, vehicle.name.indexOf(' ')));
+					}
+				});
+			} else {
+				this.source.addFeature(this._newFeature(id, data[id]));
+			}
+		}
+	},
+	
+	fetch: function() {
+		var self = this;
+		var result = this.fetchFull();
+
+		// TODO: XHR only as fallback
+		result.done(function() {
+			setTimeout(self.fetchDiff.bind(self), 1);
+		});
+		
+		// TODO: updates (EventSource)
+		// TODO: error handling (reconnect)
+		// TODO: error handling (indicator)
+		
+		return result;
+	},
+	fetchFull: function() {
+		var self = this;
+		this.xhr = $.get(
+			api_poll_url + '?id=' + this.prefix + '-full'
+		).done(function(data) {
+			try {
+				self.lastUpdate = this.request.getResponseHeader('Etag');
+				self.loadFullData(data);
+			} catch(e) {
+				console.log(e);
+				throw e;
+			}
+		}).fail(this.failXhr.bind(this));
+		return this.xhr;
+	},
+	fetchDiff: function() {
+		var self = this;
+		this.xhr = $.get(
+			api_poll_url + '?id=' + this.prefix + '-diff',
+			{'If-None-Match': this.lastUpdate}
+		).done(function(data) {
+			try {
+				if(this.request.status == 304) {
+					setTimeout(self.fetchDiff.bind(self), 1000);
+					return;
+				}
+				self.lastUpdate = this.request.getResponseHeader('Etag');
+				self.loadDiffData(data);
+				setTimeout(self.fetchDiff.bind(self), 1);
+			} catch(e) {
+				console.log(e);
+				throw e;
+			}
+		}).fail(this.failXhr.bind(this));
+		return this.xhr;
+	},
+	
+	failXhr: function(result) {
+		// abort() is not a failure
+		if(result.readyState === 0) return;
+		
+		if(result.status === 0) {
+			fail(lang.error_request_failed_connectivity, result);
+		} else if (result.status === 304) {
+			fail(lang.error_request_failed_no_data, result);
+		} if (result.statusText) {
+			fail(lang.error_request_failed_status.replace('$status', result.statusText), result);
+		} else {
+			fail(lang.error_request_failed, result);
+		}
+	},
+};
 
 function fail(msg) {
 	setText(fail_text, msg);
@@ -250,46 +462,11 @@ function fail_ajax_popup(data) {
 	fail_ajax_generic(data, panel.fail.bind(panel));
 }
 
-function getGeometry(object) {
-	return new ol.geom.Point(ol.proj.fromLonLat([object.longitude / 3600000.0, object.latitude / 3600000.0]));
+function getGeometryPair(pair) {
+	return new ol.geom.Point(ol.proj.fromLonLat(pair));
 }
-
-function styleVehicle(vehicle, selected) {
-	var color_type = 'black';
-	if(vehicle.get('vehicle_type')) {
-		switch(vehicle.get('vehicle_type').low) {
-			case 0:
-				color_type = 'orange';
-			break;
-			case 1:
-			case 2:
-				color_type = 'green';
-			break;
-		}
-	}
-	
-	var fill = '#B70';
-	if(vehicle.getId().startsWith('b')) {
-		fill = '#05B';
-	}
-	if(selected) {
-		fill = '#922';
-	}
-	
-	var image = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="30"><polygon points="10,0 20,23 0,23" style="fill:'+fill+';stroke:'+color_type+';stroke-width:3"/></svg>';
-	
-	vehicle.setStyle(new ol.style.Style({
-		image: new ol.style.Icon({
-			src: 'data:image/svg+xml;base64,' + btoa(image),
-			imgSize: [20,30],
-			rotation: Math.PI * parseFloat(vehicle.get('heading') ? vehicle.get('heading') : 0) / 180.0,
-		}),
-		text: new ol.style.Text({
-			font: 'bold 10px sans-serif',
-			text: vehicle.get('line'),
-			fill: new ol.style.Fill({color: 'white'}),
-		}),
-	}));
+function getGeometry(object) {
+	return getGeometryPair([object.longitude / 3600000.0, object.latitude / 3600000.0]);
 }
 
 function markStops(stops, ttss_type, routeStyle) {
@@ -326,65 +503,9 @@ function markStops(stops, ttss_type, routeStyle) {
 function unstyleSelectedFeatures() {
 	stop_selected_source.clear();
 	route_source.clear();
-	if(feature_clicked && ttss_types.includes(feature_clicked.getId().substr(0, 1))) {
-		styleVehicle(feature_clicked);
-	}
-}
-
-function updateVehicles(prefix) {
-	if(vehicles_timer[prefix]) clearTimeout(vehicles_timer[prefix]);
-	if(vehicles_xhr[prefix]) vehicles_xhr[prefix].abort();
-	vehicles_xhr[prefix] = $.get(
-		ttss_urls[prefix] + '/geoserviceDispatcher/services/vehicleinfo/vehicles'
-			+ '?positionType=' + ttss_position_type
-			+ '&colorType=ROUTE_BASED'
-			+ '&lastUpdate=' + encodeURIComponent(vehicles_last_update[prefix])
-	).done(function(data) {
-		vehicles_last_update[prefix] = data.lastUpdate;
-		
-		for(var i = 0; i < data.vehicles.length; i++) {
-			var vehicle = data.vehicles[i];
-			
-			var vehicle_feature = vehicles_source[prefix].getFeatureById(prefix + vehicle.id);
-			if(vehicle.isDeleted || !vehicle.latitude || !vehicle.longitude) {
-				if(vehicle_feature) {
-					vehicles_source[prefix].removeFeature(vehicle_feature);
-					if(feature_clicked && feature_clicked.getId() === vehicle_feature.getId()) {
-						panel.close();
-					}
-				}
-				continue;
-			}
-			
-			var vehicle_name_space = vehicle.name.indexOf(' ');
-			vehicle.line = vehicle.name.substr(0, vehicle_name_space);
-			vehicle.direction = normalizeName(vehicle.name.substr(vehicle_name_space+1));
-			if(special_directions[vehicle.direction]) {
-				vehicle.line = special_directions[vehicle.direction];
-			}
-			
-			vehicle.geometry = getGeometry(vehicle);
-			vehicle.vehicle_type = parseVehicle(prefix + vehicle.id);
-			
-			if(!vehicle_feature) {
-				vehicle_feature = new ol.Feature(vehicle);
-				vehicle_feature.setId(prefix + vehicle.id);
-				
-				styleVehicle(vehicle_feature);
-				vehicles_source[prefix].addFeature(vehicle_feature);
-			} else {
-				vehicle_feature.setProperties(vehicle);
-				vehicle_feature.getStyle().getImage().setRotation(Math.PI * parseFloat(vehicle.heading ? vehicle.heading : 0) / 180.0);
-				vehicle_feature.getStyle().getText().setText(vehicle.line);
-			}
-		}
-		
-		vehicles_timer[prefix] = setTimeout(function() {
-			updateVehicles(prefix);
-		}, ttss_refresh);
-	}).fail(fail_ajax);
-	
-	return vehicles_xhr[prefix];
+	ttss_types.forEach(function(type) {
+		vehicles[type].deselect();
+	});
 }
 
 function updateStopSource(stops, prefix) {
@@ -394,7 +515,7 @@ function updateStopSource(stops, prefix) {
 	for(var i = 0; i < stops.length; i++) {
 		stop = stops[i];
 		
-		if(stop.category == 'other') continue;
+		if(stop.category === 'other') continue;
 		if(stops_ignored.includes(stop.shortName)) continue;
 		
 		stop.geometry = getGeometry(stop);
@@ -467,7 +588,7 @@ function vehicleTable(feature, table) {
 	
 	feature_xhr = $.get(
 		ttss_urls[ttss_type] + '/services/tripInfo/tripPassages'
-			+ '?tripId=' + encodeURIComponent(feature.get('tripId'))
+			+ '?tripId=' + encodeURIComponent(feature.get('trip'))
 			+ '&mode=departure'
 	).done(function(data) {
 		if(typeof data.old === "undefined" || typeof data.actual === "undefined") {
@@ -506,7 +627,7 @@ function vehicleTable(feature, table) {
 		
 		markStops(stopsToMark, ttss_type, true);
 		
-		feature_timer = setTimeout(function() { vehicleTable(feature, table); }, ttss_refresh);
+		feature_timer = setTimeout(function() { vehicleTable(feature, table); }, api_refresh);
 	}).fail(fail_ajax_popup);
 	return feature_xhr;
 }
@@ -528,7 +649,7 @@ function stopTable(stopType, stopId, table, ttss_type) {
 			tr = document.createElement('tr');
 			addCellWithText(tr, all_departures[i].patternText);
 			dir_cell = addCellWithText(tr, normalizeName(all_departures[i].direction));
-			vehicle = parseVehicle(all_departures[i].vehicleId);
+			vehicle = vehicles_info.getParsed(all_departures[i].vehicleId);
 			dir_cell.appendChild(displayVehicle(vehicle));
 			status = parseStatus(all_departures[i]);
 			status_cell = addCellWithText(tr, status);
@@ -550,7 +671,7 @@ function stopTable(stopType, stopId, table, ttss_type) {
 			table.appendChild(tr);
 		}
 		
-		feature_timer = setTimeout(function() { stopTable(stopType, stopId, table, ttss_type); }, ttss_refresh);
+		feature_timer = setTimeout(function() { stopTable(stopType, stopId, table, ttss_type); }, api_refresh);
 	}).fail(fail_ajax_popup);
 	return feature_xhr;
 }
@@ -592,7 +713,7 @@ function featureClicked(feature) {
 	}
 	// Vehicle
 	else if(ttss_types.includes(type)) {
-		styleVehicle(feature, true);
+		vehicles[type].select(feature);
 		
 		var span = displayVehicle(feature.get('vehicle_type'));
 		
@@ -684,24 +805,19 @@ function featureClicked(feature) {
 	
 	if(tabular_data) {
 		div.appendChild(table);
-		ignore_hashchange = true;
-		window.location.hash = '#!' + feature.getId();
+		hash.set(feature.getId());
 	}
 	
 	showOnMapFunction();
 	
 	panel.show(div, function() {
-		if(!ignore_hashchange) {
-			ignore_hashchange = true;
-			window.location.hash = '';
-			
-			unstyleSelectedFeatures();
-			feature_clicked = null;
-			
-			if(path_xhr) path_xhr.abort();
-			if(feature_xhr) feature_xhr.abort();
-			if(feature_timer) clearTimeout(feature_timer);
-		}
+		hash.set('');
+		
+		unstyleSelectedFeatures();
+		
+		if(path_xhr) path_xhr.abort();
+		if(feature_xhr) feature_xhr.abort();
+		if(feature_timer) clearTimeout(feature_timer);
 	});
 	
 	feature_clicked = feature;
@@ -769,8 +885,8 @@ function mapClicked(e) {
 			}
 		});
 		ttss_types.forEach(function(type) {
-			if(vehicles_layer[type].getVisible()) {
-				feature = returnClosest(point, feature, vehicles_source[type].getClosestFeatureToCoordinate(point));
+			if(vehicles[type].layer.getVisible()) {
+				feature = returnClosest(point, feature, vehicles[type].source.getClosestFeatureToCoordinate(point));
 			}
 		});
 		
@@ -807,44 +923,76 @@ function trackingToggle() {
 	}
 }
 
-
-function hash() {
-	if(ignore_hashchange) {
-		ignore_hashchange = false;
-		return;
-	}
-	
-	var feature = null;
-	var vehicleId = null;
-	var stopId = null;
-	
-	if(window.location.hash.match(/^#!t[0-9]{3}$/)) {
-		vehicleId = depotIdToVehicleId(window.location.hash.substr(3), 't');
-	} else if(window.location.hash.match(/^#!b[0-9]{3}$/)) {
-		vehicleId = depotIdToVehicleId(window.location.hash.substr(3), 'b');
-	} else if(window.location.hash.match(/^#![A-Za-z]{2}[0-9]{3}$/)) {
-		vehicleId = depotIdToVehicleId(window.location.hash.substr(2));
-	} else if(window.location.hash.match(/^#!v-?[0-9]+$/)) {
-		vehicleId = 't' + window.location.hash.substr(3);
-	} else if(window.location.hash.match(/^#![tb]-?[0-9]+$/)) {
-		vehicleId = window.location.hash.substr(2);
-	} else if(window.location.hash.match(/^#![sp]-?[0-9]+$/)) {
-		stopId = window.location.hash.substr(2,1) + 't' + window.location.hash.substr(3);
-	} else if(window.location.hash.match(/^#![sp][tb]-?[0-9]+$/)) {
-		stopId = window.location.hash.substr(2);
-	} else if(window.location.hash.match(/^#!f$/)) {
-		find.open(panel);
-		return;
-	}
-	
-	if(vehicleId) {
-		feature = vehicles_source[vehicleId.substr(0, 1)].getFeatureById(vehicleId);
-	} else if(stopId) {
-		feature = stops_source[stopId.substr(0,2)].getFeatureById(stopId);
-	}
-	
-	featureClicked(feature);
+function Hash() {
 }
+Hash.prototype = {
+	_ignoreChange: false,
+	
+	_set: function(id) {
+		var value = '#!' + id;
+		if(value !== window.location.hash) {
+			window.location.hash = value;
+			return true;
+		}
+		return false;
+	},
+	_updateOld: function() {
+		if(window.location.hash.match(/^#!t[0-9]{3}$/)) {
+			this.go(depotIdToVehicleId(window.location.hash.substr(3), 't'));
+		} else if(window.location.hash.match(/^#!b[0-9]{3}$/)) {
+			this.go(depotIdToVehicleId(window.location.hash.substr(3), 'b'));
+		} else if(window.location.hash.match(/^#![A-Za-z]{2}[0-9]{3}$/)) {
+			this.go(depotIdToVehicleId(window.location.hash.substr(2)));
+		} else if(window.location.hash.match(/^#!v-?[0-9]+$/)) {
+			this.go('t' + window.location.hash.substr(3));
+		}
+	},
+	ready: function() {
+		this._updateOld();
+		this.changed();
+		window.addEventListener('hashchange', this.changed, false);
+	},
+	go: function(id) {
+		this._ignoreChange = false;
+		return this._set(id);
+	},
+	set: function(id) {
+		this._ignoreChange = true;
+		return this._set(id);
+	},
+	changed: function() {
+		if(this._ignoreChange) {
+			this._ignoreChange = false;
+			return false;
+		}
+		
+		var feature = null;
+		var vehicleId = null;
+		var stopId = null;
+		
+		if(window.location.hash.match(/^#![tb]-?[0-9]+$/)) {
+			vehicleId = window.location.hash.substr(2);
+		} else if(window.location.hash.match(/^#![sp]-?[0-9]+$/)) {
+			stopId = window.location.hash.substr(2,1) + 't' + window.location.hash.substr(3);
+		} else if(window.location.hash.match(/^#![sp][tb]-?[0-9]+$/)) {
+			stopId = window.location.hash.substr(2);
+		} else if(window.location.hash.match(/^#!f$/)) {
+			find.open(panel);
+			return;
+		}
+		
+		if(vehicleId) {
+			vehicles[vehicleId.substr(0, 1)].select(vehicleId);
+			return true;
+		} else if(stopId) {
+			feature = stops_source[stopId.substr(0,2)].getFeatureById(stopId);
+		}
+		
+		featureClicked(feature);
+		
+		return true;
+	},
+};
 
 function getDistance(c1, c2) {
 	if(c1.getGeometry) {
@@ -854,8 +1002,8 @@ function getDistance(c1, c2) {
 		c2 = c2.getGeometry().getCoordinates();
 	}
 	
-	var c1 = ol.proj.transform(c1, 'EPSG:3857', 'EPSG:4326');
-	var c2 = ol.proj.transform(c2, 'EPSG:3857', 'EPSG:4326');
+	c1 = ol.proj.transform(c1, 'EPSG:3857', 'EPSG:4326');
+	c2 = ol.proj.transform(c2, 'EPSG:3857', 'EPSG:4326');
 	return ol.sphere.getDistance(c1, c2);
 }
 
@@ -871,6 +1019,7 @@ function init() {
 	find = new Find();
 	
 	route_source = new ol.source.Vector({
+		attributions: [lang.help_data_attribution],
 		features: [],
 	});
 	route_layer = new ol.layer.Vector({
@@ -901,14 +1050,7 @@ function init() {
 	});
 	
 	ttss_types.forEach(function(type) {
-		vehicles_source[type] = new ol.source.Vector({
-			features: [],
-		});
-		vehicles_layer[type] = new ol.layer.Vector({
-			source: vehicles_source[type],
-			renderMode: 'image',
-		});
-		vehicles_last_update[type] = 0;
+		vehicles[type] = new Vehicles(type);
 	});
 	
 	geolocation_feature = new ol.Feature({
@@ -961,11 +1103,15 @@ function init() {
 	geolocation_button.addEventListener('click', trackingToggle);
 	
 	document.getElementById('find').addEventListener('click', find.open.bind(find, panel));
-	
+
+	var pixelRatio = ol.has.DEVICE_PIXEL_RATIO > 1 ? 2 : 1;
 	var layers = [
 		new ol.layer.Tile({
-			source: new ol.source.OSM({
-				url: 'https://tiles.ttss.pl/{z}/{x}/{y}.png',
+			source: new ol.source.XYZ({
+				attributions: [ol.source.OSM.ATTRIBUTION],
+				url: 'https://tiles.ttss.pl/x' + pixelRatio + '/{z}/{x}/{y}.png',
+				maxZoom: 19,
+				tilePixelRatio: pixelRatio,
 			}),
 		}),
 		route_layer,
@@ -976,7 +1122,7 @@ function init() {
 	});
 	layers.push(stop_selected_layer);
 	ttss_types.forEach(function(type) {
-		layers.push(vehicles_layer[type]);
+		layers.push(vehicles[type].layer);
 	});
 	map = new ol.Map({
 		target: 'map',
@@ -1031,17 +1177,18 @@ function init() {
 	change_resolution();
 	
 	var future_requests = [
-		updateVehicleInfo(),
+		vehicles_info.update(),
 	];
 	ttss_types.forEach(function(type) {
-		future_requests.push(updateVehicles(type));
+		vehicles_info.addWatcher(vehicles[type].typesUpdated.bind(vehicles[type]));
+		future_requests.push(vehicles[type].fetch());
 	});
 	stops_type.forEach(function(type) {
 		future_requests.push(updateStops(type.substr(0,1), type.substr(1,1)));
 	});
-	Deferred.all(future_requests).done(hash);
 	
-	window.addEventListener('hashchange', hash);
+	hash = new Hash();
+	Deferred.all(future_requests).done(hash.ready.bind(hash));
 	
 	setTimeout(function() {
 		ttss_types.forEach(function(type) {

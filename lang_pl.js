@@ -91,10 +91,13 @@ var lang = {
 	help_hover_for_more: 'Najedź na ikonę, by uzyskać więcej informacji.',
 	help_source: 'Kod źródłowy',
 	help_license: 'Licencja',
+	help_data_attribution: 'Dane: <a href="copyrights.html">ZTP w Krakowie</a>',
+	help_website_attribution: 'Strona: <a href="copyrights.html">Jacek Kowalski</a>',
 	
 	error_title: 'Wystąpił błąd!',
 	error_request_failed: 'Wykonanie żądania internetowego nie udało się.',
 	error_request_failed_status: 'Wykonanie żądania internetowego nie udało się. Błąd: $status.',
+	error_request_failed_no_data: 'Brak danych na serwerze.',
 	error_request_failed_connectivity: 'Wykonanie żądania internetowego nie udało się - sprawdź połączenie z siecią.',
 	error_new_version: 'Strona została zaktualizowana, przeładowuję...',
 	error_refresh: 'Błąd! Odśwież stronę, by zaktualizować dane.',

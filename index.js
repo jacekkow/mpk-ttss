@@ -195,7 +195,7 @@ function loadTimes(stopId) {
 	var candidate;
 	for(var i = 0; i < stop_name_autocomplete.options.length; i++) {
 		candidate = stop_name_autocomplete.options[i].value;
-		if(candidate.substr(0, 1) != prefix && candidate.substr(1) == stop) {
+		if(candidate.substr(0, 1) !== prefix && candidate.substr(1) == stop) {
 			alternative_stop = candidate;
 			break;
 		}
@@ -215,7 +215,7 @@ function loadTimes(stopId) {
 		
 		if(alternative_stop !== null) {
 			var a = addParaWithText(times_alerts, '');
-			a = addElementWithText(a, 'a', (prefix == 'b' ? lang.departures_for_trams : lang.departures_for_buses));
+			a = addElementWithText(a, 'a', (prefix === 'b' ? lang.departures_for_trams : lang.departures_for_buses));
 			a.href = '';
 			a.onclick = function(e) {
 				e.preventDefault();
@@ -235,7 +235,7 @@ function loadTimes(stopId) {
 			tr = document.createElement('tr');
 			addCellWithText(tr, all_departures[i].patternText);
 			dir_cell = addCellWithText(tr, all_departures[i].direction);
-			vehicle = parseVehicle(prefix + all_departures[i].vehicleId);
+			vehicle = vehicles_info.getParsed(prefix + all_departures[i].vehicleId);
 			dir_cell.appendChild(displayVehicle(vehicle));
 			addCellWithText(tr, (vehicle ? vehicle.num : '')).className = 'vehicleData';
 			status = parseStatus(all_departures[i]);
@@ -419,7 +419,7 @@ function init() {
 		setText(vehicle_data_style, '.vehicleData { display: table-cell; }')
 	});
 	
-	updateVehicleInfo()
+	vehicles_info.update();
 	
 	hash();
 	

@@ -33,13 +33,13 @@ Deferred.prototype = {
 		return new Deferred(this.promise, this.request);
 	},
 	done: function(func) {
-		return new Deferred(this.promise.then(func), this.request);
+		return new Deferred(this.promise.then(func.bind(this)), this.request);
 	},
 	fail: function(func) {
-		return new Deferred(this.promise.catch(func), this.request);
+		return new Deferred(this.promise.catch(func.bind(this)), this.request);
 	},
 	always: function(func) {
-		return new Deferred(this.promise.finally(func), this.request);
+		return new Deferred(this.promise.finally(func.bind(this)), this.request);
 	},
 };
 Deferred.all = function(iterable) {
@@ -55,16 +55,23 @@ Deferred.all = function(iterable) {
 var $ = {
 	timeout: 10000,
 	dataType: 'json',
-	get: function(url) {
+	get: function(url, headers) {
 		var self = this;
 		var request = new XMLHttpRequest();
 		var promise = new Promise(function(resolve, reject) {
 			request.open('GET', url, true);
+			if(headers) {
+				Object.keys(headers).forEach(function (header) {
+					request.setRequestHeader(header, headers[header]);
+				});
+			}
 			request.timeout = self.timeout;
 			request.onreadystatechange = function() {
 				if(this.readyState == 4) {
-					if(this.status == 200) {
-						if(self.dataType == 'json') {
+					if(this.status == 304) {
+						resolve();
+					} else if(this.status == 200) {
+						if(self.dataType === 'json') {
 							resolve(JSON.parse(this.responseText));
 						} else {
 							resolve(this.responseText);
@@ -88,8 +95,6 @@ var $ = {
 var script_version;
 var script_version_xhr;
 
-var vehicles_info = {};
-
 function checkVersion() {
 	if(script_version_xhr) script_version_xhr.abort();
 	
@@ -111,6 +116,23 @@ function checkVersion() {
 function checkVersionInit() {
 	checkVersion();
 	setInterval(checkVersion, 3600000);
+}
+
+/**********
+ * ARRAYS *
+ **********/
+
+function deepMerge(a1, a2) {
+	if(typeof a1 !== 'object' || typeof a2 !== 'object') {
+		return a2;
+	}
+	Object.keys(a2).forEach(function (key) {
+		a1[key] = deepMerge(a1[key], a2[key]);
+		if(a1[key] === null) {
+			delete a1[key];
+		}
+	});
+	return a1;
 }
 
 
@@ -141,6 +163,69 @@ function setText(element, text) {
 	deleteChildren(element);
 	element.appendChild(document.createTextNode(text));
 }
+
+
+/*****************
+ * VEHICLES INFO *
+ *****************/
+
+function VehiclesInfo() {
+	this.data = {};
+	this.watchers = [];
+}
+VehiclesInfo.prototype = {
+	update: function () {
+		return $.get(
+			'https://mpk.jacekk.net/vehicles/'
+		).done(function(data) {
+			this.data = data;
+			this.watchers.forEach(function(watcher) {
+				watcher(this);
+			});
+		}.bind(this));
+	},
+	addWatcher: function(callback) {
+		this.watchers.push(callback);
+	},
+
+	get: function(vehicleId) {
+		if(!vehicleId) return false;
+		if(typeof this.data[vehicleId] === "undefined") {
+			return false;
+		}
+		return this.data[vehicleId];
+	},
+	getParsed: function (vehicleId) {
+		var vehicle = this.get(vehicleId);
+		if(!vehicle) return false;
+		return {
+			vehicleId: vehicleId,
+			prefix: vehicle['num'].substr(0, 2),
+			id: vehicle['num'].substr(2, 3),
+			num: vehicle['num'],
+			type: vehicle['type'],
+			low: vehicle['low']
+		};
+	},
+	depotIdToVehicleId: function(depotId, typeHelper) {
+		var prop;
+		depotId = depotId.toString();
+		if(typeHelper) {
+			for(prop in this.data) {
+				if(prop.substr(0,1) === typeHelper && this.data[prop]['num'].substr(2) === depotId) {
+					return prop;
+				}
+			}
+		} else {
+			for(prop in this.data) {
+				if(this.data[prop]['num'] === depotId) {
+					return prop;
+				}
+			}
+		}
+	},
+};
+var vehicles_info = new VehiclesInfo();
 
 
 /***********
@@ -194,48 +279,6 @@ function parseDelay(status) {
 	return lang.time_minutes_prefix + ((actual.getTime() - planned.getTime()) / 1000 / 60) + lang.time_minutes_suffix;
 }
 
-function parseVehicle(vehicleId) {
-	if(!vehicleId) return false;
-	if(!vehicles_info || !vehicles_info[vehicleId]) {
-		return false;
-	} else {
-		var vehicle = vehicles_info[vehicleId];
-		return {
-			vehicleId: vehicleId,
-			prefix: vehicle['num'].substr(0, 2),
-			id: vehicle['num'].substr(2, 3),
-			num: vehicle['num'],
-			type: vehicle['type'],
-			low: vehicle['low']
-		};
-	}
-}
-
-function updateVehicleInfo() {
-	return $.get(
-		'https://mpk.jacekk.net/vehicles/'
-	).done(function(data) {
-		vehicles_info = data;
-	});
-}
-
-function depotIdToVehicleId(depotId, typeHelper) {
-	var prop;
-	if(typeHelper) {
-		for(prop in vehicles_info) {
-			if(prop.substr(0,1) == typeHelper && vehicles_info[prop]['num'].substr(2) == depotId) {
-				return prop;
-			}
-		}
-	} else {
-		for(prop in vehicles_info) {
-			if(vehicles_info[prop]['num'] == depotId) {
-				return prop;
-			}
-		}
-	}
-}
-
 function displayVehicle(vehicleInfo) {
 	if(!vehicleInfo) return document.createTextNode('');
 	
@@ -243,13 +286,13 @@ function displayVehicle(vehicleInfo) {
 	span.className = 'vehicleInfo';
 	
 	var floor_type = '';
-	if(vehicleInfo.low == 0) {
+	if(vehicleInfo.low === 0) {
 		setText(span, lang.high_floor_sign);
 		floor_type = lang.high_floor;
-	} else if(vehicleInfo.low == 1) {
+	} else if(vehicleInfo.low === 1) {
 		setText(span, lang.partially_low_floor_sign);
 		floor_type = lang.partially_low_floor;
-	} else if(vehicleInfo.low == 2) {
+	} else if(vehicleInfo.low === 2) {
 		setText(span, lang.low_floor_sign);
 		floor_type = lang.low_floor;
 	}
