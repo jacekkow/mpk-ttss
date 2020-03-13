@@ -962,10 +962,14 @@ function init() {
 	
 	document.getElementById('find').addEventListener('click', find.open.bind(find, panel));
 	
+	var hidpi = ol.has.DEVICE_PIXEL_RATIO > 1;
 	var layers = [
 		new ol.layer.Tile({
-			source: new ol.source.OSM({
-				url: 'https://tiles.ttss.pl/{z}/{x}/{y}.png',
+			source: new ol.source.XYZ({
+				attributions: [ol.source.OSM.ATTRIBUTION],
+				url: 'http://10.12.16.142:8080/tiles/mapnik_'+(hidpi ? 'x2' : 'x1')+'/webmercator_'+(hidpi ? 'x2' : 'x1')+'/{z}/{x}/{y}.png',
+				maxZoom: 19,
+				tilePixelRatio: (hidpi ? 2 : 1),
 			}),
 		}),
 		route_layer,
