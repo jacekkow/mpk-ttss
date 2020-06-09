@@ -1113,6 +1113,7 @@ function init() {
 				url: 'https://tiles.ttss.pl/x' + pixelRatio + '/{z}/{x}/{y}.png',
 				maxZoom: 19,
 				tilePixelRatio: pixelRatio,
+				opaque: false,
 			}),
 		}),
 		route_layer,
@@ -1132,6 +1133,7 @@ function init() {
 			center: ol.proj.fromLonLat([19.94, 50.06]),
 			zoom: 14,
 			maxZoom: 19,
+			constrainResolution: true,
 		}),
 		controls: ol.control.defaults({
 			attributionOptions: ({
