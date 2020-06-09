@@ -2,6 +2,7 @@
 
 var api_refresh = 10000; // 10 seconds
 var api_poll_url = 'http://127.0.0.1/sub';
+var api_poll_refresh = 1000;
 
 var geolocation = null;
 var geolocation_set = 0;
@@ -406,7 +407,7 @@ Vehicles.prototype = {
 		).done(function(data) {
 			try {
 				if(this.request.status == 304) {
-					setTimeout(self.fetchDiff.bind(self), 1000);
+					setTimeout(self.fetchDiff.bind(self), api_poll_refresh);
 					return;
 				}
 				self.lastUpdate = this.request.getResponseHeader('Etag');
