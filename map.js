@@ -87,17 +87,22 @@ function Panel(element) {
 	this._hide.className = 'hide';
 	this._hide.addEventListener('click', this.toggleExpanded.bind(this));
 	
-	this._close = addElementWithText(this._element, 'a', '×');
+	this._container = document.createElement('div');
+	this._container.className = 'panel-container';
+	
+	this._close = addElementWithText(this._container, 'a', '×');
 	this._close.title = lang.action_close;
 	this._close.className = 'close';
 	this._close.addEventListener('click', this.close.bind(this));
 	
 	this._content = document.createElement('div');
-	this._element.appendChild(this._content);
+	this._container.appendChild(this._content);
+	this._element.appendChild(this._container);
 }
 Panel.prototype = {
 	_element: null,
 	_hide: null,
+	_container: null,
 	_close: null,
 	_content: null,
 	

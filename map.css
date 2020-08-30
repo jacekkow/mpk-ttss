@@ -33,17 +33,17 @@ html, body, #map {
 .panel {
 	opacity: .85;
 	color: black;
+	padding: 0;
 	background: white;
-	padding: 5px;
 	border-left: 1px solid black;
 	font-size: 14px;
-	overflow-y: auto;
 	
 	transition: right .4s, width .4s;
 	
+	height: 100%;
+	width: 360px;
 	position: fixed;
-	width: 350px;
-	right: -365px;
+	right: -361px;
 	top: 0;
 	bottom: 0;
 }
@@ -52,10 +52,6 @@ html, body, #map {
 }
 .panel .hide {
 	display: none;
-	padding: 0px 1em;
-}
-.panel.enabled .hide {
-	display: block;
 	
 	position: fixed;
 	bottom: 20%;
@@ -72,10 +68,18 @@ html, body, #map {
 	
 	transition: right .4s, margin-right .4s;
 }
+.panel.enabled .hide {
+	display: block;
+}
 .panel.expanded .hide {
 	right: 360px;
 }
-
+.panel .panel-container {
+	overflow-y: auto;
+	box-sizing: border-box;
+	padding: 5px;
+	height: 100%;
+}
 @media (max-width: 600px) {
 	.panel {
 		width: 80%;
@@ -87,7 +91,6 @@ html, body, #map {
 	
 	.panel.enabled.expanded .hide {
 		right: 80%;
-		margin-right: 10px;
 	}
 }
 .panel .type {
