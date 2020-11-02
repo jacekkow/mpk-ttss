@@ -322,10 +322,10 @@ Vehicles.prototype = {
 	},
 	_removeFeature: function(feature) {
 		if(!feature) return;
-		this.source.removeFeature(feature);
 		if(this.selectedFeatureId === feature.getId()) {
 			this.deselect();
 		}
+		this.source.removeFeature(feature);
 	},
 	loadFullData: function(data) {
 		var self = this;
