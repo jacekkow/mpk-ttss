@@ -188,7 +188,7 @@ Find.prototype = {
 		});
 		
 		ttss_types.forEach(function(ttss_type) {
-			vehicles_source[ttss_type].forEachFeature(function(feature) {
+			vehicles[ttss_type].source.forEachFeature(function(feature) {
 				if(feature.get('vehicle_type') && feature.get('vehicle_type').num.indexOf(query) > -1) {
 					features.push(feature);
 				}
