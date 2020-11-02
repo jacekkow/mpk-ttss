@@ -50,8 +50,8 @@ var lang = {
 	
 	types: {
 		'v': 'Pojazd',
-		'b': 'Autobus',
-		't': 'Tramwaj',
+		'vb': 'Autobus',
+		'vt': 'Tramwaj',
 		's': 'Przystanek',
 		'sb': 'Przystanek autobusowy',
 		'st': 'Przystanek tramwajowy',

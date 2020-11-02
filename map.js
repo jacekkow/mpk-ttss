@@ -1,8 +1,7 @@
 'use strict';
 
 var api_refresh = 10000; // 10 seconds
-var api_poll_url = 'http://127.0.0.1/sub';
-var api_poll_refresh = 1000;
+var api_url = 'https://api.ttss.pl';
 
 var geolocation = null;
 var geolocation_set = 0;
@@ -15,7 +14,6 @@ var geolocation_layer = null;
 var vehicles = {};
 var hash = null;
 
-var stops_ignored = ['131', '744', '1263', '3039'];
 var stops_style = {
 	'sb': new ol.style.Style({
 		image: new ol.style.Circle({
@@ -54,7 +52,6 @@ var stops_layer = {};
 var stop_selected_source = null;
 var stop_selected_layer = null;
 
-var feature_clicked = null;
 var feature_xhr = null;
 var feature_timer = null;
 var path_xhr = null;
@@ -121,7 +118,9 @@ Panel.prototype = {
 	fail: function(message) {
 		addParaWithText(this._content, message).className = 'error';
 	},
-	show: function(contents, closeCallback) {
+	show: function(contents, closeCallback, hashValue) {
+		hash.set(hashValue ? hashValue : '');
+		
 		this._runCallback();
 		this.closeCallback = closeCallback;
 		
@@ -205,9 +204,7 @@ Find.prototype = {
 		this.timeout = setTimeout(this.find.bind(this), 100);
 	},
 	open: function(panel) {
-		setHash('f');
-		
-		panel.show(this.div, this.close.bind(this));
+		panel.show(this.div, this.close.bind(this), 'f');
 		this.input.focus();
 	},
 	close: function() {
@@ -240,7 +237,7 @@ Vehicles.prototype = {
 	style: function(feature, clicked) {
 		var color_type = 'black';
 		
-		var vehicleType = vehicles_info.getParsed(feature.getId());
+		var vehicleType = feature.get('type');
 		if(vehicleType) {
 			switch(vehicleType.low) {
 				case 0:
@@ -277,12 +274,12 @@ Vehicles.prototype = {
 				// if(special_directions[vehicle.direction]) {
 				// 	vehicle.line = special_directions[vehicle.direction];
 				// }
-				text: feature.get('name').substr(0, feature.get('name').indexOf(' ')),
+				text: feature.get('line'),
 				fill: new ol.style.Fill({color: 'white'}),
 			}),
 		}));
 	},
-	select: function(feature, callback) {
+	select: function(feature) {
 		if(feature instanceof ol.Feature) {
 			feature = feature.getId();
 		}
@@ -294,20 +291,12 @@ Vehicles.prototype = {
 		this.style(feature, true);
 		
 		this.selectedFeatureId = feature.getId();
-		this.deselectCallback = callback;
 	},
 	deselect: function() {
 		if(!this.selectedFeatureId) return false;
 		var feature = this.source.getFeatureById(this.selectedFeatureId);
 		this.style(feature);
-		
-		this._internalDeselect();
-	},
-	_internalDeselect: function() {
-		var callback = this.deselectCallback;
-		this.deselectCallback = null;
 		this.selectedFeatureId = null;
-		if(callback) callback();
 	},
 
 	typesUpdated: function() {
@@ -317,20 +306,50 @@ Vehicles.prototype = {
 	},
 
 	_newFeature: function(id, data) {
-		var feature = new ol.Feature();
-		feature.setId(this.prefix + id);
-		feature.setProperties(data);
-		feature.setGeometry(getGeometryPair(feature.get('pos')));
+		var feature = new ol.Feature(data);
+		feature.set('_', 'v' + this.prefix);
+		feature.setId(id);
+		feature.setGeometry(getGeometryFeature(feature));
 		this.style(feature);
 		return feature;
 	},
+	_updateFeature: function(feature, vehicle) {
+		Object.keys(vehicle).forEach(function (key) {
+			feature.set(key, deepMerge(feature.get(key), vehicle[key]));
+			if(key === 'lon' || key === 'lat') {
+				feature.setGeometry(getGeometryFeature(feature));
+			} else if(key === 'angle') {
+				feature.getStyle().getImage().setRotation(Math.PI * parseFloat(vehicle.angle ? vehicle.angle : 0) / 180.0);
+			} else if(key === 'line') {
+				// TODO: Special directions
+				feature.getStyle().getText().setText(vehicle.line);
+			}
+		});
+	},
+	_removeFeature: function(feature) {
+		if(!feature) return;
+		this.source.removeFeature(feature);
+		if(this.selectedFeatureId === feature.getId()) {
+			this.deselect();
+		}
+	},
 	loadFullData: function(data) {
+		var self = this;
 		var features = [];
 		for(var id in data) {
-			features.push(this._newFeature(id, data[id]));
+			var feature = this.source.getFeatureById(id);
+			if(feature) {
+				this._updateFeature(feature, data[id]);
+			} else {
+				features.push(this._newFeature(id, data[id]));
+			}
 		}
-		this.source.clear();
 		this.source.addFeatures(features);
+		this.source.forEachFeature(function(feature) {
+			if(!data[feature.getId()]) {
+				self._removeFeature(feature);
+			}
+		});
 		
 		if(this.selectedFeatureId) {
 			this.select(this.selectedFeatureId);
@@ -338,31 +357,13 @@ Vehicles.prototype = {
 	},
 	loadDiffData: function(data) {
 		for(var id in data) {
-			var feature = this.source.getFeatureById(this.prefix + id);
+			var feature = this.source.getFeatureById(id);
 			var vehicle = data[id];
 			
-			// TODO: handle vehicleInfo updates
-			
 			if(vehicle === null) {
-				if(feature) {
-					this.source.removeFeature(feature);
-					if (this.selectedFeatureId === feature.getId()) {
-						this._internalDeselect();
-					}
-				}
+				this._removeFeature(feature);
 			} else if(feature) {
-				var isPosModified = false;
-				Object.keys(vehicle).forEach(function (key) {
-					feature.set(key, deepMerge(feature.get(key), vehicle[key]));
-					if(key === 'pos') {
-						feature.setGeometry(getGeometryPair(feature.get('pos')));
-					} else if (key === 'angle') {
-						feature.getStyle().getImage().setRotation(Math.PI * parseFloat(vehicle.angle ? vehicle.angle : 0) / 180.0);
-					} else if (key === 'name') {
-						// TODO: Special directions
-						feature.getStyle().getText().setText(vehicle.name.substr(0, vehicle.name.indexOf(' ')));
-					}
-				});
+				this._updateFeature(feature, vehicle);
 			} else {
 				this.source.addFeature(this._newFeature(id, data[id]));
 			}
@@ -371,48 +372,27 @@ Vehicles.prototype = {
 	
 	fetch: function() {
 		var self = this;
-		var result = this.fetchFull();
-
-		// TODO: XHR only as fallback
-		result.done(function() {
-			setTimeout(self.fetchDiff.bind(self), 1);
-		});
+		var result = this.fetchXhr();
 		
 		// TODO: updates (EventSource)
-		// TODO: error handling (reconnect)
+		// TODO: error ahandling (reconnect)
 		// TODO: error handling (indicator)
 		
 		return result;
 	},
-	fetchFull: function() {
+	fetchXhr: function() {
 		var self = this;
 		this.xhr = $.get(
-			api_poll_url + '?id=' + this.prefix + '-full'
+			api_url + '/positions/?type=' + this.prefix + '&last=' + this.lastUpdate
 		).done(function(data) {
 			try {
-				self.lastUpdate = this.request.getResponseHeader('Etag');
-				self.loadFullData(data);
-			} catch(e) {
-				console.log(e);
-				throw e;
-			}
-		}).fail(this.failXhr.bind(this));
-		return this.xhr;
-	},
-	fetchDiff: function() {
-		var self = this;
-		this.xhr = $.get(
-			api_poll_url + '?id=' + this.prefix + '-diff',
-			{'If-None-Match': this.lastUpdate}
-		).done(function(data) {
-			try {
-				if(this.request.status == 304) {
-					setTimeout(self.fetchDiff.bind(self), api_poll_refresh);
-					return;
+				if(data['type'] == 'full') {
+					self.loadFullData(data['pos']);
+				} else {
+					self.loadDiffData(data['pos']);
 				}
-				self.lastUpdate = this.request.getResponseHeader('Etag');
-				self.loadDiffData(data);
-				setTimeout(self.fetchDiff.bind(self), 1);
+				self.lastUpdate = data['last'];
+				setTimeout(self.fetchXhr.bind(self), api_refresh);
 			} catch(e) {
 				console.log(e);
 				throw e;
@@ -427,9 +407,9 @@ Vehicles.prototype = {
 		
 		if(result.status === 0) {
 			fail(lang.error_request_failed_connectivity, result);
-		} else if (result.status === 304) {
+		} else if(result.status === 304) {
 			fail(lang.error_request_failed_no_data, result);
-		} if (result.statusText) {
+		} else if(result.statusText) {
 			fail(lang.error_request_failed_status.replace('$status', result.statusText), result);
 		} else {
 			fail(lang.error_request_failed, result);
@@ -463,6 +443,9 @@ function fail_ajax_popup(data) {
 	fail_ajax_generic(data, panel.fail.bind(panel));
 }
 
+function getGeometryFeature(feature) {
+	return getGeometryPair([feature.get('lon'), feature.get('lat')]);
+}
 function getGeometryPair(pair) {
 	return new ol.geom.Point(ol.proj.fromLonLat(pair));
 }
@@ -470,10 +453,10 @@ function getGeometry(object) {
 	return getGeometryPair([object.longitude / 3600000.0, object.latitude / 3600000.0]);
 }
 
-function markStops(stops, ttss_type, routeStyle) {
+function markStops(stops, featureSource, routeStyle) {
 	stop_selected_source.clear();
 	
-	var style = stops_layer['s' + ttss_type].getStyle().clone();
+	var style = stops_layer['s' + featureSource].getStyle().clone();
 	
 	if(routeStyle) {
 		style.getImage().setRadius(5);
@@ -490,8 +473,7 @@ function markStops(stops, ttss_type, routeStyle) {
 		if(stops[i].getId) {
 			feature = stops[i];
 		} else {
-			prefix = stops[i].substr(0,2);
-			feature = stops_source[prefix].getFeatureById(stops[i]);
+			feature = stops_source['s' + featureSource].getFeatureById(stops[i]);
 		}
 		if(feature) {
 			stop_selected_source.addFeature(feature);
@@ -510,43 +492,29 @@ function unstyleSelectedFeatures() {
 }
 
 function updateStopSource(stops, prefix) {
-	var source = stops_source[prefix];
-	var mapping = stops_mapping[prefix];
 	var stop;
 	for(var i = 0; i < stops.length; i++) {
 		stop = stops[i];
 		
-		if(stop.category === 'other') continue;
-		if(stops_ignored.includes(stop.shortName)) continue;
+		var feature = new ol.Feature(stop);
+		feature.setId(stop.id);
+		feature.setGeometry(getGeometryFeature(feature));
 		
-		stop.geometry = getGeometry(stop);
-		var stop_feature = new ol.Feature(stop);
-		
-		if(prefix.startsWith('p')) {
-			mapping[stop.stopPoint] = stop_feature;
+		if(feature.get('parent') === null) {
+			feature.set('_', 's' + prefix);
+			stops_source['s' + prefix].addFeature(feature);
 		} else {
-			mapping[stop.shortName] = stop_feature;
+			feature.set('_', 'p' + prefix);
+			stops_source['p' + prefix].addFeature(feature);
 		}
-		
-		stop_feature.setId(prefix + stop.id);
-		
-		source.addFeature(stop_feature);
 	}
 }
 
-function updateStops(stop_type, ttss_type) {
-	var methods = {
-		's': 'stops',
-		'p': 'stopPoints',
-	};
+function updateStops(ttss_type) {
 	return $.get(
-		ttss_urls[ttss_type] + '/geoserviceDispatcher/services/stopinfo/' + methods[stop_type]
-			+ '?left=-648000000'
-			+ '&bottom=-324000000'
-			+ '&right=648000000'
-			+ '&top=324000000'
+		api_url + '/stops/?type=' + ttss_type
 	).done(function(data) {
-		updateStopSource(data[methods[stop_type]], stop_type + ttss_type);
+		updateStopSource(data, ttss_type);
 	}).fail(fail_ajax);
 }
 
@@ -584,41 +552,34 @@ function vehicleTable(feature, table) {
 	if(feature_xhr) feature_xhr.abort();
 	if(feature_timer) clearTimeout(feature_timer);
 	
-	var featureId = feature.getId();
-	var ttss_type = featureId.substr(0, 1);
+	var featureDiscriminator = feature.get('_');
+	var featureType = featureDiscriminator.substr(0, 1);
+	var featureSource = featureDiscriminator.substr(1, 1);
+	var featureStatus = feature.get('status');
 	
 	feature_xhr = $.get(
-		ttss_urls[ttss_type] + '/services/tripInfo/tripPassages'
-			+ '?tripId=' + encodeURIComponent(feature.get('trip'))
-			+ '&mode=departure'
+		api_url + '/trip/?type=' + featureSource + '&id=' + feature.get('trip')
 	).done(function(data) {
-		if(typeof data.old === "undefined" || typeof data.actual === "undefined") {
-			return;
-		}
-		
 		deleteChildren(table);
 		
-		var all_departures = data.old.concat(data.actual);
 		var tr;
 		var stopsToMark = [];
-		for(var i = 0, il = all_departures.length; i < il; i++) {
+		for(var i = 0, il = data.length; i < il; i++) {
 			tr = document.createElement('tr');
-			addCellWithText(tr, all_departures[i].actualTime || all_departures[i].plannedTime);
-			addCellWithText(tr, all_departures[i].stop_seq_num + '. ' + normalizeName(all_departures[i].stop.name));
+			addCellWithText(tr, data[i].time);
+			addCellWithText(tr, (i+1) + '. ' + normalizeName(data[i].name));
 			
-			if(i >= data.old.length) {
-				stopsToMark.push('s' + ttss_type + all_departures[i].stop.id);
-			}
+			stopsToMark.push(data[i].stop);
 			
-			if(i < data.old.length) {
+			if(data[i].seq < feature.get('seq')) {
 				tr.className = 'active';
-			} else if(all_departures[i].status === 'STOPPING') {
+			} else if(data[i].seq == feature.get('seq') && featureStatus < 2) {
 				tr.className = 'success';
 			}
 			table.appendChild(tr);
 		}
 		
-		if(all_departures.length === 0) {
+		if(data.length === 0) {
 			tr = document.createElement('tr');
 			table.appendChild(tr);
 			tr = addCellWithText(tr, lang.no_data);
@@ -626,21 +587,23 @@ function vehicleTable(feature, table) {
 			tr.className = 'active';
 		}
 		
-		markStops(stopsToMark, ttss_type, true);
+		markStops(stopsToMark, featureSource, true);
 		
 		feature_timer = setTimeout(function() { vehicleTable(feature, table); }, api_refresh);
 	}).fail(fail_ajax_popup);
 	return feature_xhr;
 }
 
-function stopTable(stopType, stopId, table, ttss_type) {
+function stopTable(feature, table) {
 	if(feature_xhr) feature_xhr.abort();
 	if(feature_timer) clearTimeout(feature_timer);
 	
+	var featureDiscriminator = feature.get('_');
+	var featureType = featureDiscriminator.substr(0, 1);
+	var featureSource = featureDiscriminator.substr(1, 1);
+	
 	feature_xhr = $.get(
-		ttss_urls[ttss_type] + '/services/passageInfo/stopPassages/' + stopType
-			+ '?' + stopType + '=' + encodeURIComponent(stopId)
-			+ '&mode=departure'
+		api_url + '/stop/?type=' + featureSource + '&id=' + feature.getId()
 	).done(function(data) {
 		deleteChildren(table);
 		
@@ -650,7 +613,7 @@ function stopTable(stopType, stopId, table, ttss_type) {
 			tr = document.createElement('tr');
 			addCellWithText(tr, all_departures[i].patternText);
 			dir_cell = addCellWithText(tr, normalizeName(all_departures[i].direction));
-			vehicle = vehicles_info.getParsed(all_departures[i].vehicleId);
+			//vehicle = vehicles_info.getParsed(all_departures[i].vehicleId);
 			dir_cell.appendChild(displayVehicle(vehicle));
 			status = parseStatus(all_departures[i]);
 			status_cell = addCellWithText(tr, status);
@@ -672,13 +635,15 @@ function stopTable(stopType, stopId, table, ttss_type) {
 			table.appendChild(tr);
 		}
 		
-		feature_timer = setTimeout(function() { stopTable(stopType, stopId, table, ttss_type); }, api_refresh);
+		feature_timer = setTimeout(function() { stopTable(feature, table); }, api_refresh);
 	}).fail(fail_ajax_popup);
 	return feature_xhr;
 }
 
 function featureClicked(feature) {
-	if(feature && !feature.getId()) return;
+	if(!feature || !feature.getId() || !feature.get('_')) {
+		feature = null;
+	}
 	
 	unstyleSelectedFeatures();
 	
@@ -687,9 +652,13 @@ function featureClicked(feature) {
 		return;
 	}
 	
+	var featureDiscriminator = feature.get('_');
+	var featureType = featureDiscriminator.substr(0, 1);
+	var featureSource = featureDiscriminator.substr(1, 1);
+	
 	var div = document.createElement('div');
 	
-	var name = normalizeName(feature.get('name'));
+	var name = normalizeName(feature.get('name') ? feature.get('name') : feature.get('line') + ' ' + feature.get('dir'));
 	var additional;
 	var table = document.createElement('table');
 	var thead = document.createElement('thead');
@@ -699,24 +668,20 @@ function featureClicked(feature) {
 	
 	var tabular_data = true;
 	
-	var type = feature.getId().substr(0, 1);
-	var full_type = feature.getId().match(/^[a-z]+/)[0];
-	var typeName = lang.types[full_type];
+	var typeName = lang.types[featureDiscriminator];
 	if(typeof typeName === 'undefined') {
 		typeName = '';
 	}
 	
 	// Location
-	if(type == 'l') {
+	if(featureType == 'l') {
 		tabular_data = false;
 		name = typeName;
 		typeName = '';
 	}
 	// Vehicle
-	else if(ttss_types.includes(type)) {
-		vehicles[type].select(feature);
-		
-		var span = displayVehicle(feature.get('vehicle_type'));
+	else if(featureType == 'v') {
+		var span = displayVehicle(feature.get('type'));
 		
 		additional = document.createElement('p');
 		if(span.title) {
@@ -730,42 +695,41 @@ function featureClicked(feature) {
 		addElementWithText(thead, 'th', lang.header_stop);
 		
 		vehicleTable(feature, tbody);
-		vehiclePath(feature);
+		//vehiclePath(feature);
 	}
 	// Stop or stop point
-	else if(['s', 'p'].includes(type)) {
-		var ttss_type = feature.getId().substr(1, 1);
-		if(type == 's') {
+	else if(['s', 'p'].includes(featureType)) {
+		if(featureType == 's') {
 			var second_type = lang.departures_for_buses;
-			var mapping = stops_mapping['sb'];
+			var source = stops_source['sb'];
 			
-			if(ttss_type == 'b') {
+			if(featureSource == 'b') {
 				second_type = lang.departures_for_trams;
-				mapping = stops_mapping['st'];
+				source = stops_source['st'];
 			}
 			
-			stopTable('stop', feature.get('shortName'), tbody, ttss_type);
+			stopTable(feature, tbody);
 			
-			if(mapping[feature.get('shortName')]) {
+			var second = source.getFeatureById(feature.get('id'));
+			if(second) {
 				additional = document.createElement('p');
 				additional.className = 'small';
 				addElementWithText(additional, 'a', second_type).addEventListener(
 					'click',
 					function() {
-						featureClicked(mapping[feature.get('shortName')]);
+						featureClicked(second);
 					}
 				);
 			}
 		} else {
-			stopTable('stopPoint', feature.get('stopPoint'), tbody, ttss_type);
+			stopTable(feature, tbody);
 			
 			additional = document.createElement('p');
 			additional.className = 'small';
 			addElementWithText(additional, 'a', lang.departures_for_stop).addEventListener(
 				'click',
 				function() {
-					var mapping = stops_mapping['s' + ttss_type];
-					featureClicked(mapping[feature.get('shortName')]);
+					featureClicked(stops_source['s' + featureSource].getFeatureById(feature.get('parent')));
 				}
 			);
 		}
@@ -774,8 +738,6 @@ function featureClicked(feature) {
 		addElementWithText(thead, 'th', lang.header_direction);
 		addElementWithText(thead, 'th', lang.header_time);
 		addElementWithText(thead, 'th', lang.header_delay);
-		
-		markStops([feature], feature.getId().substr(1,1));
 	} else {
 		panel.close();
 		return;
@@ -806,22 +768,23 @@ function featureClicked(feature) {
 	
 	if(tabular_data) {
 		div.appendChild(table);
-		hash.set(feature.getId());
 	}
 	
 	showOnMapFunction();
 	
 	panel.show(div, function() {
-		hash.set('');
-		
 		unstyleSelectedFeatures();
 		
 		if(path_xhr) path_xhr.abort();
 		if(feature_xhr) feature_xhr.abort();
 		if(feature_timer) clearTimeout(feature_timer);
-	});
+	}, tabular_data ? featureDiscriminator + feature.getId() : '');
 	
-	feature_clicked = feature;
+	if(featureType == 'v') {
+		vehicles[featureSource].select(feature);
+	} else if(['s', 'p'].includes(featureType)) {
+		markStops([feature], featureSource);
+	}
 }
 
 function listFeatures(features) {
@@ -834,7 +797,7 @@ function listFeatures(features) {
 	
 	addParaWithText(div, lang.select_feature);
 	
-	var feature, p, a, full_type, typeName;
+	var feature, p, a, featureDiscriminator, typeName;
 	for(var i = 0; i < features.length; i++) {
 		feature = features[i];
 		
@@ -845,18 +808,18 @@ function listFeatures(features) {
 			featureClicked(feature);
 		}}(feature));
 		
-		full_type = feature.getId().match(/^[a-z]+/)[0];
-		typeName = lang.types[full_type];
+		featureDiscriminator = feature.get('_');
+		typeName = lang.types[featureDiscriminator];
 		if(typeof typeName === 'undefined') {
 			typeName = '';
 		}
-		if(feature.get('vehicle_type')) {
-			typeName += ' ' + feature.get('vehicle_type').num;
+		if(feature.get('type')) {
+			typeName += ' ' + feature.get('type').num;
 		}
 		
 		addElementWithText(a, 'span', typeName).className = 'small';
 		a.appendChild(document.createTextNode(' '));
-		addElementWithText(a, 'span', normalizeName(feature.get('name')));
+		addElementWithText(a, 'span', normalizeName(feature.get('name') ? feature.get('name') : feature.get('line') + ' ' + feature.get('dir')));
 		
 		div.appendChild(p);
 	}
@@ -938,20 +901,18 @@ Hash.prototype = {
 		return false;
 	},
 	_updateOld: function() {
-		if(window.location.hash.match(/^#!t[0-9]{3}$/)) {
-			this.go(depotIdToVehicleId(window.location.hash.substr(3), 't'));
-		} else if(window.location.hash.match(/^#!b[0-9]{3}$/)) {
-			this.go(depotIdToVehicleId(window.location.hash.substr(3), 'b'));
-		} else if(window.location.hash.match(/^#![A-Za-z]{2}[0-9]{3}$/)) {
-			this.go(depotIdToVehicleId(window.location.hash.substr(2)));
-		} else if(window.location.hash.match(/^#!v-?[0-9]+$/)) {
-			this.go('t' + window.location.hash.substr(3));
+		if(window.location.hash.match(/^#![bt][0-9]{3}$/)) {
+			this.go('v' + window.location.hash.substr(2));
+		} else if(window.location.hash.match(/^#![RHrh][A-Za-z][0-9]{3}$/)) {
+			this.go('vt'+ window.location.hash.substr(4));
+		} else if(window.location.hash.match(/^#![BDPbdp][A-Za-z][0-9]{3}$/)) {
+			this.go('vb'+ window.location.hash.substr(4));
 		}
 	},
 	ready: function() {
 		this._updateOld();
 		this.changed();
-		window.addEventListener('hashchange', this.changed, false);
+		window.addEventListener('hashchange', this.changed.bind(this), false);
 	},
 	go: function(id) {
 		this._ignoreChange = false;
@@ -968,14 +929,13 @@ Hash.prototype = {
 		}
 		
 		var feature = null;
+		var source = null;
 		var vehicleId = null;
 		var stopId = null;
 		
-		if(window.location.hash.match(/^#![tb]-?[0-9]+$/)) {
-			vehicleId = window.location.hash.substr(2);
-		} else if(window.location.hash.match(/^#![sp]-?[0-9]+$/)) {
-			stopId = window.location.hash.substr(2,1) + 't' + window.location.hash.substr(3);
-		} else if(window.location.hash.match(/^#![sp][tb]-?[0-9]+$/)) {
+		if(window.location.hash.match(/^#!v[tb][0-9]+$/)) {
+			vehicleId = window.location.hash.substr(3);
+		} else if(window.location.hash.match(/^#![sp][tb][0-9a-z_]+$/)) {
 			stopId = window.location.hash.substr(2);
 		} else if(window.location.hash.match(/^#!f$/)) {
 			find.open(panel);
@@ -983,10 +943,9 @@ Hash.prototype = {
 		}
 		
 		if(vehicleId) {
-			vehicles[vehicleId.substr(0, 1)].select(vehicleId);
-			return true;
+			feature = vehicles[vehicleId.substr(0,1)].source.getFeatureById(vehicleId.substr(1));
 		} else if(stopId) {
-			feature = stops_source[stopId.substr(0,2)].getFeatureById(stopId);
+			feature = stops_source[stopId.substr(0,2)].getFeatureById(stopId.substr(2));
 		}
 		
 		featureClicked(feature);
@@ -1179,15 +1138,10 @@ function init() {
 	map.getView().on('change:resolution', change_resolution);
 	change_resolution();
 	
-	var future_requests = [
-		vehicles_info.update(),
-	];
+	var future_requests = [];
 	ttss_types.forEach(function(type) {
-		vehicles_info.addWatcher(vehicles[type].typesUpdated.bind(vehicles[type]));
 		future_requests.push(vehicles[type].fetch());
-	});
-	stops_type.forEach(function(type) {
-		future_requests.push(updateStops(type.substr(0,1), type.substr(1,1)));
+		future_requests.push(updateStops(type));
 	});
 	
 	hash = new Hash();

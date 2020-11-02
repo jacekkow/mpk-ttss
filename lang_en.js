@@ -50,8 +50,8 @@ var lang = {
 	
 	types: {
 		v: 'Vehicle',
-		b: 'Bus',
-		t: 'Tram',
+		vb: 'Bus',
+		vt: 'Tram',
 		s: 'Stop',
 		sb: 'Bus stop',
 		st: 'Tram stop',
