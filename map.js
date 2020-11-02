@@ -268,12 +268,6 @@ Vehicles.prototype = {
 			}),
 			text: new ol.style.Text({
 				font: 'bold 10px sans-serif',
-				// TODO: special directions
-				// vehicle.line = vehicle.name.substr(0, vehicle_name_space);
-				// vehicle.direction = normalizeName(vehicle.name.substr(vehicle_name_space+1));
-				// if(special_directions[vehicle.direction]) {
-				// 	vehicle.line = special_directions[vehicle.direction];
-				// }
 				text: feature.get('line'),
 				fill: new ol.style.Fill({color: 'white'}),
 			}),
@@ -386,12 +380,15 @@ Vehicles.prototype = {
 			api_url + '/positions/?type=' + this.prefix + '&last=' + this.lastUpdate
 		).done(function(data) {
 			try {
+				if(data['date'] < self.lastUpdate) {
+					console.log('Data older than lastUpdate!');
+				}
 				if(data['type'] == 'full') {
 					self.loadFullData(data['pos']);
 				} else {
 					self.loadDiffData(data['pos']);
 				}
-				self.lastUpdate = data['last'];
+				self.lastUpdate = data['date'];
 				setTimeout(self.fetchXhr.bind(self), api_refresh);
 			} catch(e) {
 				console.log(e);
