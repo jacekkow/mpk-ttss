@@ -189,7 +189,7 @@ Find.prototype = {
 		
 		ttss_types.forEach(function(ttss_type) {
 			vehicles[ttss_type].source.forEachFeature(function(feature) {
-				if(feature.get('vehicle_type') && feature.get('vehicle_type').num.indexOf(query) > -1) {
+				if(feature.get('type') && feature.get('type').num.indexOf(query) > -1) {
 					features.push(feature);
 				}
 			});
