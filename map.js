@@ -600,23 +600,22 @@ function stopTable(feature, table) {
 	var featureSource = featureDiscriminator.substr(1, 1);
 	
 	feature_xhr = $.get(
-		api_url + '/stop/?type=' + featureSource + '&id=' + feature.getId()
+		api_url + '/schedule/?type=' + featureSource + '&id=' + feature.getId()
 	).done(function(data) {
 		deleteChildren(table);
 		
-		var all_departures = data.old.concat(data.actual);
 		var tr, dir_cell, vehicle, status, status_cell, delay, delay_cell;
-		for(var i = 0, il = all_departures.length; i < il; i++) {
+		for(var i = 0, il = data.length; i < il; i++) {
 			tr = document.createElement('tr');
-			addCellWithText(tr, all_departures[i].patternText);
-			dir_cell = addCellWithText(tr, normalizeName(all_departures[i].direction));
+			addCellWithText(tr, data[i].line);
+			dir_cell = addCellWithText(tr, data[i].direction);
 			//vehicle = vehicles_info.getParsed(all_departures[i].vehicleId);
-			dir_cell.appendChild(displayVehicle(vehicle));
-			status = parseStatus(all_departures[i]);
-			status_cell = addCellWithText(tr, status);
-			delay = parseDelay(all_departures[i]);
-			delay_cell = addCellWithText(tr, delay);
-			
+			//dir_cell.appendChild(displayVehicle(vehicle));
+			//status = parseStatus(all_departures[i]);
+			status_cell = addCellWithText(tr, data[i].time);
+			//delay = parseDelay(all_departures[i]);
+			delay_cell = addCellWithText(tr, '');
+			/*
 			if(i < data.old.length) {
 				tr.className = 'active';
 			} else if(status === lang.boarding_sign) {
@@ -628,7 +627,7 @@ function stopTable(feature, table) {
 			} else if(parseInt(delay) > 3) {
 				tr.className = 'warning';
 			}
-			
+			*/
 			table.appendChild(tr);
 		}
 		
@@ -1143,19 +1142,6 @@ function init() {
 	
 	hash = new Hash();
 	Deferred.all(future_requests).done(hash.ready.bind(hash));
-	
-	setTimeout(function() {
-		ttss_types.forEach(function(type) {
-			if(vehicles_xhr[type]) {
-				vehicles_xhr[type].abort();
-			}
-			if(vehicles_timer[type]) {
-				clearTimeout(vehicles_timer[type]);
-			}
-		});
-		
-		fail(lang.error_refresh);
-	}, 1800000);
 }
 
 init();
