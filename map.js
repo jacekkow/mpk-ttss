@@ -545,7 +545,7 @@ function vehiclePath(feature) {
 	return path_xhr;
 }
 
-function vehicleTable(feature, table) {
+function vehicleTable(feature, table, post, trip) {
 	if(feature_xhr) feature_xhr.abort();
 	if(feature_timer) clearTimeout(feature_timer);
 	
@@ -554,9 +554,13 @@ function vehicleTable(feature, table) {
 	var featureSource = featureDiscriminator.substr(1, 1);
 	var featureStatus = feature.get('status');
 	
+	var isTripCurrent = !trip || feature.get('trip') == trip;
+	
 	feature_xhr = $.get(
-		api_url + '/trip/?type=' + featureSource + '&id=' + feature.get('trip')
-	).done(function(data) {
+		api_url + '/trip/?type=' + featureSource + '&id=' + (trip ? trip : feature.get('trip'))
+	).done(function(results) {
+		var data = results['data'];
+		
 		deleteChildren(table);
 		
 		var tr;
@@ -568,10 +572,12 @@ function vehicleTable(feature, table) {
 			
 			stopsToMark.push(data[i].stop);
 			
-			if(data[i].seq < feature.get('seq')) {
-				tr.className = 'active';
-			} else if(data[i].seq == feature.get('seq') && featureStatus < 2) {
-				tr.className = 'success';
+			if(isTripCurrent) {
+				if(data[i].seq < feature.get('seq')) {
+					tr.className = 'active';
+				} else if(data[i].seq == feature.get('seq') && featureStatus < 2) {
+					tr.className = 'success';
+				}
 			}
 			table.appendChild(tr);
 		}
@@ -584,9 +590,42 @@ function vehicleTable(feature, table) {
 			tr.className = 'active';
 		}
 		
+		deleteChildren(post);
+		
+		if(results['prev']) {
+			tr = addElementWithText(post, 'a', lang.trip_previous);
+			tr.className = 'left';
+			tr.onclick = function() {
+				vehicleTable(feature, table, post, results['prev']);
+			};
+		} else {
+			tr = document.createElement('span');
+			post.appendChild(tr);
+		}
+		if(!isTripCurrent) {
+			tr = addElementWithText(post, 'a', lang.trip_current);
+			tr.className = 'center';
+			tr.onclick = function() {
+				vehicleTable(feature, table, post);
+			};
+		} else {
+			tr = document.createElement('span');
+			post.appendChild(tr);
+		}
+		if(results['next']) {
+			tr = addElementWithText(post, 'a', lang.trip_next);
+			tr.className = 'right';
+			tr.onclick = function() {
+				vehicleTable(feature, table, post, results['next']);
+			};
+		} else {
+			tr = document.createElement('span');
+			post.appendChild(tr);
+		}
+		
 		markStops(stopsToMark, featureSource, true);
 		
-		feature_timer = setTimeout(function() { vehicleTable(feature, table); }, api_refresh);
+		feature_timer = setTimeout(function() { vehicleTable(feature, table, post, trip); }, api_refresh);
 	}).fail(fail_ajax_popup);
 	return feature_xhr;
 }
@@ -661,6 +700,7 @@ function featureClicked(feature) {
 	var tbody = document.createElement('tbody');
 	table.appendChild(thead);
 	table.appendChild(tbody);
+	var post;
 	
 	var tabular_data = true;
 	
@@ -690,7 +730,10 @@ function featureClicked(feature) {
 		addElementWithText(thead, 'th', lang.header_time);
 		addElementWithText(thead, 'th', lang.header_stop);
 		
-		vehicleTable(feature, tbody);
+		post = document.createElement('div');
+		post.className = 'post-nav';
+		
+		vehicleTable(feature, tbody, post);
 		//vehiclePath(feature);
 	}
 	// Stop or stop point
@@ -764,6 +807,10 @@ function featureClicked(feature) {
 	
 	if(tabular_data) {
 		div.appendChild(table);
+	}
+	
+	if(post) {
+		div.appendChild(post);
 	}
 	
 	showOnMapFunction();

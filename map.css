@@ -144,6 +144,25 @@ html, body, #map {
 	float: right;
 }
 
+.post-nav {
+	display: flex;
+	flex-wrap: wrap;
+}
+.post-nav > * {
+	flex-basis: 0;
+	flex-grow: 1;
+}
+
+.left {
+	text-align: left;
+}
+.center {
+	text-align: center;
+}
+.right {
+	text-align: right;
+}
+
 .icon, .icon-loc, .icon-pin, .icon-zoom {
 	display: inline-block;
 	height: 1em;

@@ -67,6 +67,9 @@ var lang = {
 	departures_for_stop: 'Kliknij, by zobaczyć odjazdy dla całego przystanku (a nie tylko peronu).',
 	departures_for_trams: 'Przełącz na odjazdy tramwajów.',
 	departures_for_buses: 'Przełącz na odjazdy autobusów.',
+	trip_previous: '\u00AB poprzedni',
+	trip_current: 'aktualny',
+	trip_next: 'następny \u00BB',
 	
 	tram_type_pattern: '$num $type ($floor)',
 	high_floor: 'wysokopodłogowy',

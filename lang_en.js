@@ -67,6 +67,9 @@ var lang = {
 	departures_for_stop: 'Click for stop departures (and not only this stop point).',
 	departures_for_trams: 'Switch to tram departures.',
 	departures_for_buses: 'Switch to bus departures.',
+	trip_previous: '\u00AB previous',
+	trip_current: 'current',
+	trip_next: 'next \u00BB',
 	
 	tram_type_pattern: '$num $type ($floor)',
 	high_floor: 'high floor',
