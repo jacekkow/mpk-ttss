@@ -107,6 +107,7 @@ foreach($method[$path] as $name => $filter) {
 	$parameters[$name] = $_GET[$name];
 }
 
+ini_set('default_socket_timeout', 5);
 $result = @file_get_contents($base_proxy . $path . '?' . http_build_query($parameters));
 if(!$result OR substr($http_response_header[0], 0, 13) != 'HTTP/1.1 200 ') {
 	header('HTTP/1.1 503 Service Unavailable');
