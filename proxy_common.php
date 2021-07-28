@@ -108,7 +108,7 @@ foreach($method[$path] as $name => $filter) {
 }
 
 $result = @file_get_contents($base_proxy . $path . '?' . http_build_query($parameters));
-if(!$result OR $http_response_header[0] != 'HTTP/1.1 200 OK') {
+if(!$result OR substr($http_response_header[0], 0, 13) != 'HTTP/1.1 200 ') {
 	header('HTTP/1.1 503 Service Unavailable');
 	if(isset($http_response_header[0])) {
 		die($http_response_header[0]);
