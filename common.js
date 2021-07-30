@@ -285,22 +285,44 @@ function displayVehicle(vehicleInfo) {
 	var span = document.createElement('span');
 	span.className = 'vehicleInfo';
 	
+	var text = '';
+	
 	var floor_type = '';
 	if(vehicleInfo.low === 0) {
-		setText(span, lang.high_floor_sign);
+		text += lang.high_floor_sign;
 		floor_type = lang.high_floor;
 	} else if(vehicleInfo.low === 1) {
-		setText(span, lang.partially_low_floor_sign);
+		text += lang.partially_low_floor_sign;
 		floor_type = lang.partially_low_floor;
 	} else if(vehicleInfo.low === 2) {
-		setText(span, lang.low_floor_sign);
+		text += lang.low_floor_sign;
 		floor_type = lang.low_floor;
 	}
 	
-	span.title = lang.tram_type_pattern
+	var air_conditioning = '';
+	if(vehicleInfo.ac) {
+		text += lang.air_conditioning_sign;
+		air_conditioning = lang.air_conditioning;
+	}
+	
+	setText(span, text);
+	
+	span.dataset.typeFull = lang.tram_type_pattern
 		.replace('$num', vehicleInfo.num)
 		.replace('$type', vehicleInfo.type)
-		.replace('$floor', floor_type);
+		.replace('$floor', floor_type)
+		.replace('$ac', air_conditioning);
+	span.dataset.typeShort = lang.tram_type_pattern_short
+		.replace('$num', vehicleInfo.num)
+		.replace('$type', vehicleInfo.type)
+		.replace('$floor', floor_type)
+		.replace('$ac', air_conditioning);
+	span.dataset.typeAdditional = lang.tram_type_pattern_additional
+		.replace('$num', vehicleInfo.num)
+		.replace('$type', vehicleInfo.type)
+		.replace('$floor', floor_type)
+		.replace('$ac', air_conditioning);
+	span.title = span.dataset.typeFull;
 	
 	return span;
 }

@@ -720,8 +720,10 @@ function featureClicked(feature) {
 		var span = displayVehicle(feature.get('type'));
 		
 		additional = document.createElement('p');
-		if(span.title) {
-			setText(additional, span.title);
+		if(span.dataset.typeShort) {
+			setText(additional, span.dataset.typeShort);
+			additional.title = span.dataset.typeAdditional;
+			span.removeAttribute('title');
 		} else {
 			setText(additional, feature.getId());
 		}

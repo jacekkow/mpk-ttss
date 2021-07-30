@@ -71,7 +71,9 @@ var lang = {
 	trip_current: 'current',
 	trip_next: 'next \u00BB',
 	
-	tram_type_pattern: '$num $type ($floor)',
+	tram_type_pattern: '$num $type ($floor$ac)',
+	tram_type_pattern_short: '$num $type',
+	tram_type_pattern_additional: '$floor$ac',
 	high_floor: 'high floor',
 	high_floor_sign: '\u2010\u00A0',
 	high_floor_description: 'high-floor vehicle',
@@ -81,6 +83,9 @@ var lang = {
 	low_floor: 'low floor',
 	low_floor_sign: '\u267F',
 	low_floor_description: 'low-floor vehicle',
+	air_conditioning: ', air conditioning',
+	air_conditioning_sign: '\u2744',
+	air_conditioning_description: 'has air conditioning unit',
 	
 	status_departed: 'Departed',
 	status_stopped: 'At stop',

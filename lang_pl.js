@@ -71,7 +71,9 @@ var lang = {
 	trip_current: 'aktualny',
 	trip_next: 'następny \u00BB',
 	
-	tram_type_pattern: '$num $type ($floor)',
+	tram_type_pattern: '$num $type ($floor$ac)',
+	tram_type_pattern_short: '$num $type',
+	tram_type_pattern_additional: '$floor$ac',
 	high_floor: 'wysokopodłogowy',
 	high_floor_sign: '\u2010\u00A0',
 	high_floor_description: 'pojazd wysokopodłogowy',
@@ -81,6 +83,9 @@ var lang = {
 	low_floor: 'niskopodłogowy',
 	low_floor_sign: '\u267F',
 	low_floor_description: 'pojazd niskopodłogowy',
+	air_conditioning: ', klimatyzacja',
+	air_conditioning_sign: '\u2744',
+	air_conditioning_description: 'posiada klimatyzację',
 	
 	status_departed: 'Odjechał',
 	status_stopped: 'Na przystanku',
