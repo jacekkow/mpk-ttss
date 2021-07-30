@@ -946,8 +946,8 @@ Hash.prototype = {
 		return false;
 	},
 	_updateOld: function() {
-		if(window.location.hash.match(/^#!sb[0-9]{1,3}$/)) {
-			this.go('sb' + window.location.hash.substr(4).padStart(4, '0'));
+		if(window.location.hash.match(/^#!s[bt][0-9]{1,3}$/)) {
+			this.go('s' + window.location.hash.charAt(3) + window.location.hash.substr(4).padStart(4, '0'));
 		} else if(window.location.hash.match(/^#![bt][0-9]{3}$/)) {
 			this.go('v' + window.location.hash.substr(2));
 		} else if(window.location.hash.match(/^#![RHrh][A-Za-z][0-9]{3}$/)) {
