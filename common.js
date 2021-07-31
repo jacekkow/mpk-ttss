@@ -123,7 +123,7 @@ function checkVersionInit() {
  **********/
 
 function deepMerge(a1, a2) {
-	if(typeof a1 !== 'object' || typeof a2 !== 'object') {
+	if(a1 === null || typeof a1 !== 'object' || a2 === null || typeof a2 !== 'object') {
 		return a2;
 	}
 	Object.keys(a2).forEach(function (key) {
